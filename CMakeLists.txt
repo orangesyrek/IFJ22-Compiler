@@ -4,14 +4,14 @@ project(IFJ C)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -std=gnu99")
 set(src
-	main.c
-	compiler.c
-	lexical_analysis.c
-	symtab.c)
+	src/main.c
+	src/compiler.c
+	src/lexical_analysis.c
+	src/symtab.c)
 set(header
-	compiler.h
-	symtab.h
-	lexical_analysis.h)
+	src/compiler.h
+	src/symtab.h
+	src/lexical_analysis.h)
 
 add_executable(interpret ${src} ${header})
 
