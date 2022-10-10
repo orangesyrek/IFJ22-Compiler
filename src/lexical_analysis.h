@@ -19,12 +19,14 @@ typedef enum {
 	REL_LESS_EQ,	/* <= */
 	REL_GREATER,	/* > */
 	REL_GREATER_EQ,	/* >= */
-	PLUS,	/* + */
-	MINUS,	/* - */
-	ASTERISK,	/* * */
-	SLASH,	/* / */
-	DOT,	/* . */
-	COMMA,	/* , */
+	PLUS,	/* + TODO*/
+	MINUS,	/* - TODO*/
+	ASTERISK,	/* * TODO*/
+	SLASH,	/* / TODO*/
+	DOT,	/* . TODO*/
+	COMMA,	/* , TODO*/
+	COLON,	/* : TODO*/
+	EXCLAMATION_MARK,	/* ! TODO*/
 	NL,	/* \n */
 	KEYWORD_IF,	/* if */
 	KEYWORD_ELSE,	/* else */
@@ -33,11 +35,11 @@ typedef enum {
 	KEYWORD_RETURN,	/* return */
 	KEYWORD_VOID,	/* void */
 	KEYWORD_WHILE,	/* while */
-	COLON,	/* : */
-	EXCLAMATION_MARK,	/* ! */
-	COMMENT,	/* */
+	KEYWORD_DECLARE, /* declare */
+	KEYWORD_STRICT_TYPES, /* strict_types */
+	COMMENT,	/* TODO*/
 	PROLOG_END, /* ?> */
-	LEX_EOF,	/* EOF */
+	LEX_EOF,	/* EOF TODO*/
 } lex_types;
 
 void print_ctx();
