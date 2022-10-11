@@ -15,7 +15,7 @@ typedef enum {
 	L_CURLY,	/* { */
 	R_CURLY,	/* } */
 	REL_IDENTICAL,	/* === */
-	REL_NOT_IDENTIKAL, /* !== /*
+	REL_NOT_IDENTIKAL, /* !== */
 	REL_LESS,	/* < */
 	REL_LESS_EQ,	/* <= */
 	REL_GREATER,	/* > */
@@ -40,7 +40,7 @@ typedef enum {
 	KEYWORD_STRICT_TYPES, /* strict_types */
 	COMMENT,	/* */
 	PROLOG_END, /* ?> */
-	LEX_EOF,	/* EOF TODO*/
+	LEX_EOF,	/* EOF */
 } lex_types;
 
 void print_ctx();
