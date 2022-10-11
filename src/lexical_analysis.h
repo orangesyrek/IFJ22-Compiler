@@ -15,18 +15,19 @@ typedef enum {
 	L_CURLY,	/* { */
 	R_CURLY,	/* } */
 	REL_IDENTICAL,	/* === */
+	REL_NOT_IDENTIKAL, /* !== /*
 	REL_LESS,	/* < */
 	REL_LESS_EQ,	/* <= */
 	REL_GREATER,	/* > */
 	REL_GREATER_EQ,	/* >= */
-	PLUS,	/* + TODO*/
-	MINUS,	/* - TODO*/
-	ASTERISK,	/* * TODO*/
-	SLASH,	/* / TODO*/
-	DOT,	/* . TODO*/
-	COMMA,	/* , TODO*/
-	COLON,	/* : TODO*/
-	EXCLAMATION_MARK,	/* ! TODO*/
+	PLUS,	/* + */
+	MINUS,	/* - */
+	ASTERISK,	/* * */
+	SLASH,	/* / */
+	DOT,	/* . */
+	COMMA,	/* , */
+	COLON,	/* : */
+	EXCLAMATION_MARK,	/* ! */
 	NL,	/* \n */
 	KEYWORD_IF,	/* if */
 	KEYWORD_ELSE,	/* else */
@@ -37,7 +38,7 @@ typedef enum {
 	KEYWORD_WHILE,	/* while */
 	KEYWORD_DECLARE, /* declare */
 	KEYWORD_STRICT_TYPES, /* strict_types */
-	COMMENT,	/* TODO*/
+	COMMENT,	/* */
 	PROLOG_END, /* ?> */
 	LEX_EOF,	/* EOF TODO*/
 } lex_types;
