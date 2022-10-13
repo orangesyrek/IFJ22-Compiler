@@ -7,7 +7,6 @@ typedef enum {
 	ASSIGNMENT,	/* = */
 	INT_LIT,	/* 42 */
 	DECIMAL_LIT,	/* 42.5, 42e+10,42.5E-2 */
-	PARAM_TYPE,	/* int, ?int */
 	VAR,		/* $x */
 	L_PAR,		/* ( */
 	R_PAR,		/* ) */
@@ -26,8 +25,11 @@ typedef enum {
 	DOT,	/* . TODO*/
 	COMMA,	/* , TODO*/
 	COLON,	/* : TODO*/
-	EXCLAMATION_MARK,	/* ! TODO*/
-	NL,	/* \n */
+	PARAM_TYPE,	/* int, ?int */
+	COMMENT,	/* TODO*/
+	PROLOG_START,
+	PROLOG_END, /* ?> */
+	LEX_EOF,	/* EOF TODO*/
 	KEYWORD_IF,	/* if */
 	KEYWORD_ELSE,	/* else */
 	KEYWORD_FUNCTION,	/* function */
@@ -37,10 +39,20 @@ typedef enum {
 	KEYWORD_WHILE,	/* while */
 	KEYWORD_DECLARE, /* declare */
 	KEYWORD_STRICT_TYPES, /* strict_types */
-	COMMENT,	/* TODO*/
-	PROLOG_END, /* ?> */
-	LEX_EOF,	/* EOF TODO*/
 } lex_types;
+
+struct lexeme {
+	lex_types type;
+	char *id;
+
+	union {
+		int val;
+		double val;
+		char *val;
+	} value;
+
+	unsigned int symtab_index;
+};
 
 void print_ctx();
 
