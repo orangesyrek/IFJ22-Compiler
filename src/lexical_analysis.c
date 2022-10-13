@@ -1,20 +1,21 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "compiler.h"
+#include "lexical_analysis.h"
 
 extern struct compiler_ctx *ctx;
 
 void print_ctx()
 {
-	printf("%d %d\n", ctx->last_read, ctx->current_row);
-	ctx->current_row = 1;
+
+    printf("%d %d\n", ctx->last_read, ctx->current_row);
+    ctx->current_row = 1;
 }
 
-
-
 void *
-nc_realloc(void *ptr, size_t size)
+la_realloc(void *ptr, size_t size)
 {
     void *ret;
 
@@ -26,16 +27,18 @@ nc_realloc(void *ptr, size_t size)
     return ret;
 }
 
-
-void fun()
+void
+fun()
 {
-	struct lexeme lex1;
-	c = getchar();
-	if (c == '$') {
-		while ((c = getchar()) != ' ') {
+    struct lexeme lex1 = {0};
+    int c;
 
-		nc_realloc(lex1.id, strlen(lex1.id) + 1);
-		lex1.id[strlen(id)-1] = c;
-		}
-	}
+    c = getchar();
+    if (c == '$') {
+        while ((c = getchar()) != ' ') {
+
+        la_realloc(lex1.id, strlen(lex1.id) + 1);
+        lex1.id[strlen(lex1.id)-1] = c;
+        }
+    }
 }
