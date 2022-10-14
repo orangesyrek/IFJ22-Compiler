@@ -41,11 +41,58 @@ typedef enum {
     KEYWORD_STRICT_TYPES, /* strict_types */
 } lex_types;
 
-<<<<<<< HEAD
+typedef enum {
+    Start, /**/
+    SLASH, /* / */
+    ONE_LINE_COMMENT,
+    BACKSLASH, /* \ */
+    COMMENT_END,
+    MULTI_LINE_COMMENT,
+    MULTIPLY, /* * */
+    VAR_PREFIX,
+    VAR,
+    SEMICOLON, /* ; */
+    R_CURLY,   /* } */
+    L_CURLY, /* { */
+    REL_LESS, /* < */
+    REL_LESS_EQ, /* <= */
+    PROLOG, /* <?php */
+    REL_GREATER, /* > */
+    REL_GREATER_EQ,/* >= */
+    PLUS,
+    MINUS,
+    ASTERISK,
+    DOT,
+    COMMA,
+    COLON,
+    L_PAR, /* ( */
+    R_PAR, 
+    QUESTION_MARK,
+    PROLOG_END,
+    FUN_ID,
+    INT_LIT,
+    INT_LIT_DOT,
+    INT_LIT_E,
+    DEC_LIT_TMP,
+    INT_LIT_E_SIGN,
+    DECIMAL_LIT,
+    DEC_LIT_E_TMP,
+    STR_LIT_BEGIN,
+    STR_LIT,
+    STR_LIT_ESCAPE,
+    ASSIGNMENT,
+    DOUBLEASSIGNMENT, /* == */
+    REL_IDENTICAL, /* ==== */
+    EXCLAMATION_MARK, /* ! */
+    EXCLAMATION_MARK_EQUAL, /* != */
+    REL_NEQ, /* !== */
+    LEX_EOF, /* EOF */ //45
+    PROLOG_FIRST,
+    PROLOG_SECOND,
+    PROLOG_THIRD,
+    ERROR,
+} state;
 
-
-=======
->>>>>>> main
 struct lexeme {
     lex_types type;
     char *id;
