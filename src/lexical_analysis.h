@@ -41,8 +41,11 @@ typedef enum {
     KEYWORD_STRICT_TYPES, /* strict_types */
 } lex_types;
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> main
 struct lexeme {
     lex_types type;
     char *id;
