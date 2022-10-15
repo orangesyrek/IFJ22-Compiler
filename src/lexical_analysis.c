@@ -27,18 +27,19 @@ la_realloc(void *ptr, size_t size)
     return ret;
 }
 
-void
-fun()
-{
-    struct lexeme lex1 = {0};
-    int c;
 
-    c = getchar();
-    if (c == '$') {
-        while ((c = getchar()) != ' ') {
-
-        la_realloc(lex1.id, strlen(lex1.id) + 1);
-        lex1.id[strlen(lex1.id)-1] = c;
-        }
-    }
-}
+// void
+// fun()
+// {
+//     struct lexeme lex1 = {0};
+//     int c;
+//
+//     c = getchar();
+//     if (c == '$') {
+//         while ((c = getchar()) != ' ') {
+//
+//         la_realloc(lex1.id, strlen(lex1.id) + 1);
+//         lex1.id[strlen(lex1.id)-1] = c;
+//         }
+//     }
+// }
