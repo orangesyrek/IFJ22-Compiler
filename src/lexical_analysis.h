@@ -88,7 +88,7 @@ typedef enum {
     EXCLAMATION_MARK, /* ! */
     EXCLAMATION_MARK_EQUAL, /* != */
     REL_NEQ_STATE, /* !== */
-    LEX_EOF_STATE, /* EOF */ 
+    LEX_EOF_STATE, /* EOF */
     PROLOG_FIRST, /* <? */
     PROLOG_SECOND, /* <?p */
     PROLOG_THIRD, /* <?ph */
@@ -108,9 +108,10 @@ struct lexeme {
     unsigned int symtab_index;
 };
 
+void printToken(struct lexeme lex);
 void print_ctx();
 static state getnextstate(state currentState, int input); /* decide what is next state based on input and current state */
 static lex_types make_lexeme(state final); /* where lexemes are generated, can generate only if you are in state where you can generate something */
-struct lexeme get_token(); 
+struct lexeme get_token();
 
 #endif

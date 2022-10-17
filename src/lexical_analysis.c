@@ -8,6 +8,135 @@
 
 extern struct compiler_ctx *ctx;
 
+
+/*
+1.
+*/
+
+void printToken(struct lexeme lex){
+  switch(lex.type){
+    case FUN_ID:
+        printf("%s\n", "FUN_ID");
+        break;
+    case STR_LIT:
+        printf("%s\n", "STR_LIT");
+        break;
+    case ASSIGNMENT:
+        printf("%s\n", "ASSIGNMENT");
+        break;
+    case INT_LIT:
+        printf("%s\n", "INT_LIT");
+        break;
+    case DECIMAL_LIT:
+        printf("%s\n", "DECIMAL_LIT");
+        break;
+    case VAR:
+        printf("%s\n", "VAR");
+        break;
+    case L_PAR:
+        printf("%s\n", "L_PAR");
+        break;
+    case R_PAR:
+        printf("%s\n", "R_PAR");
+        break;
+    case SEMICOLON:
+        printf("%s\n", "SEMICOLON");
+        break;
+    case L_CURLY:
+        printf("%s\n", "L_CURLY");
+        break;
+    case R_CURLY:
+        printf("%s\n", "R_CURLY");
+        break;
+  case   REL_IDENTICAL:
+      printf("%s\n", "REL_IDENTICAL");
+      break;
+  case   REL_NEQ:
+      printf("%s\n", "REL_NEQ");
+      break;
+    case REL_LESS:
+        printf("%s\n", "REL_LESS");
+        break;
+    case REL_LESS_EQ:
+        printf("%s\n", "REL_LESS_EQ");
+        break;
+    case REL_GREATER:
+        printf("%s\n", "REL_GREATER");
+        break;
+    case REL_GREATER_EQ:
+        printf("%s\n", "REL_GREATER_EQ");
+        break;
+    case PLUS:
+        printf("%s\n", "PLUS");
+        break;
+    case MINUS:
+        printf("%s\n", "MINUS");
+        break;
+    case ASTERISK:
+        printf("%s\n", "ASTERISK");
+        break;
+    case SLASH:
+        printf("%s\n", "SLASH");
+        break;
+    case DOT:
+        printf("%s\n", "DOT");
+        break;
+    case COMMA:
+        printf("%s\n", "COMMA");
+        break;
+    case COLON:
+        printf("%s\n", "COLON");
+        break;
+    case PARAM_TYPE:
+        printf("%s\n", "PARAM_TYPE");
+        break;
+    case COMMENT:
+        printf("%s\n", "COMMENT");
+        break;
+    case PROLOG_START:
+        printf("%s\n", "PROLOG_START");
+        break;
+    case PROLOG_END:
+        printf("%s\n", "PROLOG_END");
+        break;
+    case LEX_EOF:
+        printf("%s\n", "LEX_EOF");
+        break;
+    case KEYWORD_IF:
+        printf("%s\n", "KEYWORD_IF");
+        break;
+    case KEYWORD_ELSE:
+        printf("%s\n", "KEYWORD_ELSE");
+        break;
+    case KEYWORD_FUNCTION:
+        printf("%s\n", "KEYWORD_FUNCTION");
+        break;
+    case KEYWORD_NULL:
+        printf("%s\n", "KEYWORD_NULL");
+        break;
+    case KEYWORD_RETURN:
+        printf("%s\n", "KEYWORD_RETURN");
+        break;
+    case KEYWORD_VOID:
+        printf("%s\n", "KEYWORD_VOID");
+        break;
+    case KEYWORD_WHILE:
+        printf("%s\n", "KEYWORD_WHILE");
+        break;
+    case KEYWORD_DECLARE:
+        printf("%s\n", "KEYWORD_DECLARE");
+        break;
+    case KEYWORD_STRICT_TYPES:
+        printf("%s\n", "KEYWORD_STRICT_TYPES");
+        break;
+    case ERROR_LEX:
+        printf("%s\n", "ERROR_LEX");
+        break;
+
+  }
+}
+
+
 void print_ctx()
 {
 
