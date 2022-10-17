@@ -9,8 +9,9 @@
 extern struct compiler_ctx *ctx;
 
 
+
 /*
-1.
+Debbuging function to see what token is made
 */
 
 void printToken(struct lexeme lex){
@@ -48,10 +49,10 @@ void printToken(struct lexeme lex){
     case R_CURLY:
         printf("%s\n", "R_CURLY");
         break;
-  case   REL_IDENTICAL:
+    case REL_IDENTICAL:
       printf("%s\n", "REL_IDENTICAL");
       break;
-  case   REL_NEQ:
+    case REL_NEQ:
       printf("%s\n", "REL_NEQ");
       break;
     case REL_LESS:
