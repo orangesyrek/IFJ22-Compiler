@@ -23,11 +23,11 @@ main(int argc, char **argv)
 	int stop = 1;
 	while(stop){
 
-		struct lexeme lex = get_token();
+		struct lexeme lex = getToken();
 
 		//printf("%s\n", "before condition EOF");
 		printToken(lex);
-		if(lex.type == EOF){
+		if(lex.type == LEX_EOF){
 			printf("%s\n", "stop");
 			stop = 0;
 		}

@@ -158,22 +158,29 @@ la_realloc(void *ptr, size_t size)
     return ret;
 }
 
-struct lexeme get_token()
+struct lexeme getToken()
 {
     state currentState = Start;
     state previousState;
     struct lexeme token;
     int input;
-    while (isspace(input = getchar())); /* we read until there is different char than whitespace */
+    //while (isspace(input = getchar())); /* we read until there is different char than whitespace */
     while (currentState != ERROR_STATE){
+        input = getchar();
         previousState = currentState;
         currentState = getnextstate(currentState, input);
         if(currentState == FUN_ID_STATE || currentState == VAR_PREFIX){
             /* alokace */
         }
-        input = getchar();
+        if(currentState == LEX_EOF_STATE){
+          previousState = currentState;
+          currentState = ERROR_STATE;
+        }
     }
     token.type = make_lexeme(previousState);
+    if(previousState != LEX_EOF_STATE){
+      ungetc(input, stdin);
+    }
     return token;
 }
 
