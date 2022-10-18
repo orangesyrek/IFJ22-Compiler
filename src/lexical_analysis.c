@@ -168,7 +168,7 @@ struct lexeme getToken()
     while (currentState != ERROR_STATE){
         input = getchar();
         previousState = currentState;
-        currentState = getnextstate(currentState, input);
+        currentState = getNextState(currentState, input);
         if(currentState == FUN_ID_STATE || currentState == VAR_PREFIX){
             /* alokace */
         }
@@ -177,7 +177,7 @@ struct lexeme getToken()
           currentState = ERROR_STATE;
         }
     }
-    token.type = make_lexeme(previousState);
+    token.type = makeLexeme(previousState);
     if(previousState != LEX_EOF_STATE){
       ungetc(input, stdin);
     }
@@ -186,7 +186,7 @@ struct lexeme getToken()
 
 
 static
-lex_types make_lexeme(state final) /* where lexemes are generated, can generate only if you are in state where you can generate something */
+lex_types makeLexeme(state final) /* where lexemes are generated, can generate only if you are in state where you can generate something */
 {
     switch(final){
         case SLASH_STATE:
@@ -255,7 +255,7 @@ lex_types make_lexeme(state final) /* where lexemes are generated, can generate 
     };
 }
 static
-state getnextstate(state currentState, int input) {  /* decide what is next state based on input and current state */
+state getNextState(state currentState, int input) {  /* decide what is next state based on input and current state */
     if(input == EOF){
         return LEX_EOF_STATE;
     }
