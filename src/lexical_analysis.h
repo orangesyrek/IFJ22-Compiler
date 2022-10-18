@@ -108,6 +108,16 @@ struct lexeme {
     unsigned int symtab_index;
 };
 
+
+// just testing start
+ // char *dynamicString;
+// int dynamicStringOffset;
+int initDynString();
+void destroyDynString();
+int realocateDynString();
+// just testing end
+
+
 void printToken(struct lexeme lex); /*Help function to print what lexeme's we have*/
 void print_ctx();
 static state getNextState(state currentState, int input); /* decide what is next state based on input and current state */

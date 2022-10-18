@@ -8,7 +8,41 @@
 
 extern struct compiler_ctx *ctx;
 
+//just testing start ************************
 
+char* dynamicString = NULL;
+int dynamicStringOffset = 0;
+
+int initDynString(){
+  dynamicString = (char*) malloc(sizeof(char));
+  if(dynamicString == NULL)
+  {
+    return 1;
+  }else
+  {
+    return 0;
+  }
+}
+
+void destroyDynString(){
+  if(dynamicString != NULL){
+    free(dynamicString);
+  }
+}
+
+int realocateDynString(){
+  dynamicString = (char*) realloc(dynamicString, 1);
+  if(dynamicString == NULL)
+  {
+    return 1;
+  }else
+  {
+    return 0;
+  }
+
+}
+
+//just testing end ************************
 
 /*
 Debbuging function to see what token is made
@@ -17,7 +51,7 @@ Debbuging function to see what token is made
 void printToken(struct lexeme lex){
   switch(lex.type){
     case FUN_ID:
-        printf("%s\n", "FUN_ID");
+        printf("%s%s\n", "FUN_ID: ", lex.id);
         break;
     case STR_LIT:
         printf("%s\n", "STR_LIT");
@@ -32,7 +66,7 @@ void printToken(struct lexeme lex){
         printf("%s\n", "DECIMAL_LIT");
         break;
     case VAR:
-        printf("%s\n", "VAR");
+        printf("%s%s\n", "VAR: ",lex.id);
         break;
     case L_PAR:
         printf("%s\n", "L_PAR");
@@ -160,6 +194,7 @@ la_realloc(void *ptr, size_t size)
 
 struct lexeme getToken()
 {
+    int localOffset = 0;
     state currentState = Start;
     state previousState;
     struct lexeme token;
@@ -169,8 +204,14 @@ struct lexeme getToken()
         input = getchar();
         previousState = currentState;
         currentState = getNextState(currentState, input);
-        if(currentState == FUN_ID_STATE || currentState == VAR_PREFIX){
+        if(currentState == FUN_ID_STATE || currentState == VAR_STATE){
             /* alokace */
+            *(dynamicString + dynamicStringOffset) = input;
+            //printf("%s\n", dynamicString);
+            //token.id = dynamicString + dynamicStringOffset;
+            realocateDynString();// if not return error
+            dynamicStringOffset++;
+            localOffset++;
         }
         if(currentState == LEX_EOF_STATE){
           previousState = currentState;
@@ -178,6 +219,10 @@ struct lexeme getToken()
         }
     }
     token.type = makeLexeme(previousState);
+    if(previousState == FUN_ID_STATE || previousState == VAR_STATE){
+      //printf("%s\n", dynamicString+dynamicStringOffset-localOffset);
+      token.id = dynamicString+dynamicStringOffset-localOffset;
+    }
     if(previousState != LEX_EOF_STATE){
       ungetc(input, stdin);
     }

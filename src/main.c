@@ -21,6 +21,13 @@ main(int argc, char **argv)
 
 	print_ctx();
 	int stop = 1;
+	//just testing Start
+	if(initDynString()){
+		return 1;
+	}
+
+	//just testing End
+
 	while(stop){
 
 		struct lexeme lex = getToken();
@@ -34,6 +41,7 @@ main(int argc, char **argv)
 
 	}
 
+	destroyDynString();
 	compiler_ctx_destroy(ctx);
 	return 0;
 }
