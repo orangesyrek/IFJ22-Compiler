@@ -13,6 +13,11 @@ extern struct compiler_ctx *ctx;
 char* dynamicString = NULL;
 int dynamicStringOffset = 0;
 
+
+/*
+initializes dynamic string
+return 0 if everythink is OK else 1
+*/
 int initDynString(){
   dynamicString = (char*) malloc(sizeof(char));
   if(dynamicString == NULL)
@@ -23,13 +28,19 @@ int initDynString(){
     return 0;
   }
 }
-
+/*
+Destroyes dynamic string
+*/
 void destroyDynString(){
   if(dynamicString != NULL){
     free(dynamicString);
   }
 }
 
+/*
+Realocates dynamic string by 1
+return 0 if everythink is OK else 1
+*/
 int realocateDynString(){
   dynamicString = (char*) realloc(dynamicString, 1);
   if(dynamicString == NULL)
@@ -171,6 +182,15 @@ void printToken(struct lexeme lex){
   }
 }
 
+lex_types funIdToKeyword(char* id)
+{
+  if(id){
+    switch(*id){
+      
+    }
+  }
+}
+
 
 void print_ctx()
 {
@@ -179,40 +199,39 @@ void print_ctx()
     ctx->current_row = 1;
 }
 
-void *
-la_realloc(void *ptr, size_t size)
-{
-    void *ret;
-
-    ret = realloc(ptr, size);
-    if (!ret) {
-        free(ptr);
-    }
-
-    return ret;
-}
+// void *
+// la_realloc(void *ptr, size_t size)
+// {
+//     void *ret;
+//
+//     ret = realloc(ptr, size);
+//     if (!ret) {
+//         free(ptr);
+//     }
+//
+//     return ret;
+// }
 
 struct lexeme getToken()
 {
-    int localOffset = 0;
+    int localOffset = 0; // variable to measure size of string
     state currentState = Start;
     state previousState;
     struct lexeme token;
     int input;
-    //while (isspace(input = getchar())); /* we read until there is different char than whitespace */
     while (currentState != ERROR_STATE){
         input = getchar();
         previousState = currentState;
         currentState = getNextState(currentState, input);
+        /*if we read Function id or variable id we want save it to dynamic string */
         if(currentState == FUN_ID_STATE || currentState == VAR_STATE){
-            /* alokace */
+          //setting pointer
             *(dynamicString + dynamicStringOffset) = input;
-            //printf("%s\n", dynamicString);
-            //token.id = dynamicString + dynamicStringOffset;
-            realocateDynString();// if not return error
+            realocateDynString();// realocating
             dynamicStringOffset++;
             localOffset++;
         }
+        //if we run on EOF state manually setting states
         if(currentState == LEX_EOF_STATE){
           previousState = currentState;
           currentState = ERROR_STATE;
@@ -220,8 +239,11 @@ struct lexeme getToken()
     }
     token.type = makeLexeme(previousState);
     if(previousState == FUN_ID_STATE || previousState == VAR_STATE){
-      //printf("%s\n", dynamicString+dynamicStringOffset-localOffset);
+      //calculating id of token
       token.id = dynamicString+dynamicStringOffset-localOffset;
+    }
+    if(previousState == FUN_ID_STATE){
+      //call function that checks if FUN_ID is KEYWORD
     }
     if(previousState != LEX_EOF_STATE){
       ungetc(input, stdin);

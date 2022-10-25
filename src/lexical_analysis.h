@@ -109,13 +109,9 @@ struct lexeme {
 };
 
 
-// just testing start
- // char *dynamicString;
-// int dynamicStringOffset;
-int initDynString();
-void destroyDynString();
-int realocateDynString();
-// just testing end
+int initDynString(); /*initializes dynamic string */
+void destroyDynString(); /*frees dynamic string */
+int realocateDynString(); /*realocates dynamic strin*/
 
 
 void printToken(struct lexeme lex); /*Help function to print what lexeme's we have*/
