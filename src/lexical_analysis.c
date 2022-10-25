@@ -182,13 +182,32 @@ void printToken(struct lexeme lex){
   }
 }
 
+/*
+Function that converts function ID to keyword if it is keyword
+return keyword or function id
+*/
 lex_types funIdToKeyword(char* id)
 {
-  if(id){
-    switch(*id){
-      
+    if(strcmp(id, "if") == 0){
+      return KEYWORD_IF;
+    }else if(strcmp(id, "else") == 0){
+      return KEYWORD_ELSE;
+    }else if(strcmp(id, "null") == 0){
+      return KEYWORD_NULL;
+    }else if(strcmp(id, "return") == 0){
+      return KEYWORD_RETURN;
+    }else if(strcmp(id, "void") == 0){
+      return KEYWORD_VOID;
+    }else if(strcmp(id, "while") == 0){
+      return KEYWORD_WHILE;
+    }else if(strcmp(id, "declare") == 0){
+      return KEYWORD_DECLARE;
+    }else if(strcmp(id, "string_types") == 0){
+      return KEYWORD_STRICT_TYPES;
     }
-  }
+    else{
+      return FUN_ID;
+    }
 }
 
 
@@ -243,7 +262,11 @@ struct lexeme getToken()
       token.id = dynamicString+dynamicStringOffset-localOffset;
     }
     if(previousState == FUN_ID_STATE){
-      //call function that checks if FUN_ID is KEYWORD
+      //check if id is not NULL
+      if(token.id){
+        //call function that checks if FUN_ID is KEYWORD
+        token.type = funIdToKeyword(token.id);
+      }
     }
     if(previousState != LEX_EOF_STATE){
       ungetc(input, stdin);
