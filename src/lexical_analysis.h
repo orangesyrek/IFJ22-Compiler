@@ -14,6 +14,7 @@ typedef enum {
     L_CURLY,    /* { */
     R_CURLY,    /* } */
     REL_IDENTICAL,    /* === */
+    REL_NEQ,
     REL_LESS,    /* < */
     REL_LESS_EQ,    /* <= */
     REL_GREATER,    /* > */
@@ -39,58 +40,59 @@ typedef enum {
     KEYWORD_WHILE,    /* while */
     KEYWORD_DECLARE, /* declare */
     KEYWORD_STRICT_TYPES, /* strict_types */
+    ERROR_LEX, /* ERROR STATE FOR LEXEME */
 } lex_types;
 
 typedef enum {
     Start, /**/
-    SLASH, /* / */
-    ONE_LINE_COMMENT,
-    BACKSLASH, /* \ */
-    COMMENT_END,
-    MULTI_LINE_COMMENT,
+    SLASH_STATE, /* / */
+    ONE_LINE_COMMENT, /* // */
+    BACKSLASH, /* /\ */
+    COMMENT_END, // //\n || /**/
+    MULTI_LINE_COMMENT, /**/
     MULTIPLY, /* * */
-    VAR_PREFIX,
-    VAR,
-    SEMICOLON, /* ; */
-    R_CURLY,   /* } */
-    L_CURLY, /* { */
-    REL_LESS, /* < */
-    REL_LESS_EQ, /* <= */
-    PROLOG, /* <?php */
-    REL_GREATER, /* > */
-    REL_GREATER_EQ,/* >= */
-    PLUS,
-    MINUS,
-    ASTERISK,
-    DOT,
-    COMMA,
-    COLON,
-    L_PAR, /* ( */
-    R_PAR, 
-    QUESTION_MARK,
-    PROLOG_END,
-    FUN_ID,
-    INT_LIT,
-    INT_LIT_DOT,
-    INT_LIT_E,
-    DEC_LIT_TMP,
-    INT_LIT_E_SIGN,
-    DECIMAL_LIT,
-    DEC_LIT_E_TMP,
-    STR_LIT_BEGIN,
-    STR_LIT,
-    STR_LIT_ESCAPE,
-    ASSIGNMENT,
+    VAR_PREFIX, /* $ */
+    VAR_STATE, /* $variableName_123 */
+    SEMICOLON_STATE, /* ; */
+    R_CURLY_STATE,   /* } */
+    L_CURLY_STATE, /* { */
+    REL_LESS_STATE, /* < */
+    REL_LESS_EQ_STATE, /* <= */
+    PROLOG_STATE, /* <?php */
+    REL_GREATER_STATE, /* > */
+    REL_GREATER_EQ_STATE,/* >= */
+    PLUS_STATE, /* + */
+    MINUS_STATE, /* - */
+    ASTERISK_STATE, /* * */
+    DOT_STATE, /* . */
+    COMMA_STATE, /* , */
+    COLON_STATE, /* : */
+    L_PAR_STATE, /* ( */
+    R_PAR_STATE,  /* ) */
+    QUESTION_MARK, /* ? */
+    PROLOG_END_STATE, /* ?> */
+    FUN_ID_STATE, /* variableName_123 */
+    INT_LIT_STATE, /* 0-9 */
+    INT_LIT_DOT, /* 0-9.0-9 */
+    INT_LIT_E, /* 0-9e/E */
+    DEC_LIT_TMP, /* 0-9.0-9 */
+    INT_LIT_E_SIGN, /* 0-9eE+- */
+    DECIMAL_LIT_STATE, /* );=<>+-*,/!<ws+> */
+    DEC_LIT_E_TMP, /* 0-9eE+-0-9 */
+    STR_LIT_BEGIN, /* "abcd */
+    STR_LIT_STATE, /* "abcd" */
+    STR_LIT_ESCAPE, /* "abcd\ */
+    ASSIGNMENT_STATE, /* = */
     DOUBLEASSIGNMENT, /* == */
-    REL_IDENTICAL, /* ==== */
+    REL_IDENTICAL_STATE, /* ==== */
     EXCLAMATION_MARK, /* ! */
     EXCLAMATION_MARK_EQUAL, /* != */
-    REL_NEQ, /* !== */
-    LEX_EOF, /* EOF */ //45
-    PROLOG_FIRST,
-    PROLOG_SECOND,
-    PROLOG_THIRD,
-    ERROR,
+    REL_NEQ_STATE, /* !== */
+    LEX_EOF_STATE, /* EOF */
+    PROLOG_FIRST, /* <? */
+    PROLOG_SECOND, /* <?p */
+    PROLOG_THIRD, /* <?ph */
+    ERROR_STATE,
 } state;
 
 struct lexeme {
@@ -102,10 +104,20 @@ struct lexeme {
         double flt_val;
         char *str_val;
     } value;
-
+    size_t data; //ze streamu asi neni potreba
     unsigned int symtab_index;
 };
 
+
+int initDynString(); /*initializes dynamic string */
+void destroyDynString(); /*frees dynamic string */
+int realocateDynString(); /*realocates dynamic strin*/
+
+
+void printToken(struct lexeme lex); /*Help function to print what lexeme's we have*/
 void print_ctx();
+static state getNextState(state currentState, int input); /* decide what is next state based on input and current state */
+static lex_types makeLexeme(state final); /* where lexemes are generated, can generate only if you are in state where you can generate something */
+struct lexeme getToken();
 
 #endif
