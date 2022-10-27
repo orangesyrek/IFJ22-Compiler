@@ -19,6 +19,7 @@ typedef enum {
 
 struct compiler_ctx {
 	int last_read;
+	int in_function;
 	unsigned int current_row;
 	struct bs_tree **sym_tab;
 	unsigned int frame_count;
