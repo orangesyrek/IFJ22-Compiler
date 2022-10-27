@@ -231,49 +231,6 @@ void print_ctx()
 //     return ret;
 // }
 
-struct lexeme getToken()
-{
-    int localOffset = 0; // variable to measure size of string
-    state currentState = Start;
-    state previousState;
-    struct lexeme token;
-    int input;
-    while (currentState != ERROR_STATE){
-        input = getchar();
-        previousState = currentState;
-        currentState = getNextState(currentState, input);
-        /*if we read Function id or variable id we want save it to dynamic string */
-        if(currentState == FUN_ID_STATE || currentState == VAR_STATE){
-          //setting pointer
-            *(dynamicString + dynamicStringOffset) = input;
-            realocateDynString();// realocating
-            dynamicStringOffset++;
-            localOffset++;
-        }
-        //if we run on EOF state manually setting states
-        if(currentState == LEX_EOF_STATE){
-          previousState = currentState;
-          currentState = ERROR_STATE;
-        }
-    }
-    token.type = makeLexeme(previousState);
-    if(previousState == FUN_ID_STATE || previousState == VAR_STATE){
-      //calculating id of token
-      token.id = dynamicString+dynamicStringOffset-localOffset;
-    }
-    if(previousState == FUN_ID_STATE){
-      //check if id is not NULL
-      if(token.id){
-        //call function that checks if FUN_ID is KEYWORD
-        token.type = funIdToKeyword(token.id);
-      }
-    }
-    if(previousState != LEX_EOF_STATE){
-      ungetc(input, stdin);
-    }
-    return token;
-}
-
 
 static
 lex_types makeLexeme(state final) /* where lexemes are generated, can generate only if you are in state where you can generate something */
@@ -680,4 +637,47 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             return ERROR_STATE;
     }
     return ERROR_STATE;
+}
+
+struct lexeme getToken()
+{
+    int localOffset = 0; // variable to measure size of string
+    state currentState = Start;
+    state previousState;
+    struct lexeme token;
+    int input;
+    while (currentState != ERROR_STATE){
+        input = getchar();
+        previousState = currentState;
+        currentState = getNextState(currentState, input);
+        /*if we read Function id or variable id we want save it to dynamic string */
+        if(currentState == FUN_ID_STATE || currentState == VAR_STATE){
+          //setting pointer
+            *(dynamicString + dynamicStringOffset) = input;
+            realocateDynString();// realocating
+            dynamicStringOffset++;
+            localOffset++;
+        }
+        //if we run on EOF state manually setting states
+        if(currentState == LEX_EOF_STATE){
+          previousState = currentState;
+          currentState = ERROR_STATE;
+        }
+    }
+    token.type = makeLexeme(previousState);
+    if(previousState == FUN_ID_STATE || previousState == VAR_STATE){
+      //calculating id of token
+      token.id = dynamicString+dynamicStringOffset-localOffset;
+    }
+    if(previousState == FUN_ID_STATE){
+      //check if id is not NULL
+      if(token.id){
+        //call function that checks if FUN_ID is KEYWORD
+        token.type = funIdToKeyword(token.id);
+      }
+    }
+    if(previousState != LEX_EOF_STATE){
+      ungetc(input, stdin);
+    }
+    return token;
 }

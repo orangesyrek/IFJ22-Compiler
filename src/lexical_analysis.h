@@ -116,8 +116,6 @@ int realocateDynString(); /*realocates dynamic strin*/
 
 void printToken(struct lexeme lex); /*Help function to print what lexeme's we have*/
 void print_ctx();
-static state getNextState(state currentState, int input); /* decide what is next state based on input and current state */
-static lex_types makeLexeme(state final); /* where lexemes are generated, can generate only if you are in state where you can generate something */
 struct lexeme getToken();
 
 #endif
