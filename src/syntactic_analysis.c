@@ -56,16 +56,99 @@ parse_prolog(struct lexeme token)
 	return COMP_OK;
 
 cleanup:
-	ERR_PRINT("Syntax error in prolog");
+	ERR_PRINT("Syntax error in prolog.");
+	return COMP_ERR_SA;
+}
+
+static comp_err
+rule_next_param()
+{
+	struct lexeme current_token;
+
+	current_token = getToken();
+	if (current_token.type == R_PAR) {
+		/* next_param -> empty */
+		return COMP_OK;
+	} else if (current_token.type == COMMA) {
+		/* next_param -> , Terminal next_param */
+		current_token = getToken();
+		if ((current_token.type == STR_LIT) || (current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT)
+		|| (current_token.type == VAR)) {
+			return rule_next_param();
+		} else {
+			return COMP_ERR_SA;
+		}
+	} else {
+		return COMP_ERR_SA;
+	}
+}
+
+static comp_err
+rule_func_params()
+{
+	int ret = COMP_OK;
+	struct lexeme current_token;
+
+	current_token = getToken();
+	if (current_token.type == R_PAR) {
+		/* func_params -> empty */
+		goto cleanup;
+	} else if ((current_token.type == STR_LIT) || (current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT)
+		|| (current_token.type == VAR)) {
+		/* func_params -> Terminal next_param */
+		ret = rule_next_param();
+	} else if ((current_token.type == MINUS) || (current_token.type == PLUS)) {
+		current_token = getToken();
+		if ((current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT)) {
+			ret = rule_next_param();
+		} else {
+			ERR_PRINT("Syntax error in parsing function call.");
+			ret = COMP_ERR_SA;
+			goto cleanup;
+		}
+	} else {
+		ERR_PRINT("Syntax error in parsing function call.");
+		ret = COMP_ERR_SA;
+		goto cleanup;
+	}
+
+cleanup:
+	return ret;
+}
+
+static comp_err
+rule_func()
+{
+	int ret;
+	struct lexeme current_token;
+
+	current_token = getToken();
+	if (current_token.type != L_PAR) {
+		goto cleanup;
+	}
+
+	ret = rule_func_params();
+	if (ret != COMP_OK) {
+		goto cleanup;
+	}
+
+	/* if all went well, ) should already be consumed */
+
+	return COMP_OK;
+
+cleanup:
+	ERR_PRINT("Syntax error in function call");
 	return COMP_ERR_SA;
 }
 
 
 comp_err
-synt_analyze()
+synt_parse()
 {
 	struct lexeme current_token;
 	int ret;
+
+	/* rule: program -> prolog statement_list EOF */
 
 	current_token = getToken();
 	ret = parse_prolog(current_token);
@@ -74,24 +157,29 @@ synt_analyze()
 	}
 
 	/* parse lexemes that can appear in the global scope */
-	while ((current_token = getToken()) != LEX_EOF) {
-		if (current_token == FUN_ID) {
+	while ((current_token = getToken()).type != LEX_EOF) {
+		if (current_token.type == FUN_ID) {
+			rule_func();
+			current_token = getToken();
+			if (current_token.type != SEMICOLON) {
+				ret = COMP_ERR_SA;
+				goto cleanup;
+			}
+		} else if (current_token.type == VAR) {
 
-		} else if (current_token == VAR) {
+		} else if (current_token.type == KEYWORD_IF) {
 
-		} else if (current_token == KEYWORD_IF) {
+		} else if (current_token.type == KEYWORD_WHILE) {
 
-		} else if (current_token == KEYWORD_WHILE) {
+		} else if (current_token.type == KEYWORD_FUNCTION) {
 
-		} else if (current_token == KEYWORD_FUNCTION) {
+		} else if (current_token.type == L_PAR) {
 
-		} else if (current_token == L_PAR) {
+		} else if (current_token.type == SEMICOLON) {
 
-		} else if (current_token == SEMICOLON) {
-
-		} else if (current_token == COMMENT) {
+		} else if (current_token.type == COMMENT) {
 			continue;
-		} else if (current_token == PROLOG_END) {
+		} else if (current_token.type == PROLOG_END) {
 
 		}
 	}
