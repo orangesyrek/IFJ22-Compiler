@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.11)
 project(IFJ C)
 
-
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -std=c11")
+
 set(src
 	src/main.c
 	src/compiler.c
@@ -14,6 +14,9 @@ set(header
 	src/symtab.h
 	src/lexical_analysis.h
 	src/syntactic_analysis.h)
+
+enable_testing()
+add_subdirectory(tests)
 
 add_executable(interpret ${src} ${header})
 
