@@ -1,3 +1,5 @@
+#define _GNU_SOURCE /* strdup */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -400,14 +402,11 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return ERROR_STATE;
             }
         case ONE_LINE_COMMENT:
-            if (input == '\\'){
-                return BACKSLASH;
-            }
-            else if(input != '\\'){
-                return ONE_LINE_COMMENT;
+            if (input == '\n'){
+                return COMMENT_END;
             }
             else {
-                return ERROR_STATE;
+                return ONE_LINE_COMMENT;
             }
         case MULTIPLY:
             if (input == '/'){
@@ -646,17 +645,17 @@ struct lexeme getToken()
     state previousState;
     struct lexeme token;
     int input;
+    char buffer[256] = {0};
+    int len = 0;
+
     while (currentState != ERROR_STATE){
         input = getchar();
         previousState = currentState;
         currentState = getNextState(currentState, input);
         /*if we read Function id or variable id we want save it to dynamic string */
         if(currentState == FUN_ID_STATE || currentState == VAR_STATE){
-          //setting pointer
-            *(dynamicString + dynamicStringOffset) = input;
-            realocateDynString();// realocating
-            dynamicStringOffset++;
-            localOffset++;
+            buffer[len] = input;
+            len++;
         }
         //if we run on EOF state manually setting states
         if(currentState == LEX_EOF_STATE){
@@ -667,7 +666,12 @@ struct lexeme getToken()
     token.type = makeLexeme(previousState);
     if(previousState == FUN_ID_STATE || previousState == VAR_STATE){
       //calculating id of token
-      token.id = dynamicString+dynamicStringOffset-localOffset;
+      token.id = strdup(buffer);
+      if (!token.id) {
+        fprintf(stderr, "Allocation failed\n");
+        token.type = ERROR_LEX;
+        return token;
+      }
     }
     if(previousState == FUN_ID_STATE){
       //check if id is not NULL
