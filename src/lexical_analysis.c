@@ -204,7 +204,7 @@ lex_types funIdToKeyword(char* id)
       return KEYWORD_WHILE;
     }else if(strcmp(id, "declare") == 0){
       return KEYWORD_DECLARE;
-    }else if(strcmp(id, "string_types") == 0){
+    }else if(strcmp(id, "strict_types") == 0){
       return KEYWORD_STRICT_TYPES;
     }
     else{
