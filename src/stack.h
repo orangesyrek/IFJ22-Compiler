@@ -1,7 +1,9 @@
-#ifndef STACKH
-#define STACKH
+#ifndef STACK_H
+#define STACK_H
 
 #define MAX_STACK_SIZE 50
+
+#include "expression.h"
 
 void stack_init();
 

@@ -1,4 +1,3 @@
-
 set(tests test_lexer test_parser)
 
 set(tests_src
