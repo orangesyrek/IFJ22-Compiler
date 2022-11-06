@@ -5,13 +5,13 @@ set(tests_src
 	../src/compiler.c
 	../src/lexical_analysis.c
 	../src/symtab.c
-	#../src/syntactic_analysis.c
+	../src/syntactic_analysis.c
 	)
 set(tests_header
 	../src/compiler.h
 	../src/symtab.h
 	../src/lexical_analysis.h
-	#../src/syntactic_analysis.h
+	../src/syntactic_analysis.h
 	)
 
 foreach(test_name IN LISTS tests)

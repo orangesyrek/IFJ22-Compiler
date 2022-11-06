@@ -206,6 +206,10 @@ lex_types funIdToKeyword(char* id)
       return KEYWORD_DECLARE;
     }else if(strcmp(id, "strict_types") == 0){
       return KEYWORD_STRICT_TYPES;
+    } else if (!strcmp(id, "function")) {
+        return KEYWORD_FUNCTION;
+    } else if ((!strcmp(id, "int")) || (!strcmp(id, "float")) || (!strcmp(id, "string"))) {
+        return PARAM_TYPE;
     }
     else{
       return FUN_ID;
@@ -371,7 +375,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return INT_LIT_STATE;
             }
             else if (input == '"'){
-                return STR_LIT_BEGIN;
+                return STR_LIT_STATE;
             }
             else if (input == '='){
                 return ASSIGNMENT_STATE;
@@ -549,24 +553,27 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             else {
                 return ERROR_STATE;
             }
-        case STR_LIT_BEGIN:
+        case STR_LIT_STATE:
             if (input == '"'){
-                return STR_LIT_STATE;
-            }
-            else if(input != '"' || input != '\\'){
-                return STR_LIT_BEGIN;
-            }
-            else if(input == '\\'){
+                return ERROR_STATE;
+            } else if(input == '\\'){
                 return STR_LIT_ESCAPE;
             } else {
-                return ERROR_STATE;
+                return STR_LIT_STATE;
             }
         case STR_LIT_ESCAPE:
             if(input == EOF){
                 return ERROR_STATE;
             }
             else {
-                return STR_LIT_BEGIN;
+                /* escaping char after \ */
+                return STR_LIT_STATE;
+            }
+        case STR_LIT_BEGIN:
+            if (input == EOF) {
+                return ERROR_STATE;
+            } else {
+                return STR_LIT_STATE;
             }
         case ASSIGNMENT_STATE:
             if(input == '='){
@@ -626,8 +633,6 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             return ERROR_STATE;
         case DECIMAL_LIT_STATE:
             return ERROR_STATE;
-        case STR_LIT_STATE:
-            return ERROR_STATE;
         case REL_IDENTICAL_STATE:
             return ERROR_STATE;
         case REL_NEQ_STATE:
@@ -653,9 +658,14 @@ struct lexeme getToken()
         previousState = currentState;
         currentState = getNextState(currentState, input);
         /*if we read Function id or variable id we want save it to dynamic string */
-        if(currentState == FUN_ID_STATE || currentState == VAR_STATE){
+        if(currentState == FUN_ID_STATE || currentState == VAR_STATE || currentState == INT_LIT_STATE){
             buffer[len] = input;
             len++;
+        }
+        if (currentState != MULTI_LINE_COMMENT || currentState != STR_LIT_STATE) {
+            if (input == '\n') {
+                ctx->current_row++;
+            }
         }
         //if we run on EOF state manually setting states
         if(currentState == LEX_EOF_STATE){
@@ -673,6 +683,10 @@ struct lexeme getToken()
         return token;
       }
     }
+
+    if (previousState == INT_LIT_STATE) {
+        token.value.int_val = atoi(buffer);
+    }
     if(previousState == FUN_ID_STATE){
       //check if id is not NULL
       if(token.id){
@@ -680,7 +694,7 @@ struct lexeme getToken()
         token.type = funIdToKeyword(token.id);
       }
     }
-    if(previousState != LEX_EOF_STATE){
+    if(previousState != LEX_EOF_STATE && previousState != STR_LIT_STATE){
       ungetc(input, stdin);
     }
     return token;

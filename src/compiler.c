@@ -8,6 +8,7 @@ compiler_ctx_new(struct compiler_ctx **ctx)
 	if (!*ctx) {
 		return 1;
 	}
+	(*ctx)->current_row = 1;
 
 	return 0;
 }

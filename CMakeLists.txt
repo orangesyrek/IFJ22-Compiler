@@ -8,12 +8,16 @@ set(src
 	src/compiler.c
 	src/lexical_analysis.c
 	src/symtab.c
-	src/stack.c)
+	src/syntactic_analysis.c
+	#src/stack.c
+	)
 set(header
 	src/compiler.h
 	src/symtab.h
 	src/lexical_analysis.h
-	src/stack.h)
+	src/syntactic_analysis.h
+	#src/stack.h
+	)
 
 enable_testing()
 add_subdirectory(tests)

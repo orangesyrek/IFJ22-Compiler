@@ -21,6 +21,7 @@ struct compiler_ctx {
 	int last_read;
 	int in_function;
 	unsigned int current_row;
+	int last_token;
 	struct bs_tree **sym_tab;
 	unsigned int frame_count;
 };

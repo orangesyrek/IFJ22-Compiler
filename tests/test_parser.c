@@ -20,5 +20,6 @@ main(void)
 		return ret;
 	}
 
+	printf("test ok \n");
 	return 0;
 }

@@ -211,6 +211,8 @@ rule_func_def()
 	int ret = COMP_OK;
 	struct lexeme current_token;
 
+	ctx->in_function = 1;
+
 	current_token = getToken();
 	if (current_token.type != FUN_ID) {
 		goto cleanup;
@@ -243,17 +245,132 @@ rule_func_def()
 		goto cleanup;
 	}
 
-	ctx->in_function = 1;
 	ret = rule_statement_list();
 	if (ret != COMP_OK) {
 		goto cleanup;
 	}
 
 	/* if all went well, } should already be consumed */
+	ctx->in_function = 0;
 	return COMP_OK;
 
 cleanup:
 	ERR_PRINT("Syntax error in function definition.");
+	return COMP_ERR_SA;
+}
+
+static comp_err
+rule_if_statement()
+{
+	int ret = COMP_OK;
+	struct lexeme current_token;
+
+	current_token = getToken();
+	if (current_token.type != L_PAR) {
+		goto cleanup;
+	}
+
+	/* call expr */
+	while ((current_token = getToken()).type != R_PAR);
+
+	current_token = getToken();
+	if (current_token.type != L_CURLY) {
+		goto cleanup;
+	}
+
+	ret = rule_statement_list();
+	if (ret != COMP_OK) {
+		goto cleanup;
+	}
+
+	if (ctx->last_token != R_CURLY) {
+		goto cleanup;
+	}
+
+	current_token = getToken();
+	if (current_token.type != KEYWORD_ELSE) {
+		goto cleanup;
+	}
+
+	current_token = getToken();
+	if (current_token.type != L_CURLY) {
+		goto cleanup;
+	}
+
+	ret = rule_statement_list();
+	if (ret != COMP_OK) {
+		goto cleanup;
+	}
+
+	if (ctx->last_token != R_CURLY) {
+		goto cleanup;
+	}
+
+	return COMP_OK;
+cleanup:
+	ERR_PRINT("Syntax error in if statement.");
+	return COMP_ERR_SA;
+}
+
+static comp_err
+rule_var_declaration()
+{
+	struct lexeme current_token;
+
+	current_token = getToken();
+	if (current_token.type == ASSIGNMENT) {
+		// expr
+		while ((current_token = getToken()).type != SEMICOLON);
+		return COMP_OK;
+	} else if (current_token.type == SEMICOLON) {
+		return COMP_OK;
+	} else {
+		goto cleanup;
+	}
+
+cleanup:
+	ERR_PRINT("Syntax error in variable declaration");
+	return COMP_ERR_SA;
+}
+
+static comp_err
+rule_while_statement()
+{
+	int ret = COMP_OK;
+	struct lexeme current_token;
+
+	current_token = getToken();
+	if (current_token.type != L_PAR) {
+		goto cleanup;
+	}
+
+	// expr
+	while ((current_token = getToken()).type != R_PAR);
+
+	current_token = getToken();
+	if (current_token.type != L_CURLY) {
+		goto cleanup;
+	}
+
+	ret = rule_statement_list();
+	if (ret != COMP_OK) {
+		goto cleanup;
+	}
+
+	if (ctx->last_token != R_CURLY) {
+		goto cleanup;
+	}
+
+	/* ungetc('}', stdin);
+	current_token = getToken();
+	if (current_token.type != R_CURLY) {
+		goto cleanup;
+	} */
+
+	return COMP_OK;
+
+cleanup:
+	ERR_PRINT("Syntax error in while loop");
 	return COMP_ERR_SA;
 }
 
@@ -266,13 +383,9 @@ rule_statement_list()
 	struct lexeme current_token;
 
 	/* parse lexemes that can appear in the global scope */
+	ctx->last_token = -1;
 	current_token = getToken();
 	if (current_token.type == FUN_ID) {
-		if (ctx->in_function) {
-			ret = COMP_ERR_SA;
-			goto cleanup;
-		}
-
 		ret = rule_func();
 		if (ret != COMP_OK) {
 			goto cleanup;
@@ -283,12 +396,26 @@ rule_statement_list()
 			goto cleanup;
 		}
 	} else if (current_token.type == VAR) {
-
+		ret = rule_var_declaration();
+		if (ret != COMP_OK) {
+			goto cleanup;
+		}
 	} else if (current_token.type == KEYWORD_IF) {
-
+		ret = rule_if_statement();
+		if (ret != COMP_OK) {
+			goto cleanup;
+		}
 	} else if (current_token.type == KEYWORD_WHILE) {
-
+		ret = rule_while_statement();
+		if (ret != COMP_OK) {
+			goto cleanup;
+		}
 	} else if (current_token.type == KEYWORD_FUNCTION) {
+		if (ctx->in_function) {
+			ret = COMP_ERR_SA;
+			goto cleanup;
+		}
+
 		ret = rule_func_def();
 		if (ret != COMP_OK) {
 			goto cleanup;
@@ -296,7 +423,7 @@ rule_statement_list()
 	} else if (current_token.type == L_PAR) {
 
 	} else if (current_token.type == SEMICOLON) {
-
+		return COMP_OK;
 	} else if (current_token.type == COMMENT) {
 		return rule_statement_list();
 	} else if (current_token.type == PROLOG_END) {
@@ -306,6 +433,7 @@ rule_statement_list()
 	} else if (current_token.type == KEYWORD_RETURN) {
 
 	} else if (current_token.type == R_CURLY) {
+		ctx->last_token = R_CURLY;
 		return COMP_OK;
 	} else {
 		return COMP_ERR_SA;
@@ -314,7 +442,7 @@ rule_statement_list()
 	return rule_statement_list();
 
 cleanup:
-	ERR_PRINT("Syntax error occured.");
+	ERR_PRINT("Syntax parsing failed");
 	return ret;
 }
 

@@ -1,6 +1,10 @@
 #ifndef STACKH
 #define STACKH
 
+typedef enum {
+  test
+} expression_symbols;
+
 #define MAX_STACK_SIZE 50
 
 void stack_init();
