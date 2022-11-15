@@ -3,61 +3,30 @@
 
 #include "compiler.h"
 #include "lexical_analysis.h"
+#include "syntactic_analysis.h"
 
 #define DEBUGLEX
 
 struct compiler_ctx *ctx = NULL;
 
-#ifdef DEBUGLEX
-
 int
 main(int argc, char **argv)
 {
+	int ret = COMP_OK;
+
 	(void) argc;
 	(void) argv;
-	if (compiler_ctx_new(&ctx)) {
-		return 1;
+
+	ret = compiler_ctx_new(&ctx);
+	if (ret) {
+		return COMP_ERR_INTERNAL;
 	}
 
-	print_ctx();
-	int stop = 1;
-	//just testing Start
-	if(initDynString()){
-		return 1;
+	ret = synt_parse();
+	if (ret) {
+		return ret;
 	}
 
-	//just testing End
-
-	while(stop){
-
-		struct lexeme lex = getToken();
-
-		//printf("%s\n", "before condition EOF");
-		printToken(lex);
-		if(lex.type == LEX_EOF){
-			printf("%s\n", "stop");
-			stop = 0;
-		}
-
-	}
-
-	destroyDynString();
 	compiler_ctx_destroy(ctx);
 	return 0;
 }
-#else
-
-int
-main(int argc, char **argv)
-{
-	(void) argc;
-	(void) argv;
-	if (compiler_ctx_new(&ctx)) {
-		return 1;
-	}
-	print_ctx();
-	compiler_ctx_destroy(ctx);
-	return 0;
-}
-
-#endif

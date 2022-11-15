@@ -34,3 +34,8 @@ add_test(${test_name}_ex_2 ${CMAKE_CURRENT_BINARY_DIR}/${test_name}_2.sh)
 add_test(${test_name}_ex_3 ${CMAKE_CURRENT_BINARY_DIR}/${test_name}_3.sh)
 
 endforeach()
+
+add_test(NAME ifj_tester
+	COMMAND ${CMAKE_SOURCE_DIR}/tests/test.py
+	${CMAKE_CURRENT_BINARY_DIR}/interpret ${CMAKE_CURRENT_BINARY_DIR}/interpret
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests)

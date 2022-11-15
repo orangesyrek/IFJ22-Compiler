@@ -1,0 +1,7 @@
+<?php
+declare(strict_types=1);
+function f() : void {
+  return;
+}
+$x = f();
+write($x);

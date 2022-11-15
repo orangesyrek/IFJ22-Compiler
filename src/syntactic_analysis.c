@@ -321,6 +321,7 @@ rule_var_declaration()
 	if (current_token.type == ASSIGNMENT) {
 		// expr
 		while ((current_token = getToken()).type != SEMICOLON);
+
 		return COMP_OK;
 	} else if (current_token.type == SEMICOLON) {
 		return COMP_OK;
@@ -361,12 +362,6 @@ rule_while_statement()
 		goto cleanup;
 	}
 
-	/* ungetc('}', stdin);
-	current_token = getToken();
-	if (current_token.type != R_CURLY) {
-		goto cleanup;
-	} */
-
 	return COMP_OK;
 
 cleanup:
@@ -374,6 +369,33 @@ cleanup:
 	return COMP_ERR_SA;
 }
 
+static comp_err
+rule_prolog_end()
+{
+	struct lexeme current_token;
+
+	current_token = getToken();
+	if (current_token.type != LEX_EOF) {
+		goto cleanup;
+	}
+
+	return COMP_OK;
+
+cleanup:
+	ERR_PRINT("Unexpected token after prolog end");
+	return COMP_ERR_SA;
+}
+
+static comp_err
+rule_return()
+{
+	struct lexeme current_token;
+	//int ret = COMP_OK;
+
+	// expr
+	while ((current_token = getToken()).type != SEMICOLON);
+	return COMP_OK;
+}
 
 /* rule: program -> prolog statement_list EOF */
 static comp_err
@@ -421,17 +443,29 @@ rule_statement_list()
 			goto cleanup;
 		}
 	} else if (current_token.type == L_PAR) {
-
+		// expr
 	} else if (current_token.type == SEMICOLON) {
 		return COMP_OK;
 	} else if (current_token.type == COMMENT) {
 		return rule_statement_list();
 	} else if (current_token.type == PROLOG_END) {
-
+		ret = rule_prolog_end();
+		if (ret != COMP_OK) {
+			goto cleanup;
+		}
 	} else if (current_token.type == LEX_EOF) {
 		return COMP_OK;
 	} else if (current_token.type == KEYWORD_RETURN) {
-
+		if (ctx->in_function) {
+			ret = rule_return();
+			if (ret != COMP_OK) {
+				goto cleanup;
+			}
+		} else {
+			ERR_PRINT("Return statement not inside a function body");
+			ret = COMP_ERR_SA;
+			goto cleanup;
+		}
 	} else if (current_token.type == R_CURLY) {
 		ctx->last_token = R_CURLY;
 		return COMP_OK;
