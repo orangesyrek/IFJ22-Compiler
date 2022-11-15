@@ -1,6 +1,10 @@
 #ifndef STACK_H
 #define STACK_H
 
+typedef enum {
+  test
+} expression_symbols;
+
 #define MAX_STACK_SIZE 50
 
 #include "expression.h"

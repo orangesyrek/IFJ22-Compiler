@@ -8,10 +8,9 @@ write("Pozice retezce \"text\" v \$str2: ", 15, "\n");
 write("Zadejte serazenou posloupnost vsech malych pismen a-h, ");
 $str1 = reads();
 if ($str1 !== null) {
-12
-while ($str1 !== "abcdefgh") {
-write("Spatne zadana posloupnost, zkuste znovu:\n");
-$str1 = reads();
-}
+	while ($str1 !== "abcdefgh") {
+		write("Spatne zadana posloupnost, zkuste znovu:\n");
+		$str1 = reads();
+	}
 } else { }
 ?>

@@ -1,6 +1,9 @@
 #ifndef COMPILER_H
 #define COMPILER_H
 
+#define ERR_PRINT(msg) \
+	fprintf(stderr, "Error (%s) occured on line %u.\n", msg, ctx->current_row)
+
 typedef enum {
 	COMP_OK = 0,
 	COMP_ERR_LA,				/**< unexpected lexeme */
@@ -12,11 +15,13 @@ typedef enum {
 	COMP_ERR_MISMATCHED_TYPES,	/**< error in type compatibility in statements */
 	COMP_ERR_SEMANTIC,			/**< other semantic error */
 	COMP_ERR_INTERNAL = 99 		/**< mem allocation err, etc. */
-} COMP_ERR;
+} comp_err;
 
 struct compiler_ctx {
 	int last_read;
+	int in_function;
 	unsigned int current_row;
+	int last_token;
 	struct bs_tree **sym_tab;
 	unsigned int frame_count;
 };
