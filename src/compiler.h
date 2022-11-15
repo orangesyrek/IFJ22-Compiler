@@ -22,8 +22,8 @@ struct compiler_ctx {
 	int in_function;
 	unsigned int current_row;
 	int last_token;
-	struct bs_tree **sym_tab;
-	unsigned int frame_count;
+	struct bs_tree *global_sym_tab;
+	struct bs_tree *local_sym_tab;
 };
 
 int compiler_ctx_new(struct compiler_ctx **ctx);
