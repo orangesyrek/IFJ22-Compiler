@@ -7,14 +7,20 @@
 
 void stack_init();
 
-int push(expression_symbols input);
+int stack_push(expression_symbols input);
 
-expression_symbols pop();
+expression_symbols stack_pop();
 
-expression_symbols peek();
+expression_symbols stack_peek_1();
 
-int is_full();
+expression_symbols stack_peek_2();
 
-int is_empty();
+expression_symbols stack_peek_3();
+
+expression_symbols stack_top_terminal();
+
+int stack_is_full();
+
+int stack_is_empty();
 
 #endif

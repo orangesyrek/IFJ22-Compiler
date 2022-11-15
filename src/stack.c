@@ -15,9 +15,9 @@ stack_init()
 }
 
 int
-push(expression_symbols input)
+stack_push(expression_symbols input)
 {
-  if (is_full()) {
+  if (stack_is_full()) {
     return 1;
   }
 
@@ -26,28 +26,50 @@ push(expression_symbols input)
   return 0;
 }
 
-expression_symbols
-pop()
+void
+stack_stack_pop()
 {
-  char ret;
-
-  if (is_empty()) {
-    return 0;
+  if (!stack_is_empty()) {
+    top -= 1; 
   }
-
-  ret = stack[top];
-  top -= 1;
-  return ret;
 }
 
 expression_symbols
-peek()
+stack_peek_1()
 {
   return stack[top];
 }
 
+expression_symbols
+stack_peek_2()
+{
+  return stack[top-1];
+}
+
+expression_symbols
+stack_peek_3()
+{
+  return stack[top-2];
+}
+
+expression_symbols
+stack_top_terminal()
+{
+  int prev_top = top;
+
+  for (int i = top; top != -1; i--) {
+
+    if(stack_peek_1() != E_NON_TERM || stack_peek_1() != R || stack_peek_1() != S || stack_peek_1() != E || stack_peek_1() != X)
+    {
+      expression_symbols terminal = stack_peek_1();
+      top = prev_top;
+      return terminal;
+    }
+  }
+}
+
 int
-is_full()
+stack_is_full()
 {
   if (top == (MAX_STACK_SIZE - 1)) {
     return 0;
@@ -56,7 +78,7 @@ is_full()
 }
 
 int
-is_empty()
+stack_is_empty()
 {
   if (top == -1) {
     return 0;

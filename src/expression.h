@@ -4,21 +4,23 @@
 typedef enum {
 
 	// Expression symbols
-	PLUS,   		// +
-	MINUS,  		// -
-	CON,   		  // .
-	MUL,    		// *
-	DIV,    		// /
-	LT,     		// <
-	GT,     		// >
-	LEQ,    		// <=
-	GEQ,    		// >=
-	EQ,     		// ===
-	NEQ,    		// !==
-	L_BRACKET, 	// (
-	R_BRACKET, 	// )
-	ID,        	// i
-	DOLLAR,    	// $
+	E_PLUS,   		// +
+	E_MINUS,  		// -
+	E_CON,   		  // .
+	E_MUL,    		// *
+	E_DIV,    		// /
+	E_LT,     		// <
+	E_GT,     		// >
+	E_LEQ,    		// <=
+	E_GEQ,    		// >=
+	E_EQ,     		// ===
+	E_NEQ,    		// !==
+	E_L_BRACKET, 	// (
+	E_R_BRACKET, 	// )
+	E_ID,        	// i
+	E_DOLLAR,    	// $
+
+	E_NON_TERM,
 
 	// Precedence table actions
 	R, // >
@@ -27,17 +29,10 @@ typedef enum {
 	X, // error
 } expression_symbols;
 
-int precedence_table[8][8] = {
-// +-.  */ rel cmp  (   )   id  $
-	{ R , S , R , R , S , R , S , R }, // +-.	
-	{ R , R , R , R , S , R , S , R }, // */
-	{ S , S , X , R , S , R , S , R }, // rel
-	{ S , S , S , X , S , R , S , R }, // cmp
-	{ S , S , S , S , S , E , S , X }, // (
-	{ R , R , R , R , X , R , X , R }, // )
-	{ R , R , R , R , X , R , X , R }, // id
-	{ S , S , S , S , S , X , S , X }, // $
+expression_symbols get_op (expression_symbols stack_top, expression_symbols input);
 
-};
+void test_rule (int count, expression_symbols one, expression_symbols two, expression_symbols three);
+
+void reduce ();
 
 #endif
