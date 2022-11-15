@@ -288,6 +288,8 @@ lex_types makeLexeme(state final) /* where lexemes are generated, can generate o
             return INT_LIT;
         case DECIMAL_LIT_STATE:
             return DECIMAL_LIT;
+        case DEC_LIT_E_TMP:
+            return DECIMAL_LIT;
         case STR_LIT_STATE:
             return STR_LIT;
         case ASSIGNMENT_STATE:
@@ -309,9 +311,6 @@ lex_types makeLexeme(state final) /* where lexemes are generated, can generate o
 }
 static
 state getNextState(state currentState, int input) {  /* decide what is next state based on input and current state */
-    if(input == EOF){
-        return LEX_EOF_STATE;
-    }
     switch(currentState) {
         case ERROR_STATE:
             fprintf(stderr, "Should have generated token by now\n");
@@ -382,6 +381,8 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             }
             else if (input == '!'){
                 return EXCLAMATION_MARK;
+            } else if(input == EOF){
+                return LEX_EOF_STATE;
             }
             else {
                 return ERROR_STATE;
@@ -521,13 +522,13 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return ERROR_STATE;
             }
         case DEC_LIT_E_TMP:
-            if (isdigit(input)){
+            if (isdigit(input) || input == '+' || input == '-'){
                 return DEC_LIT_E_TMP;
             }
             else if (input == ')' || input == ';' || input == '=' || input == '<' ||
-                     input == '>' || input == '+' || input == '-' || input == '*' ||
+                     input == '>' || input == '*' ||
                      input == '/' || input == ',' || input == '!' || isspace(input)){
-                return DECIMAL_LIT_STATE;
+                return ERROR_STATE;
             }
             else {
                 return ERROR_STATE;
@@ -543,11 +544,11 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return DEC_LIT_TMP;
             }
             else if (input == 'e' || input == 'E'){
-                return INT_LIT_E;
+                return DEC_LIT_E_TMP;
             }
             else if (input == ')' || input == ';' || input == '=' || input == '<' ||
                      input == '>' || input == '+' || input == '-' || input == '*' ||
-                     input == '/' || input == ',' || input == '!' || isspace(input)){
+                     input == '/' || input == ',' || input == '!' || input == ';' || isspace(input)){
                 return DECIMAL_LIT_STATE;
             }
             else {
