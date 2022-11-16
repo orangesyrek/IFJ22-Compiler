@@ -537,7 +537,8 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             if (isdigit(input)){
                 return DEC_LIT_TMP;
             } else {
-                return ERROR_STATE;
+                ERR_PRINT("INT_LIT_DOT ERROR");
+                exit(COMP_ERR_LA);
             }
         case DEC_LIT_TMP:
             if (isdigit(input)){
