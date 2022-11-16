@@ -321,7 +321,7 @@ rule_var_declaration()
 	if (current_token.type == ASSIGNMENT) {
 		// expr
 
-		expression_parse(current_token);
+		int is_ok = expression_parse(current_token);
 
 		while ((current_token = getToken()).type != SEMICOLON);
 
