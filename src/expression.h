@@ -1,6 +1,8 @@
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
+#include "lexical_analysis.h"
+
 typedef enum {
 
 	// Expression symbols

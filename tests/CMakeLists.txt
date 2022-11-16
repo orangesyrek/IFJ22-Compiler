@@ -1,4 +1,4 @@
-set(tests test_lexer test_parser test_stack)
+set(tests test_lexer test_parser test_stack test_expression_1)
 
 set(tests_src
 	../src/compiler.c

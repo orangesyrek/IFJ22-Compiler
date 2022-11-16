@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "compiler.h"
 #include "syntactic_analysis.h"
 #include "lexical_analysis.h"
 #include "expression.h"
@@ -322,7 +321,7 @@ rule_var_declaration()
 	if (current_token.type == ASSIGNMENT) {
 		// expr
 
-		//expression_parse(current_token);
+		expression_parse(current_token);
 
 		while ((current_token = getToken()).type != SEMICOLON);
 

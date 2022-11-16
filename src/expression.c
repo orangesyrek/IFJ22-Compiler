@@ -3,7 +3,6 @@
 
 #include "compiler.h"
 #include "stack.h"
-#include "lexical_analysis.h"
 
 extern int top;
 extern expression_symbols stack[MAX_STACK_SIZE];
