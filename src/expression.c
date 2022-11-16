@@ -7,6 +7,9 @@
 #include "lexical_analysis.h"
 #include "syntactic_analysis.h"
 
+extern int top;
+extern expression_symbols stack[MAX_STACK_SIZE];
+
 int precedence_table[8][8] = {
 // +-.  */ rel cmp  (   )   id  $
 	{ R , S , R , R , S , R , S , R }, // +-.	
@@ -110,16 +113,18 @@ int expression_parse (struct lexeme start_token)
 
 		// Get a symbol equivalent to current token
 		expression_symbols current_token_symbol = token_to_symbol(current_token);
-		expression_symbols stack_top_term = stack_top_terminal();
+		expression_symbols stack_top_terminal = stack_top_terminal();
 
 		switch(get_op(stack_top_term, current_token_symbol))
 		{
 			case E:
 				stack_push(current_token_symbol);
+				stack_print();
 				break;
 			case S:
-				stack_push(S);
+				stack_push_after_top_terminal(S);
 				stack_push(current_token_symbol);
+				stack_print();
 				break;
 			case R:
 				//reduce_rule();
@@ -222,7 +227,19 @@ expression_symbols get_op (expression_symbols stack_top, expression_symbols inpu
 
 void test_rule (int count, expression_symbols one, expression_symbols two, expression_symbols three)
 {
-
+	// E -> i
+	// E -> (E)
+	// E -> E + E
+	// E -> E - E
+	// E -> E . E
+	// E -> E * E
+	// E -> E / E
+	// E -> E === E
+	// E -> E !== E
+	// E -> E < E
+	// E -> E <= E
+	// E -> E > E
+	// E -> E >= E
 }
 
 void reduce_rule ()
