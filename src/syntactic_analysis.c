@@ -321,10 +321,10 @@ rule_var_declaration()
 	current_token = getToken();
 	if (current_token.type == ASSIGNMENT) {
 		// expr
-		
-		expression_parse(current_token);
 
-		//while ((current_token = getToken()).type != SEMICOLON);
+		//expression_parse(current_token);
+
+		while ((current_token = getToken()).type != SEMICOLON);
 
 		return COMP_OK;
 	} else if (current_token.type == SEMICOLON) {

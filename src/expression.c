@@ -3,9 +3,7 @@
 
 #include "compiler.h"
 #include "stack.h"
-#include "expression.h"
 #include "lexical_analysis.h"
-#include "syntactic_analysis.h"
 
 extern int top;
 extern expression_symbols stack[MAX_STACK_SIZE];
@@ -23,7 +21,7 @@ int precedence_table[8][8] = {
 
 };
 
-expression_symbols token_to_symbol(struct lexeme token)
+expression_symbols token_to_symbol (struct lexeme token)
 {
 	switch (token.type)
 	{
@@ -75,68 +73,6 @@ expression_symbols token_to_symbol(struct lexeme token)
 		default:
 			return E_DOLLAR;
 	}
-}
-
-// RULES
-// E -> i
-// E -> (E)
-// E -> E + E
-// E -> E - E
-// E -> E . E
-// E -> E * E
-// E -> E / E
-// E -> E === E
-// E -> E !== E
-// E -> E < E
-// E -> E <= E
-// E -> E > E
-// E -> E >= E
-
-int expression_parse (struct lexeme start_token)
-{
-	stack_init();
-	struct lexeme current_token;
-
-	// Where to end
-	lex_types end_token_type;
-
-	if (start_token.type == KEYWORD_RETURN) end_token_type = SEMICOLON;  // return ... ;
-	else if (start_token.type == ASSIGNMENT) end_token_type = SEMICOLON; //      = ... ;
-	else if (start_token.type == L_PAR) end_token_type = R_PAR;          //      ( ... )
-
-	stack_push(E_DOLLAR);
-
-	do
-	{
-
-		current_token = getToken(); // if current_token == ; or ) exit
-
-		// Get a symbol equivalent to current token
-		expression_symbols current_token_symbol = token_to_symbol(current_token);
-		expression_symbols stack_top_terminal = stack_top_terminal();
-
-		switch(get_op(stack_top_term, current_token_symbol))
-		{
-			case E:
-				stack_push(current_token_symbol);
-				stack_print();
-				break;
-			case S:
-				stack_push_after_top_terminal(S);
-				stack_push(current_token_symbol);
-				stack_print();
-				break;
-			case R:
-				//reduce_rule();
-				break;
-			default:
-				printf("ERROR");
-				break;
-		}
-
-	} while (stack_top_terminal() != E_DOLLAR && current_token.type != end_token_type);
-
-	return 0;
 }
 
 // Get operation from precedence table
@@ -244,5 +180,51 @@ void test_rule (int count, expression_symbols one, expression_symbols two, expre
 
 void reduce_rule ()
 {
-	
+	// when we get R from precedence table
+}
+
+int expression_parse (struct lexeme start_token)
+{
+	stack_init();
+	struct lexeme current_token;
+
+	// Where to end
+	lex_types end_token_type;
+
+	if (start_token.type == KEYWORD_RETURN) end_token_type = SEMICOLON;  // return ... ;
+	else if (start_token.type == ASSIGNMENT) end_token_type = SEMICOLON; //      = ... ;
+	else if (start_token.type == L_PAR) end_token_type = R_PAR;          //      ( ... )
+
+	stack_push(E_DOLLAR);
+
+	do
+	{
+
+		current_token = getToken(); // if current_token == ; or ) exit
+
+		// Get a symbol equivalent to current token
+		expression_symbols current_token_symbol = token_to_symbol(current_token);
+		expression_symbols stack_top_term = stack_top_terminal();
+
+		switch(get_op(stack_top_term, current_token_symbol))
+		{
+			case E:
+				stack_push(current_token_symbol);
+				stack_print();
+				break;
+			case S:
+				stack_push_after_top_terminal(S);
+				stack_push(current_token_symbol);
+				stack_print();
+				break;
+			case R:
+				reduce_rule();
+				break;
+			default:
+				break;
+		}
+
+	} while (stack_top_terminal() != E_DOLLAR && current_token.type != end_token_type);
+
+	return 0;
 }

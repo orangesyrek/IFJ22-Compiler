@@ -29,14 +29,14 @@ typedef enum {
 	X, // error
 } expression_symbols;
 
-expression_symbols get_op (expression_symbols stack_top, expression_symbols input);
-
 expression_symbols token_to_symbol (struct lexeme token);
 
-int expression_parse(struct lexeme start_token);
+expression_symbols get_op (expression_symbols stack_top, expression_symbols input);
 
 void test_rule (int count, expression_symbols one, expression_symbols two, expression_symbols three);
 
-void reduce ();
+void reduce_rule ();
+
+int expression_parse (struct lexeme start_token);
 
 #endif
