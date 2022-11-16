@@ -1,10 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "compiler.h"
 #include "stack.h"
 #include "expression.h"
 #include "lexical_analysis.h"
 #include "syntactic_analysis.h"
-#include "compiler.h"
 
 extern int top;
 extern expression_symbols stack[MAX_STACK_SIZE];
