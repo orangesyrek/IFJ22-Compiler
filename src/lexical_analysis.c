@@ -347,6 +347,10 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             if (input == '*'){
                 return MULTIPLY;
             }
+            else if (input == EOF){
+                ERR_PRINT("EOF IN MULTI_LINE_COMMENT ERROR");
+                exit(COMP_ERR_LA);
+            }
             else if (input != '*'){
                 return MULTI_LINE_COMMENT;
             }
@@ -355,6 +359,9 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             }
         case ONE_LINE_COMMENT:
             if (input == '\n'){
+                return COMMENT_END;
+            }
+            else if(input == EOF){
                 return COMMENT_END;
             }
             else {
@@ -517,9 +524,15 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
         case STR_LIT_STATE:
             if (input == '"'){
                 return ERROR_STATE;
-            } else if(input == '\\'){
+            } 
+            else if(input == '\\'){
                 return STR_LIT_ESCAPE;
-            } else {
+            }
+            else if(input == EOF){
+                ERR_PRINT("ERROR STR_LIT_STATE EOF");
+                exit(COMP_ERR_LA);
+            }
+            else {
                 return STR_LIT_STATE;
             }
         case STR_LIT_ESCAPE:
@@ -546,19 +559,22 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             if(input == '='){
                 return REL_IDENTICAL_STATE;
             } else {
-                return ERROR_STATE;
+                ERR_PRINT("DOUBLEASSIGNMENT ERROR");
+                exit(COMP_ERR_LA);
             }
         case EXCLAMATION_MARK:
             if(input == '='){
                 return EXCLAMATION_MARK_EQUAL;
             } else {
-                return ERROR_STATE;
+                ERR_PRINT("EXCLAMATION_MARK ERROR");
+                exit(COMP_ERR_LA);
             }
         case EXCLAMATION_MARK_EQUAL:
             if(input == '='){
                 return REL_NEQ_STATE;
             } else {
-                return ERROR_STATE;
+                ERR_PRINT("EXCLAMATION_MARK_EQUAL ERROR");
+                exit(COMP_ERR_LA);
             }
         case COMMENT_END:
             return ERROR_STATE;
