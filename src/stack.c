@@ -1,6 +1,10 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "stack.h"
 #include "expression.h"
+#include "lexical_analysis.h"
+#include "syntactic_analysis.h"
+#include "compiler.h"
 
 extern int top;
 extern expression_symbols stack[MAX_STACK_SIZE];
@@ -66,6 +70,7 @@ stack_top_terminal()
       return terminal;
     }
   }
+  return X;
 }
 
 int
@@ -84,4 +89,62 @@ stack_is_empty()
     return 0;
   }
   return 1;
+}
+
+void stack_print()
+{
+  while (top != -1)
+  {
+    switch(stack_peek_1())
+    {
+      case E_PLUS:
+        printf(" + ");
+        break;
+      case E_MINUS:
+        printf(" - ");
+        break;
+      case E_CON:
+        printf(" . ");
+        break;
+      case E_MUL:
+        printf(" * ");
+        break;
+      case E_DIV:
+        printf(" / ");
+        break;
+      case E_LT:
+        printf(" < ");
+        break;
+      case E_LEQ:
+        printf(" <= ");
+        break;
+      case E_GT:
+        printf(" > ");
+        break;
+      case E_GEQ:
+        printf(" >= ");
+        break;
+      case E_EQ:
+        printf(" === ");
+        break;
+      case E_NEQ:
+        printf(" !== ");
+        break;
+      case E_L_BRACKET:
+        printf(" ( ");
+        break;
+      case E_R_BRACKET:
+        printf(" ) ");
+        break;
+      case E_ID:
+        printf(" i ");
+        break;
+      case E_DOLLAR:
+        printf(" $ ");
+        break;
+      default:
+        printf("ERROR");
+        break;
+    }
+  }
 }

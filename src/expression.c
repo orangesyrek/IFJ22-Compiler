@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "compiler.h"
 #include "stack.h"
 #include "expression.h"
 #include "lexical_analysis.h"
-#include "compiler.h"
+#include "syntactic_analysis.h"
 
 int precedence_table[8][8] = {
 // +-.  */ rel cmp  (   )   id  $
@@ -93,7 +95,7 @@ int expression_parse (struct lexeme start_token)
 	struct lexeme current_token;
 
 	// Where to end
-	expression_symbols end_token_type;
+	lex_types end_token_type;
 
 	if (start_token.type == KEYWORD_RETURN) end_token_type = SEMICOLON;  // return ... ;
 	else if (start_token.type == ASSIGNMENT) end_token_type = SEMICOLON; //      = ... ;
@@ -114,13 +116,17 @@ int expression_parse (struct lexeme start_token)
 		{
 			case E:
 				stack_push(current_token_symbol);
+				break;
 			case S:
 				stack_push(S);
 				stack_push(current_token_symbol);
+				break;
 			case R:
-				reduce_rule()
+				//reduce_rule();
+				break;
 			default:
 				printf("ERROR");
+				break;
 		}
 
 	} while (stack_top_terminal() != E_DOLLAR && current_token.type != end_token_type);
@@ -140,27 +146,36 @@ expression_symbols get_op (expression_symbols stack_top, expression_symbols inpu
 		case E_MINUS:
 		case E_CON:
 			row = 0;
+			break;
 		case E_MUL:
 		case E_DIV:
 			row = 1;
+			break;
 		case E_LT:
 		case E_LEQ:
 		case E_GT:
 		case E_GEQ:
 			row = 2;
+			break;
 		case E_EQ:
 		case E_NEQ:
 			row = 3;
+			break;
 		case E_L_BRACKET:
 			row = 4;
+			break;
 		case E_R_BRACKET:
 			row = 5;
+			break;
 		case E_ID:
 			row = 6;
+			break;
 		case E_DOLLAR:
 			row = 7;
+			break;
 		default:
 			row = 99;
+			break;
 	}
 
 	switch (input)
@@ -169,27 +184,36 @@ expression_symbols get_op (expression_symbols stack_top, expression_symbols inpu
 		case E_MINUS:
 		case E_CON:
 			col = 0;
+			break;
 		case E_MUL:
 		case E_DIV:
 			col = 1;
+			break;
 		case E_LT:
 		case E_LEQ:
 		case E_GT:
 		case E_GEQ:
 			col = 2;
+			break;
 		case E_EQ:
 		case E_NEQ:
 			col = 3;
+			break;
 		case E_L_BRACKET:
 			col = 4;
+			break;
 		case E_R_BRACKET:
 			col = 5;
+			break;
 		case E_ID:
 			col = 6;
+			break;
 		case E_DOLLAR:
 			col = 7;
+			break;
 		default:
 			col = 99;
+			break;
 	}
 
 	if (row > 7 || col > 7) return X;
@@ -201,7 +225,7 @@ void test_rule (int count, expression_symbols one, expression_symbols two, expre
 
 }
 
-void reduce ()
+void reduce_rule ()
 {
 	
 }
