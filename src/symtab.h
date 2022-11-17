@@ -22,7 +22,7 @@ typedef enum{
 
 /*Binary tree*/
 struct bs_tree {
-	char *key;
+	const char *key;
 	struct bs_data *data;
 	struct bs_tree *left;
 	struct bs_tree *right;
@@ -32,7 +32,7 @@ struct function_data{
 	type return_type;
 	int is_defined;
 	int *params;
-	int paramcount;
+	int param_count;
 };
 
 struct variable_data{
@@ -42,8 +42,6 @@ struct variable_data{
 };
 
 struct bs_data{
-	uint32_t id;
-
 	int is_function;
 	union {
 		struct function_data fdata;
@@ -56,7 +54,7 @@ struct bs_data{
 Inicialization of symTable
 @param bs_tree pointer to binary tree
 */
-void symtabInit(struct bs_tree *t);
+void symtabInit(struct bs_tree **t);
 
 /*
 Insert to symTable
@@ -65,7 +63,7 @@ Insert to symTable
 @param bs_data pointer to node data
 */
 
-int symtabInsert(struct bs_tree *t, char *key, struct bs_data *data);
+int symtabInsert(struct bs_tree **t, const char *key, struct bs_data *data);
 
 /*
 Search in  symTable
@@ -81,11 +79,14 @@ Delete all nodes in symTable
 @param bs_tree pointer to binary tree
 */
 
-void symtabDispose(struct bs_tree *t);
+void symtabDispose(struct bs_tree **t);
 /*
 Inicialization of data
 @param bs_data pointer to data
 */
 
-int dataInit(struct bs_data *data);
+int dataInit(struct bs_data **data);
+
+void printTree(struct bs_tree *t);
+
 #endif

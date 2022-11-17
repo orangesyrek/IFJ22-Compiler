@@ -2,23 +2,23 @@
 
 
 
-void symtabInit(struct bs_tree *t){
-    if(t != NULL){
-      t = NULL;
+void symtabInit(struct bs_tree **t){
+    if(*t != NULL){
+      *t = NULL;
     }
 }
 
-int symtabInsert(struct bs_tree *t, char *key, struct bs_data *data) { // 99 for internal error
-  if(t != NULL){
+int symtabInsert(struct bs_tree **t, const char *key, struct bs_data *data) { // 99 for internal error
+  if(*t != NULL){
 
-      if(strcmp(key, t->key) < 0){
-       return symtabInsert(t->left, key, data);
+      if(strcmp(key, (*t)->key) < 0){
+       return symtabInsert(&(*t)->left, key, data);
       }
-      else if(strcmp(key, t->key) > 0){
-        return symtabInsert(t->right, key, data);
+      else if(strcmp(key, (*t)->key) > 0){
+        return symtabInsert(&(*t)->right, key, data);
       }else{
-        free(t->data);
-        t->data = data;
+        free((*t)->data);
+        (*t)->data = data;
         return 0;
     }
 
@@ -29,7 +29,7 @@ int symtabInsert(struct bs_tree *t, char *key, struct bs_data *data) { // 99 for
       node->key = key;
       node->left = NULL;
       node->right = NULL;
-      t = node;
+      *t = node;
       return 0;
     }else{
       fprintf(stderr, "%s\n", "Allocation failed");
@@ -53,20 +53,20 @@ struct bs_data* symtabSearch(struct bs_tree *t, char *key){
   }
 }
 
-void symtabDispose(struct bs_tree *t){
-  if(t != NULL){
-    symtabDispose(t->left);
-    symtabDispose(t->right);
-    free(t);
-    t = NULL;
+void symtabDispose(struct bs_tree **t){
+  if(*t != NULL){
+    symtabDispose(&((*t)->left));
+    symtabDispose(&((*t)->right));
+    free(*t);
+    *t = NULL;
   }
 }
 
-int dataInit(struct bs_data *data){
-  if(data == NULL){
+int dataInit(struct bs_data **data){
+  if(*data == NULL){
     struct bs_data *d = malloc(sizeof(struct bs_data));
     if(d != NULL){
-      data = d;
+      *data = d;
       return 0;
     }else{
       return 99;
@@ -77,7 +77,9 @@ int dataInit(struct bs_data *data){
 }
 
 void printTree(struct bs_tree *t){
-  printf("%s\n", t->key);
-  printTree(t->left);
-  printTree(t->right);
+  if (t) {
+    printf("node :%s\n", t->key);
+    printTree(t->left);
+    printTree(t->right);
+  }
 }
