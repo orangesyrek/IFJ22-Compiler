@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "compiler.h"
-#include "lexical_analysis.h"
+
 #include "syntactic_analysis.h"
+#include "lexical_analysis.h"
+#include "expression.h"
 
 extern struct compiler_ctx *ctx;
 
@@ -328,6 +329,9 @@ rule_var_declaration()
 	current_token = getToken();
 	if (current_token.type == ASSIGNMENT) {
 		// expr
+
+		int is_ok = expression_parse(current_token);
+
 		while ((current_token = getToken()).type != SEMICOLON);
 
 		return COMP_OK;

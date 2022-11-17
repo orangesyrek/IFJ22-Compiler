@@ -9,14 +9,16 @@ set(src
 	src/lexical_analysis.c
 	src/symtab.c
 	src/syntactic_analysis.c
-	#src/stack.c
+	src/expression.c
+	src/stack.c
 	)
 set(header
 	src/compiler.h
 	src/symtab.h
 	src/lexical_analysis.h
 	src/syntactic_analysis.h
-	#src/stack.h
+	src/expression.h
+	src/stack.h
 	)
 
 #tests
