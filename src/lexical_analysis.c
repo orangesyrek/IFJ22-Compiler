@@ -524,7 +524,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
         case STR_LIT_STATE:
             if (input == '"'){
                 return ERROR_STATE;
-            } 
+            }
             else if(input == '\\'){
                 return STR_LIT_ESCAPE;
             }

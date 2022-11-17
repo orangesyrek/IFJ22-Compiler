@@ -10,5 +10,27 @@ struct bs_tree {
 	struct bs_tree *right;
 };
 
+struct bs_data{
+	uint32_t id;
+
+	int is_function;
+	union {
+		struct function_data;
+		struct variable_data;
+	} data;
+
+};
+
+struct function_data{
+type return_type;
+int is_defined;
+//list of parameters
+};
+
+struct variable_data{
+int is_init;
+type data_type;
+int is_used;
+}
 
 #endif
