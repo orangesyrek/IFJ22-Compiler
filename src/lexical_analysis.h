@@ -93,6 +93,7 @@ typedef enum {
     PROLOG_SECOND, /* <?p */
     PROLOG_THIRD, /* <?ph */
     ERROR_STATE,
+    SOMESTATE
 } state;
 
 struct lexeme {
@@ -108,10 +109,6 @@ struct lexeme {
     unsigned int symtab_index;
 };
 
-
-int initDynString(); /*initializes dynamic string */
-void destroyDynString(); /*frees dynamic string */
-int realocateDynString(); /*realocates dynamic strin*/
 
 
 void printToken(struct lexeme lex); /*Help function to print what lexeme's we have*/

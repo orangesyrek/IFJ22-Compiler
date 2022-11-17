@@ -177,24 +177,14 @@ void print_ctx()
     ctx->current_row = 1;
 }
 
-// void *
-// la_realloc(void *ptr, size_t size)
-// {
-//     void *ret;
-//
-//     ret = realloc(ptr, size);
-//     if (!ret) {
-//         free(ptr);
-//     }
-//
-//     return ret;
-// }
 
 
 static
 lex_types makeLexeme(state final) /* where lexemes are generated, can generate only if you are in state where you can generate something */
 {
     switch(final){
+        case SOMESTATE:
+            return DECIMAL_LIT;
         case SLASH_STATE:
             return SLASH;
         case COMMENT_END:
@@ -338,7 +328,9 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return LEX_EOF_STATE;
             }
             else {
-                return ERROR_STATE;
+                //return ERROR_STATE;
+                ERR_PRINT("Unexpected character");
+                exit(1);
             }
         case SLASH_STATE:
             if (input == '*'){
@@ -353,6 +345,10 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             if (input == '*'){
                 return MULTIPLY;
             }
+            else if (input == EOF){
+                ERR_PRINT("EOF IN MULTI_LINE_COMMENT ERROR");
+                exit(COMP_ERR_LA);
+            }
             else if (input != '*'){
                 return MULTI_LINE_COMMENT;
             }
@@ -361,6 +357,9 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             }
         case ONE_LINE_COMMENT:
             if (input == '\n'){
+                return COMMENT_END;
+            }
+            else if(input == EOF){
                 return COMMENT_END;
             }
             else {
@@ -466,31 +465,44 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             if (input == '+' || input == '-'){
                 return INT_LIT_E_SIGN;
             } else {
-                return ERROR_STATE;
+                //return ERROR_STATE;
+                ERR_PRINT("Unexpected character error, expecting digit 0-9");
+                exit(1);
             }
         case INT_LIT_E_SIGN:
             if (isdigit(input)){
-                return DEC_LIT_E_TMP;
+                return SOMESTATE;
             } else {
-                return ERROR_STATE;
+                return ERROR_STATE; // here need to also exit(1)
             }
-        case DEC_LIT_E_TMP:
-            if (isdigit(input) || input == '+' || input == '-'){
-                return DEC_LIT_E_TMP;
+        case DEC_LIT_E_TMP: // fix here
+            if (input == '+' || input == '-'){ // here we are allowing +++++++-----+++++-- etc
+                return INT_LIT_E_SIGN;// need new state here
             }
-            else if (input == ')' || input == ';' || input == '=' || input == '<' ||
-                     input == '>' || input == '*' ||
-                     input == '/' || input == ',' || input == '!' || isspace(input)){
-                return ERROR_STATE;
-            }
+             /// wtf is that
             else {
-                return ERROR_STATE;
+              ERR_PRINT("Unexpected character error, expecting digit 0-9");
+              exit(1);
             }
+        case SOMESTATE:
+            if (isdigit(input)){
+                return SOMESTATE;
+              } else if (input == ')' || input == ';' || input == '=' || input == '<' ||
+                       input == '>' || input == '+' || input == '-' || input == '*' ||
+                       input == '/' || input == ',' || input == '!' || input == ';' || isspace(input)){
+                         return ERROR_STATE;
+                       } // ungeet(char ) -- fix
+              else{
+                ERR_PRINT("INT_LIT_DOT ERROR");
+                exit(COMP_ERR_LA);
+              }
+
         case INT_LIT_DOT:
             if (isdigit(input)){
-                return DEC_LIT_TMP;
+                return DEC_LIT_TMP; // fix that
             } else {
-                return ERROR_STATE;
+                ERR_PRINT("INT_LIT_DOT ERROR");
+                exit(COMP_ERR_LA);
             }
         case DEC_LIT_TMP:
             if (isdigit(input)){
@@ -510,9 +522,15 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
         case STR_LIT_STATE:
             if (input == '"'){
                 return ERROR_STATE;
-            } else if(input == '\\'){
+            }
+            else if(input == '\\'){
                 return STR_LIT_ESCAPE;
-            } else {
+            }
+            else if(input == EOF){
+                ERR_PRINT("ERROR STR_LIT_STATE EOF");
+                exit(COMP_ERR_LA);
+            }
+            else {
                 return STR_LIT_STATE;
             }
         case STR_LIT_ESCAPE:
@@ -539,19 +557,22 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             if(input == '='){
                 return REL_IDENTICAL_STATE;
             } else {
-                return ERROR_STATE;
+                ERR_PRINT("DOUBLEASSIGNMENT ERROR");
+                exit(COMP_ERR_LA);
             }
         case EXCLAMATION_MARK:
             if(input == '='){
                 return EXCLAMATION_MARK_EQUAL;
             } else {
-                return ERROR_STATE;
+                ERR_PRINT("EXCLAMATION_MARK ERROR");
+                exit(COMP_ERR_LA);
             }
         case EXCLAMATION_MARK_EQUAL:
             if(input == '='){
                 return REL_NEQ_STATE;
             } else {
-                return ERROR_STATE;
+                ERR_PRINT("EXCLAMATION_MARK_EQUAL ERROR");
+                exit(COMP_ERR_LA);
             }
         case COMMENT_END:
             return ERROR_STATE;
@@ -647,7 +668,7 @@ struct lexeme getToken()
         token.type = funIdToKeyword(token.id);
       }
     }
-    if(previousState != LEX_EOF_STATE && previousState != STR_LIT_STATE){
+    if(previousState != LEX_EOF_STATE && previousState != STR_LIT_STATE){ // wtf fix
       ungetc(input, stdin);
     }
     return token;

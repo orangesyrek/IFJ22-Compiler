@@ -4,6 +4,7 @@
 #include "compiler.h"
 #include "lexical_analysis.h"
 #include "syntactic_analysis.h"
+#include "symtab.h"
 
 #define DEBUGLEX
 

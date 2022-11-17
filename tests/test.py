@@ -15,7 +15,7 @@ except:
 		YELLOW="\x1b[36m"
 
 def test(text):
-	print("[TEST] " + text)
+	print(Fore.BLUE + "[TEST] " + Fore.WHITE + text)
 
 def err(text):
 	print("[" + Fore.RED + "ERR" + Fore.WHITE + "] " + text)

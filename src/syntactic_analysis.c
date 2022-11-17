@@ -31,6 +31,10 @@ parse_prolog(struct lexeme token)
 	}
 
 	token = getToken();
+	while (token.type == COMMENT) {
+		token = getToken();
+	}
+
 	if (token.type != KEYWORD_STRICT_TYPES) {
 		goto cleanup;
 	}
@@ -41,6 +45,10 @@ parse_prolog(struct lexeme token)
 	}
 
 	token = getToken();
+	while (token.type == COMMENT) {
+		token = getToken();
+	}
+
 	if ((token.type != INT_LIT) || (token.value.int_val != 1)) {
 		goto cleanup;
 	}
