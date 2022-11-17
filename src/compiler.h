@@ -2,7 +2,7 @@
 #define COMPILER_H
 
 #define ERR_PRINT(msg) \
-	fprintf(stderr, "Error (%s) occured on line %u.\n", msg, ctx->current_row)
+	fprintf(stderr, "Error (%s) occured on php line %u, code line %d, in function %s.\n", msg, ctx->current_row, __LINE__, __func__)
 
 typedef enum {
 	COMP_OK = 0,

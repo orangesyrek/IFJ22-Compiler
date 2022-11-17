@@ -31,5 +31,5 @@ include_directories(${CMAKE_SOURCE_DIR})
 
 # add shared tests as make ifj_tester command
 add_custom_target(ifj_tester COMMAND ${CMAKE_SOURCE_DIR}/tests/test.py
-	${CMAKE_CURRENT_BINARY_DIR}/interpret ${CMAKE_CURRENT_BINARY_DIR}/interpret
+	${CMAKE_CURRENT_BINARY_DIR}/interpret
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests)

@@ -227,7 +227,7 @@ rule_func_def()
 		goto cleanup;
 	}
 
-	current_token = getToken();
+	while ((current_token = getToken()).type == COMMENT);
 	if (current_token.type != L_PAR) {
 		goto cleanup;
 	}
@@ -239,7 +239,7 @@ rule_func_def()
 
 	/* if all went well, ) should already be consumed */
 
-	current_token = getToken();
+	while ((current_token = getToken()).type == COMMENT);
 	if (current_token.type != COLON) {
 		goto cleanup;
 	}
@@ -249,7 +249,7 @@ rule_func_def()
 		goto cleanup;
 	}
 
-	current_token = getToken();
+	while ((current_token = getToken()).type == COMMENT);
 	if (current_token.type != L_CURLY) {
 		goto cleanup;
 	}
@@ -279,8 +279,6 @@ rule_if_statement()
 		goto cleanup;
 	}
 
-	/* call expr */
-	//while ((current_token = getToken()).type != R_PAR);
 	if (expression_parse(current_token, current_token) != COMP_OK) {
 		goto cleanup;
 	}
@@ -328,22 +326,31 @@ static comp_err
 rule_var_declaration()
 {
 	struct lexeme current_token;
-	struct lexeme first_token;
+	struct lexeme next_token;
+	int ret = COMP_OK;
 
 	current_token = getToken();
 	if (current_token.type == ASSIGNMENT) {
-		
-		first_token = getToken(); // tady ten first_token muzes otestovat, zda je to volani fce a pripadne mi ho predat
-		
-		if (expression_parse(current_token, first_token) == COMP_OK) {
-			return COMP_OK;
-		} else {
-			goto cleanup;
-		}
-		
-		//while ((current_token = getToken()).type != SEMICOLON);
+		next_token = getToken();
+		if (next_token.type == FUN_ID) {
+			ret = rule_func();
+			if (ret) {
+				goto cleanup;
+			}
 
-		return COMP_OK;
+			next_token = getToken();
+			if (next_token.type != SEMICOLON) {
+				goto cleanup;
+			} else {
+				return COMP_OK;
+			}
+		} else {
+			if (expression_parse(current_token, next_token)) {
+				goto cleanup;
+			} else {
+				return COMP_OK;
+			}
+		}
 	} else if (current_token.type == SEMICOLON) {
 		return COMP_OK;
 	} else {
@@ -365,9 +372,6 @@ rule_while_statement()
 	if (current_token.type != L_PAR) {
 		goto cleanup;
 	}
-
-	// expr
-	//while ((current_token = getToken()).type != R_PAR);
 
 	if (expression_parse(current_token, current_token) != COMP_OK) {
 		goto cleanup;
@@ -415,12 +419,13 @@ static comp_err
 rule_return()
 {
 	struct lexeme current_token;
-	//int ret = COMP_OK;
-	// expr
-	// while ((current_token = getToken()).type != SEMICOLON);
-	if (expression_parse(current_token, current_token) != COMP_OK) {
-		ERR_PRINT("Syntax error in return");
-		return COMP_ERR_SA;
+
+	current_token = getToken();
+	if (current_token.type != SEMICOLON) {
+		if (expression_parse(current_token, current_token)) {
+			ERR_PRINT("Syntax error in return");
+			return COMP_ERR_SA;
+		}
 	}
 
 	return COMP_OK;
@@ -472,7 +477,6 @@ rule_statement_list()
 			goto cleanup;
 		}
 	} else if (current_token.type == L_PAR) {
-		//expr
 		if (expression_parse(current_token, current_token) != COMP_OK) {
 			goto cleanup;
 		} else {
