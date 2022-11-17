@@ -280,7 +280,10 @@ rule_if_statement()
 	}
 
 	/* call expr */
-	while ((current_token = getToken()).type != R_PAR);
+	//while ((current_token = getToken()).type != R_PAR);
+	if (expression_parse(current_token, current_token) != COMP_OK) {
+		goto cleanup;
+	}
 
 	current_token = getToken();
 	if (current_token.type != L_CURLY) {
@@ -325,14 +328,20 @@ static comp_err
 rule_var_declaration()
 {
 	struct lexeme current_token;
+	struct lexeme first_token;
 
 	current_token = getToken();
 	if (current_token.type == ASSIGNMENT) {
-		// expr
-
-		int is_ok = expression_parse(current_token);
-
-		while ((current_token = getToken()).type != SEMICOLON);
+		
+		first_token = getToken(); // tady ten first_token muzes otestovat, zda je to volani fce a pripadne mi ho predat
+		
+		if (expression_parse(current_token, first_token) == COMP_OK) {
+			return COMP_OK;
+		} else {
+			goto cleanup;
+		}
+		
+		//while ((current_token = getToken()).type != SEMICOLON);
 
 		return COMP_OK;
 	} else if (current_token.type == SEMICOLON) {
@@ -358,7 +367,11 @@ rule_while_statement()
 	}
 
 	// expr
-	while ((current_token = getToken()).type != R_PAR);
+	//while ((current_token = getToken()).type != R_PAR);
+
+	if (expression_parse(current_token, current_token) != COMP_OK) {
+		goto cleanup;
+	}
 
 	current_token = getToken();
 	if (current_token.type != L_CURLY) {
@@ -403,9 +416,13 @@ rule_return()
 {
 	struct lexeme current_token;
 	//int ret = COMP_OK;
-
 	// expr
-	while ((current_token = getToken()).type != SEMICOLON);
+	// while ((current_token = getToken()).type != SEMICOLON);
+	if (expression_parse(current_token, current_token) != COMP_OK) {
+		ERR_PRINT("Syntax error in return");
+		return COMP_ERR_SA;
+	}
+
 	return COMP_OK;
 }
 
@@ -455,7 +472,12 @@ rule_statement_list()
 			goto cleanup;
 		}
 	} else if (current_token.type == L_PAR) {
-		// expr
+		//expr
+		if (expression_parse(current_token, current_token) != COMP_OK) {
+			goto cleanup;
+		} else {
+			return COMP_OK;
+		}
 	} else if (current_token.type == SEMICOLON) {
 		return COMP_OK;
 	} else if (current_token.type == COMMENT) {
