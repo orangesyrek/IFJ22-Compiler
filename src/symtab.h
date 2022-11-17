@@ -1,23 +1,29 @@
 #ifndef TREE_H
 #define TREE_H
 
-#include <stdint.h>
 
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+/*Types of variables */
 typedef enum{
 	STRING,
 	INT,
 	FLOAT,
 	BOOL,
-	NULL, // idk if not rename
+	TNULL, // idk if not rename
 	VOID,
 	QSTRING,
 	QINT,
 	QFLOAT
 } type;
 
+/*Binary tree*/
 struct bs_tree {
 	char *key;
-	void *data;
+	struct bs_data *data;
 	struct bs_tree *left;
 	struct bs_tree *right;
 };
@@ -34,6 +40,7 @@ struct variable_data{
 	type data_type;
 	int is_used;
 };
+
 struct bs_data{
 	uint32_t id;
 
@@ -45,7 +52,40 @@ struct bs_data{
 
 };
 
-
+/*
+Inicialization of symTable
+@param bs_tree pointer to binary tree
+*/
 void symtabInit(struct bs_tree *t);
 
+/*
+Insert to symTable
+@param bs_tree pointer to binary tree
+@param key key of node
+@param bs_data pointer to node data
+*/
+
+int symtabInsert(struct bs_tree *t, char *key, struct bs_data *data);
+
+/*
+Search in  symTable
+@param bs_tree pointer to binary tree
+@param key key of node
+*/
+
+struct bs_data* symtabSearch(struct bs_tree *t, char *key);
+
+
+/*
+Delete all nodes in symTable
+@param bs_tree pointer to binary tree
+*/
+
+void symtabDispose(struct bs_tree *t);
+/*
+Inicialization of data
+@param bs_data pointer to data
+*/
+
+int dataInit(struct bs_data *data);
 #endif
