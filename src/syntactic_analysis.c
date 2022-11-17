@@ -2,8 +2,8 @@
 #include <stdlib.h>
 
 #include "compiler.h"
-#include "syntactic_analysis.h"
 #include "lexical_analysis.h"
+#include "syntactic_analysis.h"
 
 extern struct compiler_ctx *ctx;
 
