@@ -8,35 +8,23 @@ struct compiler_ctx *ctx = NULL;
 int
 main(void)
 {
-	int count = 0;
+	struct lexeme lex;
+	int stop = 1;
 
 	if (compiler_ctx_new(&ctx)) {
 		return 1;
 	}
 
-	print_ctx();
-	int stop = 1;
-	//just testing Start
-	if(initDynString()){
-		return 1;
-	}
-
-	//just testing End
-
 	while(stop){
-		if (count > 300) {
-			break;
-		}
-		struct lexeme lex = getToken();
+		lex = getToken();
 		printToken(lex);
+
 		if(lex.type == LEX_EOF){
 			printf("%s\n", "stop");
 			stop = 0;
 		}
-		count++;
 	}
 
-	destroyDynString();
 	compiler_ctx_destroy(ctx);
 	return 0;
 }

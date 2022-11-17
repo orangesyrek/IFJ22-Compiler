@@ -10,53 +10,6 @@
 
 extern struct compiler_ctx *ctx;
 
-//just testing start ************************
-
-char* dynamicString = NULL;
-int dynamicStringOffset = 0;
-
-
-/*
-initializes dynamic string
-return 0 if everythink is OK else 1
-*/
-int initDynString(){
-  dynamicString = (char*) malloc(sizeof(char));
-  if(dynamicString == NULL)
-  {
-    return 1;
-  }else
-  {
-    return 0;
-  }
-}
-/*
-Destroyes dynamic string
-*/
-void destroyDynString(){
-  if(dynamicString != NULL){
-    free(dynamicString);
-  }
-}
-
-/*
-Realocates dynamic string by 1
-return 0 if everythink is OK else 1
-*/
-int realocateDynString(){
-  dynamicString = (char*) realloc(dynamicString, 1);
-  if(dynamicString == NULL)
-  {
-    return 1;
-  }else
-  {
-    return 0;
-  }
-
-}
-
-//just testing end ************************
-
 /*
 Debbuging function to see what token is made
 */
@@ -646,7 +599,6 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
 
 struct lexeme getToken()
 {
-    int localOffset = 0; // variable to measure size of string
     state currentState = Start;
     state previousState;
     struct lexeme token;
