@@ -35,10 +35,10 @@ expression_symbols token_to_symbol (struct lexeme token);
 
 expression_symbols get_op (expression_symbols stack_top, expression_symbols input);
 
-void test_rule (int count, expression_symbols one, expression_symbols two, expression_symbols three);
+int test_rule (int count, expression_symbols one, expression_symbols two, expression_symbols three);
 
-void reduce_rule ();
+int reduce ();
 
-int expression_parse (struct lexeme start_token);
+int expression_parse (struct lexeme start_token, struct lexeme first_token);
 
 #endif

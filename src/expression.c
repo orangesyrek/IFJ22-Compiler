@@ -68,6 +68,7 @@ expression_symbols token_to_symbol (struct lexeme token)
 		case INT_LIT:
 		case DECIMAL_LIT:
 		case VAR:
+		case KEYWORD_NULL:
 			return E_ID;
 
 		default:
@@ -161,70 +162,169 @@ expression_symbols get_op (expression_symbols stack_top, expression_symbols inpu
 	else return precedence_table[row][col];
 }
 
-void test_rule (int count, expression_symbols one, expression_symbols two, expression_symbols three)
+int test_rule (int count, expression_symbols one, expression_symbols two, expression_symbols three)
 {
-	// E -> i
-	// E -> (E)
-	// E -> E + E
-	// E -> E - E
-	// E -> E . E
-	// E -> E * E
-	// E -> E / E
-	// E -> E === E
-	// E -> E !== E
-	// E -> E < E
-	// E -> E <= E
-	// E -> E > E
-	// E -> E >= E
+	switch (count)
+	{
+		case 1:
+			if (one == E_ID)
+			{
+				// apply rule
+			}
+			break;
+		case 3:
+			if (one == E_L_BRACKET && two == E_NON_TERM && three == E_R_BRACKET)
+			{
+				// apply rule
+			}
+			else if (one == E_NON_TERM && three == E_NON_TERM)
+			{
+				switch (two)
+				{
+					case E_PLUS:
+						// apply rule
+					break;
+					case E_MINUS:
+						// apply rule
+					break;
+					case E_CON:
+						// apply rule
+					break;
+					case E_MUL:
+						// apply rule
+					break;
+					case E_DIV:
+						// apply rule
+					break;
+					case E_LT:
+						// apply rule
+					break;
+					case E_LEQ:
+						// apply rule
+					break;
+					case E_GT:
+						// apply rule
+					break;
+					case E_GEQ:
+						// apply rule
+					break;
+					case E_EQ:
+						// apply rule
+					break;
+					case E_NEQ:
+						// apply rule
+					break;
+					default:
+						//printf("NOT A RULE!\n");
+						return 1;
+				}
+			}
+			break;
+
+		default:
+			return 1;
+			break;
+	}
+	stack_pop_times(count + 1);
+	stack_push(E_NON_TERM);
+	return 0;
 }
 
-void reduce_rule ()
+int reduce (int count)
 {
-	// when we get R from precedence table
+	switch (count)
+	{
+		case 1:
+			if (test_rule(1, stack_peek_1(), X, X)) return 1; // Error in test_rule function
+			break;
+		case 3:
+			if (test_rule(3, stack_peek_1(), stack_peek_2(), stack_peek_3())) return 1; // Error in test_rule function
+			break;
+		default:
+			//printf("COUNT IS NOT 1 OR 3\n");
+			return 1;
+			break;
+	}
+	return 0;
 }
 
-int expression_parse (struct lexeme start_token)
+int expression_parse (struct lexeme start_token, struct lexeme first_token)
 {
 	stack_init();
 	struct lexeme current_token;
+	expression_symbols current_token_symbol;
+	expression_symbols stack_top_term;
 
 	// Where to end
 	lex_types end_token_type;
 
-	if (start_token.type == KEYWORD_RETURN) end_token_type = SEMICOLON;  // return ... ;
-	else if (start_token.type == ASSIGNMENT) end_token_type = SEMICOLON; //      = ... ;
-	else if (start_token.type == L_PAR) end_token_type = R_PAR;          //      ( ... )
+	if (start_token.type == L_PAR) end_token_type = R_PAR;          // ( ... )
+	else end_token_type = SEMICOLON;																// return ... ; NEBO = ... ;
+
+	/*if (end_token_type == SEMICOLON) printf("END TOKEN: SEMICOLON\n");
+	else if (end_token_type == R_PAR) printf("END TOKEN: R_PAR\n");
+	else printf("END TOKEN ERROR\n");*/
 
 	stack_push(E_DOLLAR);
+
+	if (start_token.type != first_token.type) {
+		current_token = first_token; // if current_token == ; or ) exit
+	} else {
+		current_token = getToken();
+	}
+
+	if (current_token.type == end_token_type) return COMP_OK;
 
 	do
 	{
 
-		current_token = getToken(); // if current_token == ; or ) exit
-
 		// Get a symbol equivalent to current token
-		expression_symbols current_token_symbol = token_to_symbol(current_token);
-		expression_symbols stack_top_term = stack_top_terminal();
+		current_token_symbol = token_to_symbol(current_token);
+		/*if (current_token_symbol == E_ID) printf("CURRENT TOKEN SYMBOL: E_ID\n");
+		else if (current_token_symbol == E_PLUS) printf("CURRENT TOKEN SYMBOL: E_PLUS\n");
+		else if (current_token_symbol == E_MUL) printf("CURRENT TOKEN SYMBOL: E_MUL\n");
+		else printf("CURRENT TOKEN SYMBOL ERROR\n");*/
+
+		stack_top_term = stack_top_terminal();
+		/*if (stack_top_term == E_ID) printf("STACK TOP TERMINAL: E_ID\n");
+		else if (stack_top_term == E_PLUS) printf("STACK TOP TERMINAL: E_PLUS\n");
+		else if (stack_top_term == E_MUL) printf("STACK TOP TERMINAL: E_MUL\n");
+		else if (stack_top_term == E_DOLLAR) printf("STACK TOP TERMINAL: E_DOLLAR\n");
+		else printf("STACK TOP TERMINAL ERROR\n");*/
+
+		int count;
 
 		switch(get_op(stack_top_term, current_token_symbol))
 		{
 			case E:
+				//printf("CASE: E\n");
 				stack_push(current_token_symbol);
-				stack_print();
+				current_token = getToken();
 				break;
 			case S:
+				//printf("CASE: S\n");
 				stack_push_after_top_terminal(S);
 				stack_push(current_token_symbol);
-				stack_print();
+				current_token = getToken();
 				break;
 			case R:
-				reduce_rule();
+				//printf("CASE: R\n");
+				count = stack_until_shift();
+				if (reduce(count)) return COMP_ERR_SA; // Error in reduce function
+				break;
+			case X:
+				//printf("CASE: X\n");
+				return COMP_ERR_SA;
 				break;
 			default:
+				//printf("CASE ERROR\n");
+				return COMP_ERR_SA;
 				break;
 		}
+		//stack_print();
 
-	} while (stack_top_terminal() != E_DOLLAR && current_token.type != end_token_type);
+	} while (!(stack_top_terminal() == E_DOLLAR && current_token.type == end_token_type));
 
-	return 0;
+	//printf("EXPRESSION PARSING OK\n");
+	return COMP_OK;
 }
