@@ -92,8 +92,8 @@ typedef enum {
     PROLOG_FIRST, /* <? */
     PROLOG_SECOND, /* <?p */
     PROLOG_THIRD, /* <?ph */
+    PROLOG_FOURTH, /* <?php */
     ERROR_STATE,
-    SOMESTATE
 } state;
 
 struct lexeme {

@@ -163,7 +163,7 @@ lex_types funIdToKeyword(char* id)
       return KEYWORD_STRICT_TYPES;
     } else if (!strcmp(id, "function")) {
         return KEYWORD_FUNCTION;
-    } else if ((!strcmp(id, "int")) || (!strcmp(id, "float")) || (!strcmp(id, "string"))) {
+    } else if ((!strcmp(id, "int")) || (!strcmp(id, "float")) || (!strcmp(id, "string")) || (!strcmp(id, "void")) || (!strcmp(id, "?int")) || (!strcmp(id, "?float")) || (!strcmp(id, "?string"))) {
         return PARAM_TYPE;
     }
     else{
@@ -185,8 +185,6 @@ static
 lex_types makeLexeme(state final) /* where lexemes are generated, can generate only if you are in state where you can generate something */
 {
     switch(final){
-        case SOMESTATE:
-            return DECIMAL_LIT;
         case SLASH_STATE:
             return SLASH;
         case COMMENT_END:
@@ -330,7 +328,6 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return LEX_EOF_STATE;
             }
             else {
-                //return ERROR_STATE;
                 ERR_PRINT("Unexpected character");
                 exit(1);
             }
@@ -391,7 +388,8 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             if (isalpha(input) || input == '_'){
                 return VAR_STATE;
             } else {
-                return ERROR_STATE;
+                ERR_PRINT("VAR_PREFIX ERROR");
+                exit(1);
             }
         case VAR_STATE:
             if (isalpha(input) || input == '_' || isdigit(input)){
@@ -407,28 +405,40 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return PROLOG_FIRST;
             }
             else {
-                return ERROR_STATE;
+                ERR_PRINT("REL_LESS_STATE ERROR");
+                exit(1);
             }
         case PROLOG_FIRST:
             if (input == 'p'){
                 return PROLOG_SECOND;
             }
             else {
-                return ERROR_STATE;
+                ERR_PRINT("PROLOG_FIRST ERROR");
+                exit(1);
             }
         case PROLOG_SECOND:
             if (input == 'h'){
                 return PROLOG_THIRD;
             }
             else {
-                return ERROR_STATE;
+                ERR_PRINT("PROLOG_SECOND ERROR");
+                exit(1);
             }
         case PROLOG_THIRD:
             if (input == 'p'){
+                return PROLOG_FOURTH;
+            }
+            else {
+                ERR_PRINT("PROLOG_THIRD ERROR");
+                exit(COMP_ERR_LA);
+            }
+        case PROLOG_FOURTH:
+            if(input == ' ' || input == '\n' || input == '\t' || input == '/'){
                 return PROLOG_STATE;
             }
             else {
-                return ERROR_STATE;
+                ERR_PRINT("PROLOG_FOURTH ERROR");
+                exit(COMP_ERR_LA);
             }
         case REL_GREATER_STATE:
             if (input == '='){
@@ -442,7 +452,8 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return PROLOG_END_STATE;
             }
             else {
-                return ERROR_STATE;
+                ERR_PRINT("QUESTION_MARK ERROR");
+                exit(COMP_ERR_LA);
             }
         case FUN_ID_STATE:
             if (isalpha(input) || input == '_' || isdigit(input)){
@@ -467,41 +478,32 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             if (input == '+' || input == '-'){
                 return INT_LIT_E_SIGN;
             } else {
-                //return ERROR_STATE;
-                ERR_PRINT("Unexpected character error, expecting digit 0-9");
-                exit(1);
+                ERR_PRINT("INT_LIT_E ERROR");
+                exit(COMP_ERR_LA);
             }
         case INT_LIT_E_SIGN:
             if (isdigit(input)){
-                return SOMESTATE;
+                return DEC_LIT_E_TMP;
             } else {
-                return ERROR_STATE; // here need to also exit(1)
-            }
-        case DEC_LIT_E_TMP: // fix here
-            if (input == '+' || input == '-'){ // here we are allowing +++++++-----+++++-- etc
-                return INT_LIT_E_SIGN;// need new state here
-            }
-             /// wtf is that
-            else {
-              ERR_PRINT("Unexpected character error, expecting digit 0-9");
-              exit(1);
-            }
-        case SOMESTATE:
-            if (isdigit(input)){
-                return SOMESTATE;
-              } else if (input == ')' || input == ';' || input == '=' || input == '<' ||
-                       input == '>' || input == '+' || input == '-' || input == '*' ||
-                       input == '/' || input == ',' || input == '!' || input == ';' || isspace(input)){
-                         return ERROR_STATE;
-                       } // ungeet(char ) -- fix
-              else{
-                ERR_PRINT("INT_LIT_DOT ERROR");
+                ERR_PRINT("INT_LIT_E_SIGN ERROR");
                 exit(COMP_ERR_LA);
-              }
-
+            }
+        case DEC_LIT_E_TMP:
+            if (isdigit(input)){
+                return DEC_LIT_E_TMP;
+            }
+            else if (input == ')' || input == ';' || input == '=' || input == '<' ||
+                     input == '>' || input == '+' || input == '-' || input == '*' ||
+                     input == '/' || input == ',' || input == '!' || isspace(input)){
+                         return DECIMAL_LIT_STATE;
+            }
+            else {
+                ERR_PRINT("DEC_LIT_E_TMP ERROR");
+                exit(COMP_ERR_LA);
+            }
         case INT_LIT_DOT:
             if (isdigit(input)){
-                return DEC_LIT_TMP; // fix that
+                return DEC_LIT_TMP; 
             } else {
                 ERR_PRINT("INT_LIT_DOT ERROR");
                 exit(COMP_ERR_LA);
@@ -511,16 +513,19 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return DEC_LIT_TMP;
             }
             else if (input == 'e' || input == 'E'){
-                return DEC_LIT_E_TMP;
+                return INT_LIT_E;
             }
             else if (input == ')' || input == ';' || input == '=' || input == '<' ||
                      input == '>' || input == '+' || input == '-' || input == '*' ||
-                     input == '/' || input == ',' || input == '!' || input == ';' || isspace(input)){
+                     input == '/' || input == ',' || input == '!' || isspace(input)){
                 return DECIMAL_LIT_STATE;
             }
             else {
-                return ERROR_STATE;
+                ERR_PRINT("DEC_LIT_TMP ERROR");
+                exit(COMP_ERR_LA);
             }
+        case DECIMAL_LIT_STATE:
+            return ERROR_STATE;
         case STR_LIT_STATE:
             if (input == '"'){
                 return ERROR_STATE;
@@ -608,8 +613,6 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             return ERROR_STATE;
         case PROLOG_END_STATE:
             return ERROR_STATE;
-        case DECIMAL_LIT_STATE:
-            return ERROR_STATE;
         case REL_IDENTICAL_STATE:
             return ERROR_STATE;
         case REL_NEQ_STATE:
@@ -664,6 +667,16 @@ struct lexeme getToken()
     if (previousState == INT_LIT_STATE) {
         token.value.int_val = atoi(buffer);
     }
+    if(previousState == DECIMAL_LIT_STATE){
+        token.value.flt_val = atof(buffer);
+    }
+    if(previousState == STR_LIT_STATE){
+        token.value.str_val = strdup(buffer);
+        if(token.value.str_val == NULL){
+            exit(COMP_ERR_INTERNAL);
+        }
+    }
+
     if(previousState == FUN_ID_STATE){
       //check if id is not NULL
       if(token.id){
