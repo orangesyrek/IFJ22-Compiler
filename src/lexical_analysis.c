@@ -227,7 +227,7 @@ lex_types makeLexeme(state final) /* where lexemes are generated, can generate o
             return FUN_ID;
         case INT_LIT_STATE:
             return INT_LIT;
-        case DECIMAL_LIT_STATE:
+        case DEC_LIT_TMP: // here change
             return DECIMAL_LIT;
         case DEC_LIT_E_TMP:
             return DECIMAL_LIT;
@@ -493,7 +493,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             else if (input == ')' || input == ';' || input == '=' || input == '<' ||
                      input == '>' || input == '+' || input == '-' || input == '*' ||
                      input == '/' || input == ',' || input == '!' || isspace(input)){
-                         return DECIMAL_LIT_STATE;
+                         return ERROR_STATE;//here change
             }
             else {
                 ERR_PRINT("DEC_LIT_E_TMP ERROR");
@@ -501,7 +501,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             }
         case INT_LIT_DOT:
             if (isdigit(input)){
-                return DEC_LIT_TMP; 
+                return DEC_LIT_TMP;
             } else {
                 ERR_PRINT("INT_LIT_DOT ERROR");
                 exit(COMP_ERR_LA);
@@ -516,14 +516,12 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             else if (input == ')' || input == ';' || input == '=' || input == '<' ||
                      input == '>' || input == '+' || input == '-' || input == '*' ||
                      input == '/' || input == ',' || input == '!' || isspace(input)){
-                return DECIMAL_LIT_STATE;
+                return ERROR_STATE;// here change
             }
             else {
                 ERR_PRINT("DEC_LIT_TMP ERROR");
                 exit(COMP_ERR_LA);
             }
-        case DECIMAL_LIT_STATE:
-            return ERROR_STATE;
         case STR_LIT_STATE:
             if (input == '"'){
                 return ERROR_STATE;
@@ -664,7 +662,7 @@ struct lexeme getToken()
     if (previousState == INT_LIT_STATE) {
         token.value.int_val = atoi(buffer);
     }
-    if(previousState == DECIMAL_LIT_STATE){
+    if(previousState == DEC_LIT_E_TMP || previousState == DEC_LIT_TMP){
         token.value.flt_val = atof(buffer);
     }
     if(previousState == STR_LIT_STATE){
