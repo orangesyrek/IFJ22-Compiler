@@ -15,7 +15,7 @@ except:
 		YELLOW="\x1b[36m"
 
 def test(text):
-	print(Fore.BLUE + "[TEST] " + Fore.WHITE + text)
+	print("[TEST] " + text)
 
 def err(text):
 	print("[" + Fore.RED + "ERR" + Fore.WHITE + "] " + text)
@@ -34,7 +34,7 @@ errors = 0
 successes = 0
 compiler_path = sys.argv[1]
 interpreter_path = None
-timeout = 2
+timeout = 5
 
 if len(sys.argv) < 3:
 	err("Please supply as second argument of test program path of your interpreter")
@@ -45,7 +45,11 @@ else:
 
 
 
-def run_test(path, files):
+def run_test(path, files, name):
+	if "name" not in files:
+		test(name)
+	else:
+		test(open(path + "name").read().strip())
 	is_ok = True
 	proc = Popen([compiler_path], stdin=PIPE, stdout=PIPE, stderr=PIPE)
 	ret_code = None
@@ -61,7 +65,10 @@ def run_test(path, files):
 			temp_out.write(out.decode("utf-8"))
 			temp_out.close()
 			proc = Popen([interpreter_path, "temp_out"], stdin=PIPE, stdout=PIPE, stderr=PIPE)
-			out_int,err_out_int = proc.communicate("", timeout=timeout)
+			in_text = ""
+			if "in" in files:
+				in_text = open(path+"in").read().encode("utf-8")
+			out_int,err_out_int = proc.communicate(in_text, timeout=timeout)
 			ret_code_int = proc.returncode
 			ret_code = ret_code or ret_code_int
 			if out_int.decode("utf-8") != expected_out:
@@ -91,8 +98,7 @@ for root, dirs, files in os.walk("./tests"):
 	path = root.split(os.sep)[2:]
 	if path==[]:continue
 	if "prog" in files:
-		test(path[-1])
-		if not run_test(root + "/", files):
+		if not run_test(root + "/", files, path[-1]):
 			is_ok = False
 			errors += 1
 		else:
