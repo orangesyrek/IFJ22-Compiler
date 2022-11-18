@@ -418,11 +418,12 @@ cleanup:
 static comp_err
 rule_return()
 {
-	struct lexeme current_token;
+	struct lexeme current_token = {0};
+	struct lexeme next_token;
 
-	current_token = getToken();
-	if (current_token.type != SEMICOLON) {
-		if (expression_parse(current_token, current_token)) {
+	next_token = getToken();
+	if (next_token.type != SEMICOLON) {
+		if (expression_parse(current_token, next_token)) {
 			ERR_PRINT("Syntax error in return");
 			return COMP_ERR_SA;
 		}
