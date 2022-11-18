@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 
 #include "syntactic_analysis.h"
 #include "lexical_analysis.h"
@@ -213,6 +213,31 @@ cleanup:
 	return ret;
 }
 
+static int
+check_builtin_redefinition(char *fun_id)
+{
+	/* todo: redo to symtab */
+	if (!strcmp(fun_id, "write")) {
+		return 1;
+	} else if (!strcmp(fun_id, "reads")) {
+		return 1;
+	} else if (!strcmp(fun_id, "readi")) {
+		return 1;
+	} else if (!strcmp(fun_id, "readf")) {
+		return 1;
+	} else if (!strcmp(fun_id, "strlen")) {
+		return 1;
+	} else if (!strcmp(fun_id, "substring")) {
+		return 1;
+	} else if (!strcmp(fun_id, "ord")) {
+		return 1;
+	} else if (!strcmp(fun_id, "chr")) {
+		return 1;
+	}
+
+	return 0;
+}
+
 /* statement -> function function_name_T ( parameters ) : type_T { statement_list } */
 static comp_err
 rule_func_def()
@@ -225,6 +250,11 @@ rule_func_def()
 	current_token = getToken();
 	if (current_token.type != FUN_ID) {
 		goto cleanup;
+	}
+
+	if (check_builtin_redefinition(current_token.id)) {
+		ERR_PRINT("Built-in function redefinition attempted.");
+		return COMP_ERR_UNDEF_FUNC;
 	}
 
 	while ((current_token = getToken()).type == COMMENT);
@@ -501,13 +531,29 @@ rule_statement_list()
 				goto cleanup;
 			}
 		} else {
-			ERR_PRINT("Return statement not inside a function body");
-			ret = COMP_ERR_SA;
-			goto cleanup;
+			current_token = getToken();
+			if (current_token.type == SEMICOLON) {
+				return COMP_OK;
+			} else if ((current_token.type == INT_LIT) || (current_token.type == VAR)) {
+				ret = expression_parse(current_token, current_token);
+				if (ret) {
+					goto cleanup;
+				}
+			} else {
+				ERR_PRINT("Return statement not inside a function body");
+				ret = COMP_ERR_SA;
+				goto cleanup;
+			}
 		}
 	} else if (current_token.type == R_CURLY) {
 		ctx->last_token = R_CURLY;
 		return COMP_OK;
+	} else if ((current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT) || (current_token.type == STR_LIT)) {
+		/* ex. 5; */
+		ret = expression_parse(current_token, current_token);
+		if (ret) {
+			goto cleanup;
+		}
 	} else {
 		return COMP_ERR_SA;
 	}
