@@ -268,7 +268,7 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 	stack_push(E_DOLLAR);
 
 	if (start_token.type != first_token.type) {
-		current_token = first_token; // if current_token == ; or ) exit
+		current_token = first_token;
 	} else {
 		current_token = getToken();
 	}
