@@ -431,7 +431,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 exit(COMP_ERR_LA);
             }
         case PROLOG_FOURTH:
-            if(input == ' ' || input == '\n' || input == '\t' || input == '/'){
+            if(input == ' ' || input == '\n' || input == '\t' || input == '\r'){
                 return PROLOG_STATE;
             }
             else {
