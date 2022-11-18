@@ -229,7 +229,7 @@ lex_types makeLexeme(state final) /* where lexemes are generated, can generate o
             return FUN_ID;
         case INT_LIT_STATE:
             return INT_LIT;
-        case DEC_LIT_TMP: // here change
+        case DEC_LIT_TMP: 
             return DECIMAL_LIT;
         case DEC_LIT_E_TMP:
             return DECIMAL_LIT;
@@ -405,8 +405,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return PROLOG_FIRST;
             }
             else {
-                ERR_PRINT("REL_LESS_STATE ERROR");
-                exit(1);
+                return ERROR_STATE;
             }
         case PROLOG_FIRST:
             if (input == 'p'){
@@ -433,7 +432,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 exit(COMP_ERR_LA);
             }
         case PROLOG_FOURTH:
-            if(input == ' ' || input == '\n' || input == '\t' || input == '/'){
+            if(input == ' ' || input == '\n' || input == '\t' || input == '/' || input == '\r' ){
                 return PROLOG_STATE;
             }
             else {
@@ -495,7 +494,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             else if (input == ')' || input == ';' || input == '=' || input == '<' ||
                      input == '>' || input == '+' || input == '-' || input == '*' ||
                      input == '/' || input == ',' || input == '!' || isspace(input)){
-                         return ERROR_STATE;//here change
+                         return ERROR_STATE;
             }
             else {
                 ERR_PRINT("DEC_LIT_E_TMP ERROR");
@@ -518,7 +517,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             else if (input == ')' || input == ';' || input == '=' || input == '<' ||
                      input == '>' || input == '+' || input == '-' || input == '*' ||
                      input == '/' || input == ',' || input == '!' || isspace(input)){
-                return ERROR_STATE;// here change
+                return ERROR_STATE;
             }
             else {
                 ERR_PRINT("DEC_LIT_TMP ERROR");
@@ -543,7 +542,6 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return ERROR_STATE;
             }
             else {
-                /* escaping char after \ */
                 return STR_LIT_STATE;
             }
         case STR_LIT_BEGIN:
