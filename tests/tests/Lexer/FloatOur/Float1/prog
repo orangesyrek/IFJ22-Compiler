@@ -1,0 +1,5 @@
+<?php
+declare(strict_types=1);
+$x = 15665e-16;
+// valid number
+?>
