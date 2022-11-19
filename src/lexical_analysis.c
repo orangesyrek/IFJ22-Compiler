@@ -763,7 +763,7 @@ struct lexeme getToken()
         }
     }
     token.type = makeLexeme(previousState);
-    if(previousState == FUN_ID_STATE || VAR_STATE || QUESTION_MARK_i_n_t || QUESTION_MARK_f_l_o_a_t || QUESTION_MARK_s_t_r_i_n_g){
+    if(previousState == FUN_ID_STATE || previousState == VAR_STATE || previousState == QUESTION_MARK_i_n_t || previousState == QUESTION_MARK_f_l_o_a_t || previousState == QUESTION_MARK_s_t_r_i_n_g){
       //calculating id of token
       token.id = strdup(buffer);
       if (!token.id) {
