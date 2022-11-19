@@ -5,6 +5,8 @@
 #include "syntactic_analysis.h"
 #include "lexical_analysis.h"
 #include "expression.h"
+#include "symtab.h"
+#include "compiler.h"
 
 extern struct compiler_ctx *ctx;
 
@@ -156,8 +158,28 @@ cleanup:
 	return COMP_ERR_SA;
 }
 
+static type
+token_get_param_type(char *id)
+{
+	if (!strcmp(id, "int")) {
+		return INT;
+	} else if (!strcmp(id, "float")) {
+		return FLOAT;
+	} else if (!strcmp(id, "string")) {
+		return STRING;
+	} else if (!strcmp(id, "?string")) {
+		return QSTRING;
+	} else if (!strcmp(id, "?float")) {
+		return QFLOAT;
+	} else if (!strcmp(id, "?int")) {
+		return QINT;
+	} else {
+		return VOID;
+	}
+}
+
 static comp_err
-rule_func_def_next_param()
+rule_func_def_next_param(struct function_data *data)
 {
 	struct lexeme current_token;
 
@@ -167,9 +189,16 @@ rule_func_def_next_param()
 	} else if (current_token.type == COMMA) {
 		current_token = getToken();
 		if (current_token.type == PARAM_TYPE) {
+			/* next param */
+			data->param_count++;
+			data->params = realloc_func_params(data->params, data->param_count);
+			if (!data->params) {
+				return COMP_ERR_INTERNAL;
+			}
+			data->params[data->param_count - 1] = token_get_param_type(current_token.id);
 			current_token = getToken();
 			if (current_token.type == VAR) {
-				return rule_func_def_next_param();
+				return rule_func_def_next_param(data);
 			} else {
 				return COMP_ERR_SA;
 			}
@@ -182,18 +211,28 @@ rule_func_def_next_param()
 }
 
 static comp_err
-rule_func_def_parameters()
+rule_func_def_parameters(struct function_data *data)
 {
 	int ret = COMP_OK;
 	struct lexeme current_token;
 
 	current_token = getToken();
 	if (current_token.type == R_PAR) {
+		/* no params */
+		data->param_count = 0;
 		goto cleanup;
 	} else if (current_token.type == PARAM_TYPE) {
+		/* insert new param */
+		data->param_count++;
+		data->params = realloc_func_params(data->params, data->param_count);
+		if (!data->params) {
+			ret = COMP_ERR_INTERNAL;
+			goto cleanup;
+		}
+		data->params[0] = token_get_param_type(current_token.id);
 		current_token = getToken();
 		if (current_token.type == VAR) {
-			ret = rule_func_def_next_param();
+			ret = rule_func_def_next_param(data);
 			if (ret != COMP_OK) {
 				ERR_PRINT("Syntax error in function definiton parameters.");
 			}
@@ -213,37 +252,15 @@ cleanup:
 	return ret;
 }
 
-static int
-check_builtin_redefinition(char *fun_id)
-{
-	/* todo: redo to symtab */
-	if (!strcmp(fun_id, "write")) {
-		return 1;
-	} else if (!strcmp(fun_id, "reads")) {
-		return 1;
-	} else if (!strcmp(fun_id, "readi")) {
-		return 1;
-	} else if (!strcmp(fun_id, "readf")) {
-		return 1;
-	} else if (!strcmp(fun_id, "strlen")) {
-		return 1;
-	} else if (!strcmp(fun_id, "substring")) {
-		return 1;
-	} else if (!strcmp(fun_id, "ord")) {
-		return 1;
-	} else if (!strcmp(fun_id, "chr")) {
-		return 1;
-	}
-
-	return 0;
-}
-
 /* statement -> function function_name_T ( parameters ) : type_T { statement_list } */
 static comp_err
 rule_func_def()
 {
-	int ret = COMP_OK;
+	int ret = COMP_ERR_SA;
+	int rc;
 	struct lexeme current_token;
+	struct bs_data *data;
+	char *function_name;
 
 	ctx->in_function = 1;
 
@@ -252,9 +269,25 @@ rule_func_def()
 		goto cleanup;
 	}
 
-	if (check_builtin_redefinition(current_token.id)) {
-		ERR_PRINT("Built-in function redefinition attempted.");
-		return COMP_ERR_UNDEF_FUNC;
+	/* save function name for later */
+	function_name = current_token.id;
+
+	/* check redefinition */
+	data = symtabSearch(ctx->global_sym_tab, current_token.id);
+	if (data) {
+		/* redefiniton found */
+		ret = COMP_ERR_UNDEF_FUNC;
+		ERR_PRINT("Function redefinition attempted.");
+		goto cleanup;
+	} else {
+		/* init new data */
+		rc = dataInit(&data);
+		if (rc) {
+			ret = rc;
+			goto cleanup;
+		}
+		data->is_function = 1;
+		data->data.fdata.is_defined = 1;
 	}
 
 	while ((current_token = getToken()).type == COMMENT);
@@ -262,7 +295,7 @@ rule_func_def()
 		goto cleanup;
 	}
 
-	ret = rule_func_def_parameters();
+	ret = rule_func_def_parameters(&(data->data.fdata));
 	if (ret != COMP_OK) {
 		goto cleanup;
 	}
@@ -278,9 +311,21 @@ rule_func_def()
 	if ((current_token.type != PARAM_TYPE) && (current_token.type != KEYWORD_VOID)) {
 		goto cleanup;
 	}
+	/* insert return type */
+	if (current_token.type == PARAM_TYPE) {
+		data->data.fdata.return_type = token_get_param_type(current_token.id);
+	} else {
+		data->data.fdata.return_type = VOID;
+	}
 
 	while ((current_token = getToken()).type == COMMENT);
 	if (current_token.type != L_CURLY) {
+		goto cleanup;
+	}
+
+	/* finally insert the function into the symbol table */
+	ret = symtabInsert(&ctx->global_sym_tab, function_name, data);
+	if (ret) {
 		goto cleanup;
 	}
 
@@ -295,7 +340,7 @@ rule_func_def()
 
 cleanup:
 	ERR_PRINT("Syntax error in function definition.");
-	return COMP_ERR_SA;
+	return ret;
 }
 
 static comp_err
@@ -468,6 +513,7 @@ rule_statement_list()
 {
 	int ret;
 	struct lexeme current_token;
+	struct lexeme tmp = {0};
 
 	/* parse lexemes that can appear in the global scope */
 	ctx->last_token = -1;
@@ -535,7 +581,8 @@ rule_statement_list()
 			if (current_token.type == SEMICOLON) {
 				return COMP_OK;
 			} else if ((current_token.type == INT_LIT) || (current_token.type == VAR)) {
-				ret = expression_parse(current_token, current_token);
+				/* expression parse will consume the first token */
+				ret = expression_parse(tmp, current_token);
 				if (ret) {
 					goto cleanup;
 				}

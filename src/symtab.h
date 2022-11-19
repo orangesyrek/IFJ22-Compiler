@@ -12,8 +12,6 @@ typedef enum{
 	STRING,
 	INT,
 	FLOAT,
-	BOOL,
-	TNULL, // idk if not rename
 	VOID,
 	QSTRING,
 	QINT,
