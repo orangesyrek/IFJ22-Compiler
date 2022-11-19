@@ -11,6 +11,7 @@ set(src
 	src/syntactic_analysis.c
 	src/expression.c
 	src/stack.c
+	src/generator.c
 	)
 set(header
 	src/compiler.h
@@ -19,6 +20,7 @@ set(header
 	src/syntactic_analysis.h
 	src/expression.h
 	src/stack.h
+	src/generator.h
 	)
 
 #tests
