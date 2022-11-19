@@ -74,13 +74,15 @@ cleanup:
 }
 
 static comp_err
-rule_next_param(struct function_data data)
+rule_next_param(struct function_data data, int is_not_defined, struct function_data *new_data)
 {
 	struct lexeme current_token;
 	static int param_counter = 1;
-	int p_count;
+	int p_count = 0;
 
-	p_count = data.param_count;
+	if (!is_not_defined) {
+		p_count = data.param_count;
+	}
 
 	current_token = getToken();
 	if (current_token.type == R_PAR) {
@@ -99,28 +101,64 @@ rule_next_param(struct function_data data)
 		if ((p_count == -1) && ((current_token.type == STR_LIT) || (current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT)
 		|| (current_token.type == VAR) || (current_token.type == KEYWORD_NULL))) {
 			param_counter++;
-			return rule_next_param(data);
+			return rule_next_param(data, is_not_defined, new_data);
 		}
 
 		if (current_token.type == STR_LIT) {
-			if ((data.params[param_counter] != STRING) && (data.params[param_counter] != QSTRING)) {
+			if (is_not_defined) {
+				new_data->param_count++;
+				new_data->params = realloc_func_params(new_data->params, new_data->param_count);
+				if (!new_data->params) {
+					return COMP_ERR_INTERNAL;
+				}
+				new_data->params[new_data->param_count - 1] = STRING;
+			} else if ((data.params[param_counter] != STRING) && (data.params[param_counter] != QSTRING)) {
 				ERR_PRINT("Unexpected string parameter.");
 				return COMP_ERR_FUNC_PARAM;
 			}
 		} else if (current_token.type == INT_LIT) {
-			if ((data.params[param_counter] != INT) && (data.params[param_counter] != QINT)) {
+			if (is_not_defined) {
+				new_data->param_count++;
+				new_data->params = realloc_func_params(new_data->params, new_data->param_count);
+				if (!new_data->params) {
+					return COMP_ERR_INTERNAL;
+				}
+				new_data->params[new_data->param_count - 1] = INT;
+			} else if ((data.params[param_counter] != INT) && (data.params[param_counter] != QINT)) {
 				ERR_PRINT("Unexpected integer parameter.");
 				return COMP_ERR_FUNC_PARAM;
 			}
 		} else if (current_token.type == DECIMAL_LIT) {
-			if ((data.params[param_counter] != FLOAT) && (data.params[param_counter] != QFLOAT)) {
+			if (is_not_defined) {
+				new_data->param_count++;
+				new_data->params = realloc_func_params(new_data->params, new_data->param_count);
+				if (!new_data->params) {
+					return COMP_ERR_INTERNAL;
+				}
+				new_data->params[new_data->param_count - 1] = FLOAT;
+			} else if ((data.params[param_counter] != FLOAT) && (data.params[param_counter] != QFLOAT)) {
 				ERR_PRINT("Unexpected decimal parameter.");
 				return COMP_ERR_FUNC_PARAM;
 			}
 		} else if (current_token.type == VAR) {
 			/* todo: code gen */
+			if (is_not_defined) {
+				new_data->param_count++;
+				new_data->params = realloc_func_params(new_data->params, new_data->param_count);
+				if (!new_data->params) {
+					return COMP_ERR_INTERNAL;
+				}
+				new_data->params[new_data->param_count - 1] = UNKNOWN;
+			}
 		} else if (current_token.type == KEYWORD_NULL) {
-			if ((data.params[param_counter] != QSTRING) && (data.params[param_counter] != QINT) && (data.params[param_counter] != QFLOAT)) {
+			if (is_not_defined) {
+				new_data->param_count++;
+				new_data->params = realloc_func_params(new_data->params, new_data->param_count);
+				if (!new_data->params) {
+					return COMP_ERR_INTERNAL;
+				}
+				new_data->params[new_data->param_count - 1] = T_NULL;
+			} else if ((data.params[param_counter] != QSTRING) && (data.params[param_counter] != QINT) && (data.params[param_counter] != QFLOAT)) {
 				ERR_PRINT("Unexpected NULL parameter.");
 				return COMP_ERR_FUNC_PARAM;
 			}
@@ -129,74 +167,146 @@ rule_next_param(struct function_data data)
 		}
 
 		param_counter++;
-		return rule_next_param(data);
+		return rule_next_param(data, is_not_defined, new_data);
 	} else {
 		return COMP_ERR_SA;
 	}
 }
 
+/* if the function is not defined yet, just count the params
+ * and check it later when its defined */
 static comp_err
-rule_func_params(struct function_data data, int is_defined)
+rule_func_params(struct function_data data, int is_not_defined, char *function_name)
 {
-	int ret = COMP_OK, p_count;
+	int ret = COMP_OK, p_count = 0;
 	struct lexeme current_token;
+	struct bs_data *new_data = NULL;
 
-	/* todo*/
-	(void) is_defined;
+	if (is_not_defined) {
+		new_data = symtabSearch(ctx->global_sym_tab, function_name);
+	} else {
+		p_count = data.param_count;
+	}
 
-	p_count = data.param_count;
 	current_token = getToken();
 	if (current_token.type == R_PAR) {
 		/* func_params -> empty */
 		if (p_count) {
 			ERR_PRINT("Expected more parameters in function call, but found 0.");
 			ret = COMP_ERR_FUNC_PARAM;
+			goto cleanup;
+		}
+		if (is_not_defined) {
+			/* todo check later */
+			new_data->data.fdata.param_count = 0;
 		}
 		goto cleanup;
 	} else if (!p_count) {
 		ERR_PRINT("Expected 0 parameters in function call.");
 		ret = COMP_ERR_FUNC_PARAM;
 	} else if (p_count == -1) {
-		/* variadic function */
-		ret = rule_next_param(data);
+		/* write */
+		ret = rule_next_param(data, 0, NULL);
 		goto cleanup;
 	}
 
 	if (current_token.type == STR_LIT) {
-		if ((data.params[0] != STRING) && (data.params[0] != QSTRING)) {
+		if (is_not_defined) {
+			new_data->data.fdata.param_count = 1;
+			new_data->data.fdata.params = realloc_func_params(new_data->data.fdata.params, new_data->data.fdata.param_count);
+			if (!new_data->data.fdata.params) {
+				ret = COMP_ERR_INTERNAL;
+				goto cleanup;
+			}
+			new_data->data.fdata.params[0] = STRING;
+		} else if ((data.params[0] != STRING) && (data.params[0] != QSTRING)) {
 			ERR_PRINT("String parameter not expected.");
 			ret = COMP_ERR_FUNC_PARAM;
 			goto cleanup;
 		}
-		ret = rule_next_param(data);
+		if (is_not_defined) {
+			ret = rule_next_param(data, 1, &new_data->data.fdata);
+		} else {
+			ret = rule_next_param(data, 0, NULL);
+		}
 	} else if (current_token.type == INT_LIT) {
-		if ((data.params[0] != INT) && (data.params[0] != QINT)) {
+		if (is_not_defined) {
+			new_data->data.fdata.param_count = 1;
+			new_data->data.fdata.params = realloc_func_params(new_data->data.fdata.params, new_data->data.fdata.param_count);
+			if (!new_data->data.fdata.params) {
+				ret = COMP_ERR_INTERNAL;
+				goto cleanup;
+			}
+			new_data->data.fdata.params[0] = INT;
+		} else if ((data.params[0] != INT) && (data.params[0] != QINT)) {
 			ERR_PRINT("Integer parameter not expected.");
 			ret = COMP_ERR_FUNC_PARAM;
 			goto cleanup;
 		}
-		ret = rule_next_param(data);
+		if (is_not_defined) {
+			ret = rule_next_param(data, 1, &new_data->data.fdata);
+		} else {
+			ret = rule_next_param(data, 0, NULL);
+		}
 	} else if (current_token.type == DECIMAL_LIT) {
-		if ((data.params[0] != FLOAT) && (data.params[0] != QFLOAT)) {
+		if (is_not_defined) {
+			new_data->data.fdata.param_count = 1;
+			new_data->data.fdata.params = realloc_func_params(new_data->data.fdata.params, new_data->data.fdata.param_count);
+			if (!new_data->data.fdata.params) {
+				ret = COMP_ERR_INTERNAL;
+				goto cleanup;
+			}
+			new_data->data.fdata.params[0] = FLOAT;
+		} else if ((data.params[0] != FLOAT) && (data.params[0] != QFLOAT)) {
 			ERR_PRINT("Decimal parameter not expected.");
 			ret = COMP_ERR_FUNC_PARAM;
 			goto cleanup;
 		}
-		ret = rule_next_param(data);
+		if (is_not_defined) {
+			ret = rule_next_param(data, 1, &new_data->data.fdata);
+		} else {
+			ret = rule_next_param(data, 0, NULL);
+		}
 	} else if (current_token.type == VAR) {
 		/* todo: runtime check */
-		ret = rule_next_param(data);
+		if (is_not_defined) {
+			new_data->data.fdata.param_count = 1;
+			new_data->data.fdata.params = realloc_func_params(new_data->data.fdata.params, new_data->data.fdata.param_count);
+			if (!new_data->data.fdata.params) {
+				ret = COMP_ERR_INTERNAL;
+				goto cleanup;
+			}
+			/* unknown */
+			new_data->data.fdata.params[0] = UNKNOWN;
+		}
+		if (is_not_defined) {
+			ret = rule_next_param(data, 1, &new_data->data.fdata);
+		} else {
+			ret = rule_next_param(data, 0, NULL);
+		}
 	} else if (current_token.type == KEYWORD_NULL) {
-		if ((data.params[0] != QSTRING) && (data.params[0] != QINT) && (data.params[0] != QFLOAT)) {
+		if (is_not_defined) {
+			new_data->data.fdata.param_count = 1;
+			new_data->data.fdata.params = realloc_func_params(new_data->data.fdata.params, new_data->data.fdata.param_count);
+			if (!new_data->data.fdata.params) {
+				ret = COMP_ERR_INTERNAL;
+				goto cleanup;
+			}
+			new_data->data.fdata.params[0] = T_NULL;
+		} else if ((data.params[0] != QSTRING) && (data.params[0] != QINT) && (data.params[0] != QFLOAT)) {
 			ERR_PRINT("Null parameter found in a function that does not accept it.");
 			ret = COMP_ERR_FUNC_PARAM;
 			goto cleanup;
 		}
-		ret = rule_next_param(data);
+		if (is_not_defined) {
+			ret = rule_next_param(data, 1, &new_data->data.fdata);
+		} else {
+			ret = rule_next_param(data, 0, NULL);
+		}
 	} else if ((current_token.type == MINUS) || (current_token.type == PLUS)) {
 		current_token = getToken();
 		if ((current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT)) {
-			ret = rule_next_param(data);
+			ret = rule_next_param(data, 0, NULL);
 			if (ret != COMP_OK) {
 				ERR_PRINT("Syntax error in parsing function call.");
 			}
@@ -217,7 +327,7 @@ cleanup:
 }
 
 static comp_err
-rule_func(struct function_data data, int is_defined)
+rule_func(struct function_data data, int is_not_defined, char *function_name)
 {
 	int ret = COMP_ERR_SA;
 	struct lexeme current_token;
@@ -227,7 +337,7 @@ rule_func(struct function_data data, int is_defined)
 		goto cleanup;
 	}
 
-	ret = rule_func_params(data, is_defined);
+	ret = rule_func_params(data, is_not_defined, function_name);
 	if (ret != COMP_OK) {
 		goto cleanup;
 	}
@@ -495,7 +605,6 @@ rule_var_declaration()
 	struct lexeme next_token;
 	int ret = COMP_OK;
 	struct bs_data *data;
-	struct function_data empty = {0};
 
 	current_token = getToken();
 	if (current_token.type == ASSIGNMENT) {
@@ -503,9 +612,21 @@ rule_var_declaration()
 		if (next_token.type == FUN_ID) {
 			data = symtabSearch(ctx->global_sym_tab, next_token.id);
 			if (!data) {
-				ret = rule_func(empty, 1);
+				ret = dataInit(&data);
+				if (ret) {
+					ret = COMP_ERR_INTERNAL;
+					goto cleanup;
+				}
+				data->is_function = 1;
+				data->data.fdata.is_defined = 0;
+				ret = symtabInsert(&ctx->global_sym_tab, next_token.id, data);
+				if (ret) {
+					ret = COMP_ERR_INTERNAL;
+					goto cleanup;
+				}
+				ret = rule_func(data->data.fdata, 1, next_token.id);
 			} else {
-				ret = rule_func(data->data.fdata, 0);
+				ret = rule_func(data->data.fdata, 0, next_token.id);
 			}
 
 			if (ret) {
@@ -628,9 +749,9 @@ rule_statement_list(struct bs_data *data)
 	if (current_token.type == FUN_ID) {
 		data = symtabSearch(ctx->global_sym_tab, current_token.id);
 		if (!data) {
-			ret = rule_func(empty, 1);
+			ret = rule_func(empty, 1, current_token.id);
 		} else {
-			ret = rule_func(data->data.fdata, 0);
+			ret = rule_func(data->data.fdata, 0, current_token.id);
 		}
 
 		if (ret != COMP_OK) {

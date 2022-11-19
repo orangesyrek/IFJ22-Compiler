@@ -15,7 +15,9 @@ typedef enum{
 	VOID,
 	QSTRING,
 	QINT,
-	QFLOAT
+	QFLOAT,
+	UNKNOWN,
+	T_NULL
 } type;
 
 /*Binary tree*/
