@@ -93,20 +93,20 @@ typedef enum {
     PROLOG_SECOND, /* <?p */
     PROLOG_THIRD, /* <?ph */
     PROLOG_FOURTH, /* <?php */
-    QUESTION_MARK_i, 
-    QUESTION_MARK_i_n,
-    QUESTION_MARK_i_n_t,
-    QUESTION_MARK_f,
-    QUESTION_MARK_f_l,
-    QUESTION_MARK_f_l_o,
-    QUESTION_MARK_f_l_o_a,
-    QUESTION_MARK_f_l_o_a_t,
-    QUESTION_MARK_s,
-    QUESTION_MARK_s_t,
-    QUESTION_MARK_s_t_r,
-    QUESTION_MARK_s_t_r_i,
-    QUESTION_MARK_s_t_r_i_n,
-    QUESTION_MARK_s_t_r_i_n_g,
+    QUESTION_MARK_i, /* ?i */
+    QUESTION_MARK_i_n, /* ?in */
+    QUESTION_MARK_i_n_t, /* ?int */
+    QUESTION_MARK_f, /* ?f */
+    QUESTION_MARK_f_l, /* ?fl */
+    QUESTION_MARK_f_l_o, /* ?flo */
+    QUESTION_MARK_f_l_o_a, /* ?floa */
+    QUESTION_MARK_f_l_o_a_t, /* ?float */
+    QUESTION_MARK_s, /* ?s */
+    QUESTION_MARK_s_t, /* ?st */
+    QUESTION_MARK_s_t_r, /* ?str */
+    QUESTION_MARK_s_t_r_i,  /* ?stri */
+    QUESTION_MARK_s_t_r_i_n, /* ?strin */
+    QUESTION_MARK_s_t_r_i_n_g, /* ?string */
     ERROR_STATE,
 } state;
 
