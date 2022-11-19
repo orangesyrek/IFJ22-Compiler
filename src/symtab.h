@@ -31,7 +31,7 @@ struct bs_tree {
 struct function_data{
 	type return_type;
 	int is_defined;
-	int *params;
+	type *params;
 	int param_count;
 };
 
@@ -88,5 +88,15 @@ Inicialization of data
 int dataInit(struct bs_data **data);
 
 void printTree(struct bs_tree *t);
+
+/**
+ * Insert builtin functions
+*/
+int insert_builtin_functions(struct bs_tree **tree);
+
+/**
+ * Reallocate parameters array
+ */
+type * realloc_func_params(type *params, int param_count);
 
 #endif
