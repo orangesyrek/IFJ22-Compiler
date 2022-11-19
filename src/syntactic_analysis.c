@@ -74,46 +74,129 @@ cleanup:
 }
 
 static comp_err
-rule_next_param()
+rule_next_param(struct function_data data)
 {
 	struct lexeme current_token;
+	static int param_counter = 1;
+	int p_count;
+
+	p_count = data.param_count;
 
 	current_token = getToken();
 	if (current_token.type == R_PAR) {
 		/* next_param -> empty */
+		if ((param_counter != p_count) && (p_count != -1)) {
+			ERR_PRINT("Received more parameters than expected.");
+			return COMP_ERR_FUNC_PARAM;
+		}
+		param_counter = 1;
 		return COMP_OK;
 	} else if (current_token.type == COMMA) {
 		/* next_param -> , Terminal next_param */
 		current_token = getToken();
-		if ((current_token.type == STR_LIT) || (current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT)
-		|| (current_token.type == VAR) || (current_token.type == KEYWORD_NULL)) {
-			return rule_next_param();
+
+		/* check if its write */
+		if ((p_count == -1) && ((current_token.type == STR_LIT) || (current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT)
+		|| (current_token.type == VAR) || (current_token.type == KEYWORD_NULL))) {
+			param_counter++;
+			return rule_next_param(data);
+		}
+
+		if (current_token.type == STR_LIT) {
+			if ((data.params[param_counter] != STRING) && (data.params[param_counter] != QSTRING)) {
+				ERR_PRINT("Unexpected string parameter.");
+				return COMP_ERR_FUNC_PARAM;
+			}
+		} else if (current_token.type == INT_LIT) {
+			if ((data.params[param_counter] != INT) && (data.params[param_counter] != QINT)) {
+				ERR_PRINT("Unexpected integer parameter.");
+				return COMP_ERR_FUNC_PARAM;
+			}
+		} else if (current_token.type == DECIMAL_LIT) {
+			if ((data.params[param_counter] != FLOAT) && (data.params[param_counter] != QFLOAT)) {
+				ERR_PRINT("Unexpected decimal parameter.");
+				return COMP_ERR_FUNC_PARAM;
+			}
+		} else if (current_token.type == VAR) {
+			/* todo: code gen */
+		} else if (current_token.type == KEYWORD_NULL) {
+			if ((data.params[param_counter] != QSTRING) && (data.params[param_counter] != QINT) && (data.params[param_counter] != QFLOAT)) {
+				ERR_PRINT("Unexpected NULL parameter.");
+				return COMP_ERR_FUNC_PARAM;
+			}
 		} else {
 			return COMP_ERR_SA;
 		}
+
+		param_counter++;
+		return rule_next_param(data);
 	} else {
 		return COMP_ERR_SA;
 	}
 }
 
 static comp_err
-rule_func_params()
+rule_func_params(struct function_data data, int is_defined)
 {
-	int ret = COMP_OK;
+	int ret = COMP_OK, p_count;
 	struct lexeme current_token;
 
+	/* todo*/
+	(void) is_defined;
+
+	p_count = data.param_count;
 	current_token = getToken();
 	if (current_token.type == R_PAR) {
 		/* func_params -> empty */
+		if (p_count) {
+			ERR_PRINT("Expected more parameters in function call, but found 0.");
+			ret = COMP_ERR_FUNC_PARAM;
+		}
 		goto cleanup;
-	} else if ((current_token.type == STR_LIT) || (current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT)
-		|| (current_token.type == VAR) || (current_token.type == KEYWORD_NULL)) {
-		/* func_params -> Terminal next_param */
-		ret = rule_next_param();
+	} else if (!p_count) {
+		ERR_PRINT("Expected 0 parameters in function call.");
+		ret = COMP_ERR_FUNC_PARAM;
+	} else if (p_count == -1) {
+		/* variadic function */
+		ret = rule_next_param(data);
+		goto cleanup;
+	}
+
+	if (current_token.type == STR_LIT) {
+		if ((data.params[0] != STRING) && (data.params[0] != QSTRING)) {
+			ERR_PRINT("String parameter not expected.");
+			ret = COMP_ERR_FUNC_PARAM;
+			goto cleanup;
+		}
+		ret = rule_next_param(data);
+	} else if (current_token.type == INT_LIT) {
+		if ((data.params[0] != INT) && (data.params[0] != QINT)) {
+			ERR_PRINT("Integer parameter not expected.");
+			ret = COMP_ERR_FUNC_PARAM;
+			goto cleanup;
+		}
+		ret = rule_next_param(data);
+	} else if (current_token.type == DECIMAL_LIT) {
+		if ((data.params[0] != FLOAT) && (data.params[0] != QFLOAT)) {
+			ERR_PRINT("Decimal parameter not expected.");
+			ret = COMP_ERR_FUNC_PARAM;
+			goto cleanup;
+		}
+		ret = rule_next_param(data);
+	} else if (current_token.type == VAR) {
+		/* todo: runtime check */
+		ret = rule_next_param(data);
+	} else if (current_token.type == KEYWORD_NULL) {
+		if ((data.params[0] != QSTRING) && (data.params[0] != QINT) && (data.params[0] != QFLOAT)) {
+			ERR_PRINT("Null parameter found in a function that does not accept it.");
+			ret = COMP_ERR_FUNC_PARAM;
+			goto cleanup;
+		}
+		ret = rule_next_param(data);
 	} else if ((current_token.type == MINUS) || (current_token.type == PLUS)) {
 		current_token = getToken();
 		if ((current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT)) {
-			ret = rule_next_param();
+			ret = rule_next_param(data);
 			if (ret != COMP_OK) {
 				ERR_PRINT("Syntax error in parsing function call.");
 			}
@@ -134,9 +217,9 @@ cleanup:
 }
 
 static comp_err
-rule_func()
+rule_func(struct function_data data, int is_defined)
 {
-	int ret;
+	int ret = COMP_ERR_SA;
 	struct lexeme current_token;
 
 	current_token = getToken();
@@ -144,7 +227,7 @@ rule_func()
 		goto cleanup;
 	}
 
-	ret = rule_func_params();
+	ret = rule_func_params(data, is_defined);
 	if (ret != COMP_OK) {
 		goto cleanup;
 	}
@@ -155,7 +238,7 @@ rule_func()
 
 cleanup:
 	ERR_PRINT("Syntax error in function call.");
-	return COMP_ERR_SA;
+	return ret;
 }
 
 static type
@@ -316,6 +399,7 @@ rule_func_def()
 		data->data.fdata.return_type = token_get_param_type(current_token.id);
 	} else {
 		data->data.fdata.return_type = VOID;
+		ctx->seen_return = 1;
 	}
 
 	while ((current_token = getToken()).type == COMMENT);
@@ -329,12 +413,19 @@ rule_func_def()
 		goto cleanup;
 	}
 
-	ret = rule_statement_list();
+	ret = rule_statement_list(data);
 	if (ret != COMP_OK) {
 		goto cleanup;
 	}
 
 	/* if all went well, } should already be consumed */
+	if (!ctx->seen_return) {
+		ERR_PRINT("Missing return value in non-void function.");
+		ret = COMP_ERR_FUNC_PARAM;
+		goto cleanup;
+	}
+
+	ctx->seen_return = 0;
 	ctx->in_function = 0;
 	return COMP_OK;
 
@@ -403,12 +494,20 @@ rule_var_declaration()
 	struct lexeme current_token;
 	struct lexeme next_token;
 	int ret = COMP_OK;
+	struct bs_data *data;
+	struct function_data empty = {0};
 
 	current_token = getToken();
 	if (current_token.type == ASSIGNMENT) {
 		next_token = getToken();
 		if (next_token.type == FUN_ID) {
-			ret = rule_func();
+			data = symtabSearch(ctx->global_sym_tab, next_token.id);
+			if (!data) {
+				ret = rule_func(empty, 1);
+			} else {
+				ret = rule_func(data->data.fdata, 0);
+			}
+
 			if (ret) {
 				goto cleanup;
 			}
@@ -491,7 +590,7 @@ cleanup:
 }
 
 static comp_err
-rule_return()
+rule_return(struct function_data data)
 {
 	struct lexeme current_token = {0};
 	struct lexeme next_token;
@@ -502,24 +601,38 @@ rule_return()
 			ERR_PRINT("Syntax error in return");
 			return COMP_ERR_SA;
 		}
+	} else {
+		/* it's return; -> fun has to have void return */
+		if (data.return_type != VOID) {
+			ERR_PRINT("Missing return value in non-void function.");
+			return COMP_ERR_FUNC_RETURN;
+		}
 	}
 
+	ctx->seen_return = 1;
 	return COMP_OK;
 }
 
 /* rule: program -> prolog statement_list EOF */
 static comp_err
-rule_statement_list()
+rule_statement_list(struct bs_data *data)
 {
 	int ret;
 	struct lexeme current_token;
 	struct lexeme tmp = {0};
+	struct function_data empty = {0};
 
 	/* parse lexemes that can appear in the global scope */
 	ctx->last_token = -1;
 	current_token = getToken();
 	if (current_token.type == FUN_ID) {
-		ret = rule_func();
+		data = symtabSearch(ctx->global_sym_tab, current_token.id);
+		if (!data) {
+			ret = rule_func(empty, 1);
+		} else {
+			ret = rule_func(data->data.fdata, 0);
+		}
+
 		if (ret != COMP_OK) {
 			goto cleanup;
 		}
@@ -562,7 +675,7 @@ rule_statement_list()
 	} else if (current_token.type == SEMICOLON) {
 		return COMP_OK;
 	} else if (current_token.type == COMMENT) {
-		return rule_statement_list();
+		return rule_statement_list(data);
 	} else if (current_token.type == PROLOG_END) {
 		ret = rule_prolog_end();
 		if (ret != COMP_OK) {
@@ -572,7 +685,7 @@ rule_statement_list()
 		return COMP_OK;
 	} else if (current_token.type == KEYWORD_RETURN) {
 		if (ctx->in_function) {
-			ret = rule_return();
+			ret = rule_return(data->data.fdata);
 			if (ret != COMP_OK) {
 				goto cleanup;
 			}
@@ -605,7 +718,7 @@ rule_statement_list()
 		return COMP_ERR_SA;
 	}
 
-	return rule_statement_list();
+	return rule_statement_list(data);
 
 cleanup:
 	ERR_PRINT("Syntax parsing failed");
@@ -625,7 +738,7 @@ synt_parse()
 		goto cleanup;
 	}
 
-	ret = rule_statement_list();
+	ret = rule_statement_list(NULL);
 	if (ret) {
 		goto cleanup;
 	}

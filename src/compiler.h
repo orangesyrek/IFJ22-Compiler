@@ -20,6 +20,7 @@ typedef enum {
 struct compiler_ctx {
 	int last_read;
 	int in_function;
+	int seen_return;
 	unsigned int current_row;
 	int last_token;
 	struct bs_tree *global_sym_tab;
