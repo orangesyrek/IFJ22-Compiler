@@ -644,7 +644,8 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             }
         case STR_LIT_ESCAPE:
             if(input == EOF){
-                return ERROR_STATE;
+                ERR_PRINT("ERROR STR_LIT_ESCAPE EOF");
+                exit(COMP_ERR_LA);
             }
             else {
                 return STR_LIT_STATE;
