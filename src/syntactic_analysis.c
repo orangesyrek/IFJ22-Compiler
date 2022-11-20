@@ -7,6 +7,7 @@
 #include "expression.h"
 #include "symtab.h"
 #include "compiler.h"
+#include "generator.h"
 
 extern struct compiler_ctx *ctx;
 
@@ -79,6 +80,7 @@ rule_next_param(struct function_data data, int is_not_defined, struct function_d
 	struct lexeme current_token;
 	static int param_counter = 1;
 	int p_count = 0;
+	static char *param2;
 
 	if (!is_not_defined) {
 		p_count = data.param_count;
@@ -91,6 +93,9 @@ rule_next_param(struct function_data data, int is_not_defined, struct function_d
 			ERR_PRINT("Received more parameters than expected.");
 			return COMP_ERR_FUNC_PARAM;
 		}
+		data.param_count = param_counter;
+		/*generatorPrepare(data);
+		generatorPushParamString(param2);*/
 		param_counter = 1;
 		return COMP_OK;
 	} else if (current_token.type == COMMA) {
@@ -101,6 +106,7 @@ rule_next_param(struct function_data data, int is_not_defined, struct function_d
 		if ((p_count == -1) && ((current_token.type == STR_LIT) || (current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT)
 		|| (current_token.type == VAR) || (current_token.type == KEYWORD_NULL))) {
 			param_counter++;
+			param2 = current_token.value.str_val;
 			return rule_next_param(data, is_not_defined, new_data);
 		}
 
@@ -200,6 +206,9 @@ rule_func_params(struct function_data data, int is_not_defined, char *function_n
 			/* todo check later */
 			new_data->data.fdata.param_count = 0;
 		}
+		/* generate without param */
+		//generatorPrepare(data);
+		//generatorExecute("reads");
 		goto cleanup;
 	} else if (!p_count && !is_not_defined) {
 		ERR_PRINT("Expected 0 parameters in function call.");
@@ -223,8 +232,9 @@ rule_func_params(struct function_data data, int is_not_defined, char *function_n
 				}
 			}
 		}
-
 		ret = rule_next_param(data, 0, NULL);
+		/*generatorPushParamString(current_token.value.str_val);
+		generatorExecute("write");*/
 		goto cleanup;
 	}
 
