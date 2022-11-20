@@ -87,7 +87,7 @@ rule_next_param(struct function_data data, int is_not_defined, struct function_d
 	current_token = getToken();
 	if (current_token.type == R_PAR) {
 		/* next_param -> empty */
-		if ((param_counter != p_count) && (p_count != -1)) {
+		if ((param_counter != p_count) && (p_count != -1) && (!is_not_defined)) {
 			ERR_PRINT("Received more parameters than expected.");
 			return COMP_ERR_FUNC_PARAM;
 		}
@@ -201,7 +201,7 @@ rule_func_params(struct function_data data, int is_not_defined, char *function_n
 			new_data->data.fdata.param_count = 0;
 		}
 		goto cleanup;
-	} else if (!p_count) {
+	} else if (!p_count && !is_not_defined) {
 		ERR_PRINT("Expected 0 parameters in function call.");
 		ret = COMP_ERR_FUNC_PARAM;
 	} else if (p_count == -1) {
@@ -371,27 +371,91 @@ token_get_param_type(char *id)
 	}
 }
 
+int
+check_param(type param, char *param_str, struct function_data *data, int idx)
+{
+	int ret = 0;
+
+	if (param == UNKNOWN) {
+		data->params[idx] = token_get_param_type(param_str);
+		goto cleanup;
+	}
+
+	if (!strcmp(param_str, "int")) {
+		if (param != INT) {
+			ret = 1;
+			goto cleanup;
+		}
+	} else if (!strcmp(param_str, "float")) {
+		if (param != FLOAT) {
+			ret = 1;
+			goto cleanup;
+		}
+	} else if (!strcmp(param_str, "string")) {
+		if (param != STRING) {
+			ret = 1;
+			goto cleanup;
+		}
+	} else if (!strcmp(param_str, "?string")) {
+		if ((param != STRING) || (param != T_NULL)) {
+			ret = 1;
+			goto cleanup;
+		}
+		data->params[idx] = QSTRING;
+	} else if (!strcmp(param_str, "?float")) {
+		if ((param != FLOAT) || (param != T_NULL)) {
+			ret = 1;
+			goto cleanup;
+		}
+		data->params[idx] = QFLOAT;
+	} else if (!strcmp(param_str, "?int")) {
+		if ((param != INT) || (param != T_NULL)) {
+			ret = 1;
+			goto cleanup;
+		}
+		data->params[idx] = QINT;
+	}
+
+cleanup:
+	return ret;
+}
+
 static comp_err
-rule_func_def_next_param(struct function_data *data)
+rule_func_def_next_param(struct function_data *data, int check_params)
 {
 	struct lexeme current_token;
+	static int p_counter = 1;
 
 	current_token = getToken();
 	if (current_token.type == R_PAR) {
+		if ((check_params) && (p_counter != data->param_count)) {
+			ERR_PRINT("Function parameters don't match.");
+			return COMP_ERR_FUNC_PARAM;
+		}
+		p_counter = 1;
 		return COMP_OK;
 	} else if (current_token.type == COMMA) {
 		current_token = getToken();
 		if (current_token.type == PARAM_TYPE) {
 			/* next param */
-			data->param_count++;
-			data->params = realloc_func_params(data->params, data->param_count);
-			if (!data->params) {
-				return COMP_ERR_INTERNAL;
+			if (check_params) {
+				p_counter++;
+				if ((p_counter > data->param_count) || (check_param(data->params[p_counter - 1], current_token.id, data, p_counter - 1))) {
+					ERR_PRINT("Function parameters don't match.");
+					return COMP_ERR_FUNC_PARAM;
+				}
+			} else {
+				data->param_count++;
+				data->params = realloc_func_params(data->params, data->param_count);
+				if (!data->params) {
+					return COMP_ERR_INTERNAL;
+				}
+				data->params[data->param_count - 1] = token_get_param_type(current_token.id);
 			}
-			data->params[data->param_count - 1] = token_get_param_type(current_token.id);
+
 			current_token = getToken();
 			if (current_token.type == VAR) {
-				return rule_func_def_next_param(data);
+				return rule_func_def_next_param(data, check_params);
 			} else {
 				return COMP_ERR_SA;
 			}
@@ -404,7 +468,7 @@ rule_func_def_next_param(struct function_data *data)
 }
 
 static comp_err
-rule_func_def_parameters(struct function_data *data)
+rule_func_def_parameters(struct function_data *data, int check_params)
 {
 	int ret = COMP_OK;
 	struct lexeme current_token;
@@ -415,17 +479,26 @@ rule_func_def_parameters(struct function_data *data)
 		data->param_count = 0;
 		goto cleanup;
 	} else if (current_token.type == PARAM_TYPE) {
-		/* insert new param */
-		data->param_count++;
-		data->params = realloc_func_params(data->params, data->param_count);
-		if (!data->params) {
-			ret = COMP_ERR_INTERNAL;
-			goto cleanup;
+		if (check_params) {
+			if ((!data->param_count) || (check_param(data->params[0], current_token.id, data, 0))) {
+				ERR_PRINT("Function parameters don't match.");
+				ret = COMP_ERR_FUNC_PARAM;
+				goto cleanup;
+			}
+		} else {
+			/* insert new param */
+			data->param_count++;
+			data->params = realloc_func_params(data->params, data->param_count);
+			if (!data->params) {
+				ret = COMP_ERR_INTERNAL;
+				goto cleanup;
+			}
+			data->params[0] = token_get_param_type(current_token.id);
 		}
-		data->params[0] = token_get_param_type(current_token.id);
+
 		current_token = getToken();
 		if (current_token.type == VAR) {
-			ret = rule_func_def_next_param(data);
+			ret = rule_func_def_next_param(data, check_params);
 			if (ret != COMP_OK) {
 				ERR_PRINT("Syntax error in function definiton parameters.");
 			}
@@ -445,6 +518,22 @@ cleanup:
 	return ret;
 }
 
+int
+check_not_complete_record(char *function_name)
+{
+	int i;
+
+	for (i = 0; i < 20; i++) {
+		if (ctx->unchecked_functions[i]) {
+			if (!strcmp(ctx->unchecked_functions[i], function_name)) {
+				return 0;
+			}
+		}
+	}
+
+	return 1;
+}
+
 /* statement -> function function_name_T ( parameters ) : type_T { statement_list } */
 static comp_err
 rule_func_def()
@@ -454,6 +543,7 @@ rule_func_def()
 	struct lexeme current_token;
 	struct bs_data *data;
 	char *function_name;
+	int param_check = 0;
 
 	ctx->in_function = 1;
 
@@ -468,10 +558,16 @@ rule_func_def()
 	/* check redefinition */
 	data = symtabSearch(ctx->global_sym_tab, current_token.id);
 	if (data) {
-		/* redefiniton found */
-		ret = COMP_ERR_UNDEF_FUNC;
-		ERR_PRINT("Function redefinition attempted.");
-		goto cleanup;
+		rc = check_not_complete_record(current_token.id);
+		if (!rc) {
+			/* not complete record found, check params */
+			param_check = 1;
+		} else {
+			/* redefiniton found */
+			ret = COMP_ERR_UNDEF_FUNC;
+			ERR_PRINT("Function redefinition attempted.");
+			goto cleanup;
+		}
 	} else {
 		/* init new data */
 		rc = dataInit(&data);
@@ -488,7 +584,7 @@ rule_func_def()
 		goto cleanup;
 	}
 
-	ret = rule_func_def_parameters(&(data->data.fdata));
+	ret = rule_func_def_parameters(&(data->data.fdata), param_check);
 	if (ret != COMP_OK) {
 		goto cleanup;
 	}
@@ -624,6 +720,8 @@ rule_var_declaration()
 					ret = COMP_ERR_INTERNAL;
 					goto cleanup;
 				}
+				ctx->unchecked_functions[ctx->empty_index] = next_token.id;
+				ctx->empty_index++;
 				ret = rule_func(data->data.fdata, 1, next_token.id);
 			} else {
 				ret = rule_func(data->data.fdata, 0, next_token.id);
@@ -749,6 +847,8 @@ rule_statement_list(struct bs_data *data)
 	if (current_token.type == FUN_ID) {
 		data = symtabSearch(ctx->global_sym_tab, current_token.id);
 		if (!data) {
+			ctx->unchecked_functions[ctx->empty_index] = current_token.id;
+			ctx->empty_index++;
 			ret = rule_func(empty, 1, current_token.id);
 		} else {
 			ret = rule_func(data->data.fdata, 0, current_token.id);
