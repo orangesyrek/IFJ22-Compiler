@@ -17,3 +17,15 @@ void generatorPushParamStringNonB(char *str);
 void generatorPushParamString(char *str);
 
 void generatorFunWrite();
+
+void generatorBuiltinFunctions();
+
+void  generatorFunWrite();
+
+void  generatorFunReadf();
+
+void  generatorFunReadi();
+
+void  generatorFunReads();
+
+void generatorFunStrLen();

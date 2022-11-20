@@ -20,17 +20,17 @@ void generatorPrepare(struct bs_data *functionData){
     printf("MOVE TF@pcount int@%d\n", functionData->data.fdata.param_count);
   }
 }
-//not added
 
+//for non-builtin functions creating frame id etc
 char* generatorCalculateId(){
-char idstr[1024]; // need some dynamic string or strdub
+char idstr[1024]; // need some dynamic string or strdup
 sprintf(idstr, "%lu", id);
 char *name = strcat("p", idstr);
 return name;
 }
 
 //now only for strings, then need to rebuilt to take float, int, bool null
-//only for non-built in functions
+//only for non-builtin functions
 void generatorPushParamStringNonB(char *str){
   char *name = generatorCalculateId();
   printf("DEFVAR TF@%s\n", name);
@@ -44,9 +44,22 @@ void generatorPushParamString(char *str){
   printf("PUSHS string@%s\n", str);
 }
 
+void generatorExecute(char *fun){ // need to know function name
+  printf("PUSHFRAME");
+  printf("CALL %s\n", fun);
+  generatorFunWrite(); // to test
+  printf("POPFRAME");// maybe delete depends
+}
 
+void generatorBuiltinFunctions(){
+  generatorFunWrite();
+  generatorFunReadf();
+  generatorFunReadi();
+  generatorFunReads();
+}
 
 void generatorFunWrite(){
+  printf("JUMP $writeend");
   printf("LABEL write\n");
   printf("CREATEFRAME\n");
   //printf("DEFVAR TF@cnt_of_parameter\n");
@@ -59,36 +72,62 @@ void generatorFunWrite(){
   printf("JUMPIFEQ _print_while_end TF@cnt LF@pcount\n");
   printf("POPS TF@to_print\n");
   //idk about this part *** maybe for for not to empty stack if bad count of params come
-  printf("JUMPIFNEQ exprint TF@to_print nil@nil \n");
-  printf("PUSHS string@nil\n");
-  printf("POPS TF@to_print\n");
-  printf("LABEL exprint\n");
+      // printf("JUMPIFNEQ exprint TF@to_print nil@nil \n");
+      // printf("PUSHS string@nil\n");
+      // printf("POPS TF@to_print\n");
+      // printf("LABEL exprint\n");
   //                    ***
   printf("WRITE TF@to_print\n");
   printf("ADD TF@cnt TF@cnt int@1\n");
   printf("JUMP _print_while_start\n");
   printf("LABEL _print_while_end\n");
-  printf("POPFRAME\n");
+  //printf("POPFRAME\n");
   printf("RETURN\n");
+  printf("LABEL $writeend");
 }
 
-void generatorExecute(char *fun){ // need to know function name
-  printf("PUSHFRAME");
-  printf("CALL %s\n", fun);
-  generatorFunWrite();
-  printf("POPFRAME");
+//other builting functions
+
+void generatorFunReads(){
+  printf("JUMP $readsend");
+  printf("LABEL reads");
+  printf("CREATEFRAME"); // maybe not needed too
+  printf("READ LF@ret string");
+  printf("RETURN");
+  printf("LABEL $readsend");
+}
+
+void generatorFunReadi(){
+  printf("JUMP $readiend");
+  printf("LABEL readi");
+  printf("CREATEFRAME"); // maybe not needed too
+  printf("READ LF@ret int");
+  printf("RETURN");
+  printf("LABEL $readiend");
+}
+
+void generatorFunReadf(){
+  printf("JUMP $readfend");
+  printf("LABEL readf");
+  printf("CREATEFRAME"); // maybe not needed too
+  printf("READ LF@ret float");
+  printf("RETURN");
+  printf("LABEL $readfend");
 }
 
 
+void generatorFunStrLen(){
+  printf("JUMP $strlenend");
+  printf("LABEL strlen");
+  printf("CREATEFRAME");
+  printf("DEFVAR TF@input");
+  printf("POPS TF@input");
+  printf("STRLEN LF@ret TF@input");
+  printf("RETURN");
+  printf("LABEL $strlenend");
+}
 
 
-
-
-
-
-
-
-
-
+/*todo substring | ord | chr*/
 
 
