@@ -162,24 +162,24 @@ expression_symbols get_op (expression_symbols stack_top, expression_symbols inpu
 	else return precedence_table[row][col];
 }
 
-int test_rule (int count, expression_symbols one, expression_symbols two, expression_symbols three)
+int test_rule (int count, stack_item one, stack_item two, stack_item three)
 {
 	switch (count)
 	{
 		case 1:
-			if (one == E_ID)
+			if (one.symbol == E_ID)
 			{
 				// apply rule
 			}
 			break;
 		case 3:
-			if (one == E_L_BRACKET && two == E_NON_TERM && three == E_R_BRACKET)
+			if (one.symbol == E_L_BRACKET && two.symbol == E_NON_TERM && three.symbol == E_R_BRACKET)
 			{
 				// apply rule
 			}
-			else if (one == E_NON_TERM && three == E_NON_TERM)
+			else if (one.symbol == E_NON_TERM && three.symbol == E_NON_TERM)
 			{
-				switch (two)
+				switch (two.symbol)
 				{
 					case E_PLUS:
 						// apply rule
@@ -226,7 +226,7 @@ int test_rule (int count, expression_symbols one, expression_symbols two, expres
 			break;
 	}
 	stack_pop_times(count + 1);
-	stack_push(E_NON_TERM);
+	stack_push(E_NON_TERM, 0);
 	return 0;
 }
 
@@ -234,8 +234,11 @@ int reduce (int count)
 {
 	switch (count)
 	{
+		stack_item tmp1;
+		stack_item tmp2;
+
 		case 1:
-			if (test_rule(1, stack_peek_1(), X, X)) return 1; // Error in test_rule function
+			if (test_rule(1, stack_peek_1(), tmp1, tmp2)) return 1; // Error in test_rule function
 			break;
 		case 3:
 			if (test_rule(3, stack_peek_1(), stack_peek_2(), stack_peek_3())) return 1; // Error in test_rule function
@@ -252,8 +255,8 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 {
 	stack_init();
 	struct lexeme current_token;
-	expression_symbols current_token_symbol;
-	expression_symbols stack_top_term;
+	stack_item stack_current_token;
+	stack_item stack_top_term;
 
 	// Where to end
 	lex_types end_token_type;
@@ -265,7 +268,7 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 	else if (end_token_type == R_PAR) printf("END TOKEN: R_PAR\n");
 	else printf("END TOKEN ERROR\n");*/
 
-	stack_push(E_DOLLAR);
+	stack_push(E_DOLLAR, 0);
 
 	if (start_token.type != first_token.type) {
 		current_token = first_token;
@@ -279,7 +282,8 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 	{
 
 		// Get a symbol equivalent to current token
-		current_token_symbol = token_to_symbol(current_token);
+		stack_current_token.symbol = token_to_symbol(current_token);
+		stack_current_token.type = current_token.type;
 		/*if (current_token_symbol == E_ID) printf("CURRENT TOKEN SYMBOL: E_ID\n");
 		else if (current_token_symbol == E_PLUS) printf("CURRENT TOKEN SYMBOL: E_PLUS\n");
 		else if (current_token_symbol == E_MUL) printf("CURRENT TOKEN SYMBOL: E_MUL\n");
@@ -294,17 +298,17 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 
 		int count;
 
-		switch(get_op(stack_top_term, current_token_symbol))
+		switch(get_op(stack_top_term.symbol, stack_current_token.symbol))
 		{
 			case E:
 				//printf("CASE: E\n");
-				stack_push(current_token_symbol);
+				stack_push(stack_current_token.symbol, stack_current_token.type);
 				current_token = getToken();
 				break;
 			case S:
 				//printf("CASE: S\n");
-				stack_push_after_top_terminal(S);
-				stack_push(current_token_symbol);
+				stack_push_after_top_terminal(S, 0);
+				stack_push(stack_current_token.symbol, stack_current_token.type);
 				current_token = getToken();
 				break;
 			case R:
@@ -323,7 +327,7 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 		}
 		//stack_print();
 
-	} while (!(stack_top_terminal() == E_DOLLAR && current_token.type == end_token_type));
+	} while (!(stack_top_terminal().symbol == E_DOLLAR && current_token.type == end_token_type));
 
 	//printf("EXPRESSION PARSING OK\n");
 	return COMP_OK;
