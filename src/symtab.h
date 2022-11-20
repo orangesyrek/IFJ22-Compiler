@@ -36,9 +36,8 @@ struct function_data{
 };
 
 struct variable_data{
-	int is_init;
+	int is_defined;
 	type data_type;
-	int is_used;
 };
 
 struct bs_data{

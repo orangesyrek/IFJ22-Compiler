@@ -206,6 +206,24 @@ rule_func_params(struct function_data data, int is_not_defined, char *function_n
 		ret = COMP_ERR_FUNC_PARAM;
 	} else if (p_count == -1) {
 		/* write */
+
+		/* check variable definition */
+		if (current_token.type == VAR) {
+			if (ctx->in_function) {
+				if (!symtabSearch(ctx->local_sym_tab, current_token.id)) {
+					ERR_PRINT("Undefined variable in function call.");
+					ret = COMP_ERR_UNDEF_VAR;
+					goto cleanup;
+				}
+			} else {
+				if (!symtabSearch(ctx->global_sym_tab, current_token.id)) {
+					ERR_PRINT("Undefined variable in function call.");
+					ret = COMP_ERR_UNDEF_VAR;
+					goto cleanup;
+				}
+			}
+		}
+
 		ret = rule_next_param(data, 0, NULL);
 		goto cleanup;
 	}
@@ -268,6 +286,21 @@ rule_func_params(struct function_data data, int is_not_defined, char *function_n
 			ret = rule_next_param(data, 0, NULL);
 		}
 	} else if (current_token.type == VAR) {
+		/* check variable definition */
+		if (ctx->in_function) {
+			if (!symtabSearch(ctx->local_sym_tab, current_token.id)) {
+				ERR_PRINT("Undefined variable in function call.");
+				ret = COMP_ERR_UNDEF_VAR;
+				goto cleanup;
+			}
+		} else {
+			if (!symtabSearch(ctx->global_sym_tab, current_token.id)) {
+				ERR_PRINT("Undefined variable in function call.");
+				ret = COMP_ERR_UNDEF_VAR;
+				goto cleanup;
+			}
+		}
+
 		/* todo: runtime check */
 		if (is_not_defined) {
 			new_data->data.fdata.param_count = 1;
@@ -425,6 +458,7 @@ rule_func_def_next_param(struct function_data *data, int check_params)
 {
 	struct lexeme current_token;
 	static int p_counter = 1;
+	struct bs_data *v_data;
 
 	current_token = getToken();
 	if (current_token.type == R_PAR) {
@@ -455,6 +489,14 @@ rule_func_def_next_param(struct function_data *data, int check_params)
 
 			current_token = getToken();
 			if (current_token.type == VAR) {
+				if (dataInit(&v_data)) {
+					return COMP_ERR_INTERNAL;
+				}
+				v_data->data.vdata.is_defined = 1;
+
+				if (symtabInsert(&ctx->local_sym_tab, current_token.id, v_data)) {
+					return COMP_ERR_INTERNAL;
+				}
 				return rule_func_def_next_param(data, check_params);
 			} else {
 				return COMP_ERR_SA;
@@ -472,6 +514,7 @@ rule_func_def_parameters(struct function_data *data, int check_params)
 {
 	int ret = COMP_OK;
 	struct lexeme current_token;
+	struct bs_data *v_data;
 
 	current_token = getToken();
 	if (current_token.type == R_PAR) {
@@ -498,6 +541,18 @@ rule_func_def_parameters(struct function_data *data, int check_params)
 
 		current_token = getToken();
 		if (current_token.type == VAR) {
+			/* insert into symtab */
+			if (dataInit(&v_data)) {
+				ret = COMP_ERR_INTERNAL;
+				goto cleanup;
+			}
+			v_data->data.vdata.is_defined = 1;
+
+			if (symtabInsert(&ctx->local_sym_tab, current_token.id, v_data)) {
+				ret = COMP_ERR_INTERNAL;
+				goto cleanup;
+			}
+
 			ret = rule_func_def_next_param(data, check_params);
 			if (ret != COMP_OK) {
 				ERR_PRINT("Syntax error in function definiton parameters.");
@@ -695,15 +750,32 @@ cleanup:
 }
 
 static comp_err
-rule_var_declaration()
+rule_var_declaration(char *var_name)
 {
 	struct lexeme current_token;
 	struct lexeme next_token;
-	int ret = COMP_OK;
-	struct bs_data *data;
+	int ret = COMP_OK, rc;
+	struct bs_data *data, *v_data;
 
 	current_token = getToken();
 	if (current_token.type == ASSIGNMENT) {
+		/* insert variable into symtab */
+		rc = dataInit(&v_data);
+		if (rc) {
+			ret = COMP_ERR_INTERNAL;
+			goto cleanup;
+		}
+		v_data->data.vdata.is_defined = 1;
+		if (ctx->in_function) {
+			rc = symtabInsert(&ctx->local_sym_tab, var_name, v_data);
+		} else {
+			rc = symtabInsert(&ctx->global_sym_tab, var_name, v_data);
+		}
+		if (rc) {
+			ret = COMP_ERR_INTERNAL;
+			goto cleanup;
+		}
+
 		next_token = getToken();
 		if (next_token.type == FUN_ID) {
 			data = symtabSearch(ctx->global_sym_tab, next_token.id);
@@ -745,6 +817,17 @@ rule_var_declaration()
 			}
 		}
 	} else if (current_token.type == SEMICOLON) {
+		/* check definition */
+		if (ctx->in_function) {
+			v_data = symtabSearch(ctx->local_sym_tab, var_name);
+		} else {
+			v_data = symtabSearch(ctx->global_sym_tab, var_name);
+		}
+
+		if (!v_data) {
+			ERR_PRINT("Undefined variable");
+			return COMP_ERR_UNDEF_VAR;
+		}
 		return COMP_OK;
 	} else {
 		goto cleanup;
@@ -752,7 +835,7 @@ rule_var_declaration()
 
 cleanup:
 	ERR_PRINT("Syntax error in variable declaration");
-	return COMP_ERR_SA;
+	return ret;
 }
 
 static comp_err
@@ -863,7 +946,7 @@ rule_statement_list(struct bs_data *data)
 			goto cleanup;
 		}
 	} else if (current_token.type == VAR) {
-		ret = rule_var_declaration();
+		ret = rule_var_declaration(current_token.id);
 		if (ret != COMP_OK) {
 			goto cleanup;
 		}
