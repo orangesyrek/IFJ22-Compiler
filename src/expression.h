@@ -31,11 +31,16 @@ typedef enum {
 	X, // error
 } expression_symbols;
 
+typedef struct item {
+	expression_symbols symbol;
+	lex_types type;
+} stack_item;
+
 expression_symbols token_to_symbol (struct lexeme token);
 
 expression_symbols get_op (expression_symbols stack_top, expression_symbols input);
 
-int test_rule (int count, expression_symbols one, expression_symbols two, expression_symbols three);
+int test_rule (int count, stack_item one, stack_item two, stack_item three);
 
 int reduce ();
 
