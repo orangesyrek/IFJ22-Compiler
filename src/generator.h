@@ -32,6 +32,8 @@ void generatorFunStrLen();
 
 void generatorExecute();
 
+char* convertString();
+
 
 
 //for this maybe use new file string .h / string.c

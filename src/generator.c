@@ -1,5 +1,35 @@
 #include "generator.h"
 
+
+char* convertString(char* nonConvertedstr){
+
+  char* converted =(char*) malloc(512);
+  if(nonConvertedstr != NULL){
+    int index = 0;
+    char i = nonConvertedstr[index];
+		int j = 0;
+    while(i != '\0'){
+      if( (i <= 32) || (i == 35) || (i == 92) ){
+				converted[j] = 92;
+				converted[j+1] = 48;
+				converted[j+2] = (i / 10) + 48;
+				converted[j+3] = (i % 10) + 48;
+				j += 4;
+
+      }else{
+				converted[j] = i;
+				j++;
+	    }
+      i = nonConvertedstr[++index];
+    }
+
+  return converted;
+
+  }else{
+    return NULL;
+  }
+}
+
 unsigned long id = 0;
 
 void generatorInit(){
@@ -8,6 +38,8 @@ void generatorInit(){
   printf("GF@ret\n"); // need some more global variables
   //printf("DEFVAR GF@bool");
 }
+
+
 
 
 
