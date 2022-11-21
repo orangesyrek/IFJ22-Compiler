@@ -80,7 +80,6 @@ rule_next_param(struct function_data data, int is_not_defined, struct function_d
 	struct lexeme current_token;
 	static int param_counter = 1;
 	int p_count = 0;
-	static char *param2;
 
 	if (!is_not_defined) {
 		p_count = data.param_count;
@@ -106,7 +105,6 @@ rule_next_param(struct function_data data, int is_not_defined, struct function_d
 		if ((p_count == -1) && ((current_token.type == STR_LIT) || (current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT)
 		|| (current_token.type == VAR) || (current_token.type == KEYWORD_NULL))) {
 			param_counter++;
-			param2 = current_token.value.str_val;
 			return rule_next_param(data, is_not_defined, new_data);
 		}
 
