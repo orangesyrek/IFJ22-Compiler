@@ -1,5 +1,6 @@
 #include "generator.h"
 
+struct generator generator = {0};
 
 char* convertString(char* nonConvertedstr){
 

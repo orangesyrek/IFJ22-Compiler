@@ -4,6 +4,18 @@
 #include <ctype.h>
 #include "symtab.h"
 
+
+struct generator {
+	char *global_str;
+	char *local_str_var;
+	char *local_str;
+
+	int param_count;
+	char **param_names;
+	char **param_types;
+};
+
+
 void generatorInit();
 
 
