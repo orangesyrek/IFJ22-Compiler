@@ -231,8 +231,8 @@ int test_rule (int count, stack_item one, stack_item two, stack_item three)
 
 int reduce (int count)
 {
-	stack_item tmp1 = {0};
-	stack_item tmp2 = {0};
+	stack_item tmp = {0};
+	struct lexeme empty_token = {0};
 
 	rules rule;
 	lex_types non_term_type;
@@ -240,8 +240,8 @@ int reduce (int count)
 
 	if (count == 1) {
 
-		rule = test_rule(1, stack_peek_1(), tmp1, tmp2);
-		semantics_check = test_semantics(rule, stack_peek_1(), tmp1, tmp2, &non_term_type);
+		rule = test_rule(1, stack_peek_1(), tmp, tmp);
+		semantics_check = test_semantics(rule, stack_peek_1(), tmp, tmp, &non_term_type);
 	
 	} else if (count == 3) {
 	
@@ -258,7 +258,7 @@ int reduce (int count)
 
 
 	stack_pop_times(count + 1);
-	stack_push(E_NON_TERM, non_term_type);
+	stack_push(E_NON_TERM, non_term_type, empty_token);
 	return 0;
 }
 
@@ -348,6 +348,7 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 int expression_parse (struct lexeme start_token, struct lexeme first_token)
 {
 	stack_init();
+	struct lexeme empty_token = {0};
 	struct lexeme current_token;
 	stack_item stack_current_token;
 	stack_item stack_top_term;
@@ -362,7 +363,7 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 	else if (end_token_type == R_PAR) printf("END TOKEN: R_PAR\n");
 	else printf("END TOKEN ERROR\n");*/
 
-	stack_push(E_DOLLAR, 0);
+	stack_push(E_DOLLAR, 0, empty_token);
 
 	if (start_token.type != first_token.type) {
 		current_token = first_token;
@@ -396,13 +397,13 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 		{
 			case E:
 				//printf("CASE: E\n");
-				stack_push(stack_current_token.symbol, stack_current_token.type);
+				stack_push(stack_current_token.symbol, stack_current_token.type, empty_token);
 				current_token = getToken();
 				break;
 			case S:
 				//printf("CASE: S\n");
-				stack_push_after_top_terminal(S, 0);
-				stack_push(stack_current_token.symbol, stack_current_token.type);
+				stack_push_after_top_terminal(S, 0, empty_token);
+				stack_push(stack_current_token.symbol, stack_current_token.type, empty_token);
 				current_token = getToken();
 				break;
 			case R:

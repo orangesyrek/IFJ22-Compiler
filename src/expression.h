@@ -53,6 +53,7 @@ typedef enum {
 typedef struct item {
 	expression_symbols symbol;
 	lex_types type;
+	struct lexeme token;
 } stack_item;
 
 expression_symbols token_to_symbol (struct lexeme token);

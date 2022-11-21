@@ -7,9 +7,9 @@
 
 void stack_init();
 
-int stack_push(expression_symbols symbol, lex_types type);
+int stack_push(expression_symbols symbol, lex_types type, struct lexeme token);
 
-int stack_push_after_top_terminal (expression_symbols symbol, lex_types type);
+int stack_push_after_top_terminal (expression_symbols symbol, lex_types type, struct lexeme token);
 
 void stack_pop();
 

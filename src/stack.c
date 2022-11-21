@@ -13,7 +13,7 @@ stack_init()
 }
 
 int
-stack_push(expression_symbols symbol, lex_types type)
+stack_push(expression_symbols symbol, lex_types type, struct lexeme token)
 {
 
   if (stack_is_full()) {
@@ -23,6 +23,7 @@ stack_push(expression_symbols symbol, lex_types type)
   stack_item new_item;
   new_item.symbol = symbol;
   new_item.type = type;
+  new_item.token = token;
 
   top += 1;
   stack[top] = new_item;
@@ -32,7 +33,7 @@ stack_push(expression_symbols symbol, lex_types type)
 }
 
 int
-stack_push_after_top_terminal(expression_symbols symbol, lex_types type)
+stack_push_after_top_terminal(expression_symbols symbol, lex_types type, struct lexeme token)
 {
   //printf("stack_push_after_top_terminal() start\n");
   if (stack_is_full())
@@ -43,6 +44,7 @@ stack_push_after_top_terminal(expression_symbols symbol, lex_types type)
   stack_item new_item;
   new_item.symbol = symbol;
   new_item.type = type;
+  new_item.token = token;
 
   int pos = stack_top_terminal_pos() + 1;
   int insert_pos = pos;
