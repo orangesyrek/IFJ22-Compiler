@@ -56,5 +56,5 @@ endforeach()
 
 add_test(NAME ifj_tester
 	COMMAND ${CMAKE_SOURCE_DIR}/tests/test.py
-	${CMAKE_CURRENT_BINARY_DIR}/interpret
+	${CMAKE_CURRENT_BINARY_DIR}/compiler
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests)

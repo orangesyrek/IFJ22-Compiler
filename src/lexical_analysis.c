@@ -161,7 +161,7 @@ lex_types funIdToKeyword(char* id)
       return KEYWORD_STRICT_TYPES;
     } else if (!strcmp(id, "function")) {
         return KEYWORD_FUNCTION;
-    } else if ((!strcmp(id, "int")) || (!strcmp(id, "float")) || (!strcmp(id, "string"))) {
+    } else if ((!strcmp(id, "int")) || (!strcmp(id, "float")) || (!strcmp(id, "string")) || (!strcmp(id, "void")) || (!strcmp(id, "?int")) || (!strcmp(id, "?float")) || (!strcmp(id, "?string"))) {
         return PARAM_TYPE;
     }
     else{
@@ -183,8 +183,6 @@ static
 lex_types makeLexeme(state final) /* where lexemes are generated, can generate only if you are in state where you can generate something */
 {
     switch(final){
-        case SOMESTATE:
-            return DECIMAL_LIT;
         case SLASH_STATE:
             return SLASH;
         case COMMENT_END:
@@ -229,7 +227,7 @@ lex_types makeLexeme(state final) /* where lexemes are generated, can generate o
             return FUN_ID;
         case INT_LIT_STATE:
             return INT_LIT;
-        case DECIMAL_LIT_STATE:
+        case DEC_LIT_TMP:
             return DECIMAL_LIT;
         case DEC_LIT_E_TMP:
             return DECIMAL_LIT;
@@ -328,7 +326,6 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return LEX_EOF_STATE;
             }
             else {
-                //return ERROR_STATE;
                 ERR_PRINT("Unexpected character");
                 exit(1);
             }
@@ -389,7 +386,8 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             if (isalpha(input) || input == '_'){
                 return VAR_STATE;
             } else {
-                return ERROR_STATE;
+                ERR_PRINT("VAR_PREFIX ERROR");
+                exit(1);
             }
         case VAR_STATE:
             if (isalpha(input) || input == '_' || isdigit(input)){
@@ -412,21 +410,36 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return PROLOG_SECOND;
             }
             else {
-                return ERROR_STATE;
+                ERR_PRINT("PROLOG_FIRST ERROR");
+                exit(1);
             }
         case PROLOG_SECOND:
             if (input == 'h'){
                 return PROLOG_THIRD;
             }
             else {
-                return ERROR_STATE;
+                ERR_PRINT("PROLOG_SECOND ERROR");
+                exit(1);
             }
         case PROLOG_THIRD:
             if (input == 'p'){
+                return PROLOG_FOURTH;
+            }
+            else {
+                ERR_PRINT("PROLOG_THIRD ERROR");
+                exit(COMP_ERR_LA);
+            }
+        case PROLOG_FOURTH:
+            if(input == ' ' || input == '\n' || input == '\t' || input == '/' || input == '\r' ){
+                if (input == '/') {
+                    /* do this so the / doesnt get consumed */
+                    ungetc(input, stdin);
+                }
                 return PROLOG_STATE;
             }
             else {
-                return ERROR_STATE;
+                ERR_PRINT("PROLOG_FOURTH ERROR");
+                exit(COMP_ERR_LA);
             }
         case REL_GREATER_STATE:
             if (input == '='){
@@ -439,9 +452,113 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             if (input == '>'){
                 return PROLOG_END_STATE;
             }
-            else {
-                return ERROR_STATE;
+            else if(input == 'i'){
+                return QUESTION_MARK_i;
             }
+            else if(input == 'f'){
+                return QUESTION_MARK_f;
+            }
+            else if(input == 's'){
+                return QUESTION_MARK_s;
+            }
+            else {
+                ERR_PRINT("QUESTION_MARK ERROR");
+                exit(COMP_ERR_LA);
+            }
+        case QUESTION_MARK_s:
+            if(input == 't'){
+                return QUESTION_MARK_s_t;
+            }
+            else {
+                ERR_PRINT("QUESTION_MARK_s ERROR");
+                exit(COMP_ERR_LA);
+            }   
+        case QUESTION_MARK_s_t:
+            if(input == 'r'){
+                return QUESTION_MARK_s_t_r;
+            }
+            else {
+                ERR_PRINT("QUESTION_MARK_s_t ERROR");
+                exit(COMP_ERR_LA);
+            } 
+        case QUESTION_MARK_s_t_r:
+            if(input == 'i'){
+                return QUESTION_MARK_s_t_r_i;
+            }
+            else {
+                ERR_PRINT("QUESTION_MARK_s_t_r ERROR");
+                exit(COMP_ERR_LA);
+            }
+        case QUESTION_MARK_s_t_r_i:
+            if(input == 'n'){
+                return QUESTION_MARK_s_t_r_i_n;
+            }
+            else {
+                ERR_PRINT("QUESTION_MARK_s_t_r_i ERROR");
+                exit(COMP_ERR_LA);
+            }
+        case QUESTION_MARK_s_t_r_i_n:
+            if(input == 'g'){
+                return QUESTION_MARK_s_t_r_i_n_g;
+            }
+            else {
+                ERR_PRINT("QUESTION_MARK_s_t_r_i_n ERROR");
+                exit(COMP_ERR_LA);
+            }
+        case QUESTION_MARK_s_t_r_i_n_g:
+            return ERROR_STATE;
+        case QUESTION_MARK_f:
+            if(input == 'l'){
+                return QUESTION_MARK_f_l;
+            }
+            else {
+                ERR_PRINT("QUESTION_MARK_s_t_r_i_n_g ERROR");
+                exit(COMP_ERR_LA);
+            }    
+        case QUESTION_MARK_f_l:
+            if(input == 'o'){
+                return QUESTION_MARK_f_l_o;
+            }
+            else {
+                ERR_PRINT("QUESTION_MARK_f_l ERROR");
+                exit(COMP_ERR_LA);
+            } 
+        case QUESTION_MARK_f_l_o:
+            if(input == 'a'){
+                return QUESTION_MARK_f_l_o_a;
+            }
+            else {
+                ERR_PRINT("QUESTION_MARK_f_l_o ERROR");
+                exit(COMP_ERR_LA);
+            } 
+        case QUESTION_MARK_f_l_o_a:
+            if(input == 't'){
+                return QUESTION_MARK_f_l_o_a_t;
+            }
+            else {
+                ERR_PRINT("QUESTION_MARK_f_l_o_a ERROR");
+                exit(COMP_ERR_LA);
+            } 
+        case QUESTION_MARK_f_l_o_a_t:
+            return ERROR_STATE;
+        case QUESTION_MARK_i:
+            if(input == 'n'){
+                return QUESTION_MARK_i_n;
+            }
+            else {
+                ERR_PRINT("QUESTION_MARK_i ERROR");
+                exit(COMP_ERR_LA);
+            }
+        case QUESTION_MARK_i_n:
+        if(input == 't'){
+                return QUESTION_MARK_i_n_t;
+            }
+            else {
+                ERR_PRINT("QUESTION_MARK_i_n ERROR");
+                exit(COMP_ERR_LA);
+            }
+        case QUESTION_MARK_i_n_t:
+            return ERROR_STATE;
         case FUN_ID_STATE:
             if (isalpha(input) || input == '_' || isdigit(input)){
                 return FUN_ID_STATE;
@@ -465,41 +582,32 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             if (input == '+' || input == '-'){
                 return INT_LIT_E_SIGN;
             } else {
-                //return ERROR_STATE;
-                ERR_PRINT("Unexpected character error, expecting digit 0-9");
-                exit(1);
+                ERR_PRINT("INT_LIT_E ERROR");
+                exit(COMP_ERR_LA);
             }
         case INT_LIT_E_SIGN:
             if (isdigit(input)){
-                return SOMESTATE;
+                return DEC_LIT_E_TMP;
             } else {
-                return ERROR_STATE; // here need to also exit(1)
-            }
-        case DEC_LIT_E_TMP: // fix here
-            if (input == '+' || input == '-'){ // here we are allowing +++++++-----+++++-- etc
-                return INT_LIT_E_SIGN;// need new state here
-            }
-             /// wtf is that
-            else {
-              ERR_PRINT("Unexpected character error, expecting digit 0-9");
-              exit(1);
-            }
-        case SOMESTATE:
-            if (isdigit(input)){
-                return SOMESTATE;
-              } else if (input == ')' || input == ';' || input == '=' || input == '<' ||
-                       input == '>' || input == '+' || input == '-' || input == '*' ||
-                       input == '/' || input == ',' || input == '!' || input == ';' || isspace(input)){
-                         return ERROR_STATE;
-                       } // ungeet(char ) -- fix
-              else{
-                ERR_PRINT("INT_LIT_DOT ERROR");
+                ERR_PRINT("INT_LIT_E_SIGN ERROR");
                 exit(COMP_ERR_LA);
-              }
-
+            }
+        case DEC_LIT_E_TMP:
+            if (isdigit(input)){
+                return DEC_LIT_E_TMP;
+            }
+            else if (input == ')' || input == ';' || input == '=' || input == '<' ||
+                     input == '>' || input == '+' || input == '-' || input == '*' ||
+                     input == '/' || input == ',' || input == '!' || isspace(input)){
+                         return ERROR_STATE;
+            }
+            else {
+                ERR_PRINT("DEC_LIT_E_TMP ERROR");
+                exit(COMP_ERR_LA);
+            }
         case INT_LIT_DOT:
             if (isdigit(input)){
-                return DEC_LIT_TMP; // fix that
+                return DEC_LIT_TMP;
             } else {
                 ERR_PRINT("INT_LIT_DOT ERROR");
                 exit(COMP_ERR_LA);
@@ -509,15 +617,16 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return DEC_LIT_TMP;
             }
             else if (input == 'e' || input == 'E'){
-                return DEC_LIT_E_TMP;
+                return INT_LIT_E;
             }
             else if (input == ')' || input == ';' || input == '=' || input == '<' ||
                      input == '>' || input == '+' || input == '-' || input == '*' ||
-                     input == '/' || input == ',' || input == '!' || input == ';' || isspace(input)){
-                return DECIMAL_LIT_STATE;
+                     input == '/' || input == ',' || input == '!' || isspace(input)){
+                return ERROR_STATE;
             }
             else {
-                return ERROR_STATE;
+                ERR_PRINT("DEC_LIT_TMP ERROR");
+                exit(COMP_ERR_LA);
             }
         case STR_LIT_STATE:
             if (input == '"'){
@@ -538,7 +647,6 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return ERROR_STATE;
             }
             else {
-                /* escaping char after \ */
                 return STR_LIT_STATE;
             }
         case STR_LIT_BEGIN:
@@ -606,8 +714,6 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             return ERROR_STATE;
         case PROLOG_END_STATE:
             return ERROR_STATE;
-        case DECIMAL_LIT_STATE:
-            return ERROR_STATE;
         case REL_IDENTICAL_STATE:
             return ERROR_STATE;
         case REL_NEQ_STATE:
@@ -636,6 +742,15 @@ struct lexeme getToken()
             buffer[len] = input;
             len++;
         }
+        if(currentState == QUESTION_MARK_i_n_t){
+            buffer[0] = '?';buffer[1] = 'i';buffer[2] = 'n';buffer[3] = 't';
+        }
+        if(currentState == QUESTION_MARK_f_l_o_a_t){
+            buffer[0] = '?';buffer[1] = 'f';buffer[2] = 'l';buffer[3] = 'o';buffer[4] = 'a';buffer[5] = 't';
+        }
+        if(currentState == QUESTION_MARK_s_t_r_i_n_g){
+            buffer[0] = '?';buffer[1] = 's';buffer[2] = 't';buffer[3] = 'r';buffer[4] = 'i';buffer[5] = 'n';buffer[6] = 'g';
+        }
         if (currentState != MULTI_LINE_COMMENT || currentState != STR_LIT_STATE) {
             if (input == '\n') {
                 ctx->current_row++;
@@ -648,7 +763,7 @@ struct lexeme getToken()
         }
     }
     token.type = makeLexeme(previousState);
-    if(previousState == FUN_ID_STATE || previousState == VAR_STATE){
+    if(previousState == FUN_ID_STATE || previousState == VAR_STATE || previousState == QUESTION_MARK_i_n_t || previousState == QUESTION_MARK_f_l_o_a_t || previousState == QUESTION_MARK_s_t_r_i_n_g){
       //calculating id of token
       token.id = strdup(buffer);
       if (!token.id) {
@@ -661,7 +776,17 @@ struct lexeme getToken()
     if (previousState == INT_LIT_STATE) {
         token.value.int_val = atoi(buffer);
     }
-    if(previousState == FUN_ID_STATE){
+    if(previousState == DEC_LIT_E_TMP || previousState == DEC_LIT_TMP){
+        token.value.flt_val = atof(buffer);
+    }
+    if(previousState == STR_LIT_STATE){
+        token.value.str_val = strdup(buffer);
+        if(token.value.str_val == NULL){
+            exit(COMP_ERR_INTERNAL);
+        }
+    }
+
+    if(previousState == FUN_ID_STATE || previousState == QUESTION_MARK_i_n_t || previousState == QUESTION_MARK_f_l_o_a_t || previousState == QUESTION_MARK_s_t_r_i_n_g){
       //check if id is not NULL
       if(token.id){
         //call function that checks if FUN_ID is KEYWORD
