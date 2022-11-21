@@ -5,18 +5,21 @@ unsigned long id = 0;
 void generatorInit(){
   printf(".IFJcode22\n");
   printf("CREATEFRAME\n");
+  printf("GF@ret\n"); // need some more global variables
   //printf("DEFVAR GF@bool");
 }
 
-void generatorPrepare(struct bs_data *functionData){
+
+
+void generatorPrepare(struct bs_data *functionData){ // redo to fdata
   printf("PUSHFRAME");
   printf("CREATEFRAME\n");
 
   if(functionData->data.fdata.return_type != VOID){
-    printf("DEFVAR TF@ret");
+    printf("DEFVAR TF@ret\n");// can leave it here
   }
   if(functionData->data.fdata.param_count!= 0){
-    printf("DEFVAR TF@pcount");
+    printf("DEFVAR TF@pcount\n");
     printf("MOVE TF@pcount int@%d\n", functionData->data.fdata.param_count);
   }
 }
@@ -25,7 +28,7 @@ void generatorPrepare(struct bs_data *functionData){
 char* generatorCalculateId(){
 char idstr[1024]; // need some dynamic string or strdup
 sprintf(idstr, "%lu", id);
-char *name = strcat("p", idstr);
+char *name = strcat("p", idstr); // id ++
 return name;
 }
 
@@ -45,10 +48,10 @@ void generatorPushParamString(char *str){
 }
 
 void generatorExecute(char *fun){ // need to know function name
-  printf("PUSHFRAME");
+  printf("PUSHFRAME\n");
   printf("CALL %s\n", fun);
   generatorFunWrite(); // to test
-  printf("POPFRAME");// maybe delete depends
+  printf("POPFRAME\n");// maybe delete depends
 }
 
 void generatorBuiltinFunctions(){
@@ -59,7 +62,7 @@ void generatorBuiltinFunctions(){
 }
 
 void generatorFunWrite(){
-  printf("JUMP $writeend");
+  printf("JUMP $writeend\n");
   printf("LABEL write\n");
   printf("CREATEFRAME\n");
   //printf("DEFVAR TF@cnt_of_parameter\n");
@@ -83,48 +86,49 @@ void generatorFunWrite(){
   printf("LABEL _print_while_end\n");
   //printf("POPFRAME\n");
   printf("RETURN\n");
-  printf("LABEL $writeend");
+  printf("LABEL $writeend\n");
 }
 
 //other builting functions
 
+
 void generatorFunReads(){
-  printf("JUMP $readsend");
-  printf("LABEL reads");
-  printf("CREATEFRAME"); // maybe not needed too
-  printf("READ LF@ret string");
-  printf("RETURN");
-  printf("LABEL $readsend");
+  printf("JUMP $readsend\n");
+  printf("LABEL reads\n");
+  printf("CREATEFRAME\n"); // maybe not needed too
+  printf("READ LF@ret string\n");
+  printf("RETURN\n");
+  printf("LABEL $readsend\n");
 }
 
 void generatorFunReadi(){
-  printf("JUMP $readiend");
-  printf("LABEL readi");
-  printf("CREATEFRAME"); // maybe not needed too
-  printf("READ LF@ret int");
-  printf("RETURN");
-  printf("LABEL $readiend");
+  printf("JUMP $readiend\n");
+  printf("LABEL readi\n");
+  printf("CREATEFRAME\n"); // maybe not needed too
+  printf("READ LF@ret int\n");
+  printf("RETURN\n");
+  printf("LABEL $readiend\n");
 }
 
 void generatorFunReadf(){
-  printf("JUMP $readfend");
-  printf("LABEL readf");
-  printf("CREATEFRAME"); // maybe not needed too
-  printf("READ LF@ret float");
-  printf("RETURN");
-  printf("LABEL $readfend");
+  printf("JUMP $readfend\n");
+  printf("LABEL readf\n");
+  printf("CREATEFRAME\n"); // maybe not needed too
+  printf("READ LF@ret float\n");
+  printf("RETURN\n");
+  printf("LABEL $readfend\n");
 }
 
 
 void generatorFunStrLen(){
-  printf("JUMP $strlenend");
-  printf("LABEL strlen");
-  printf("CREATEFRAME");
-  printf("DEFVAR TF@input");
-  printf("POPS TF@input");
-  printf("STRLEN LF@ret TF@input");
-  printf("RETURN");
-  printf("LABEL $strlenend");
+  printf("JUMP $strlenend\n");
+  printf("LABEL strlen\n");
+  printf("CREATEFRAME\n");
+  printf("DEFVAR TF@input\n");
+  printf("POPS TF@input\n");
+  printf("STRLEN LF@ret TF@input\n");
+  printf("RETURN\n");
+  printf("LABEL $strlenend\n");
 }
 
 

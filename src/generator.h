@@ -29,3 +29,9 @@ void  generatorFunReadi();
 void  generatorFunReads();
 
 void generatorFunStrLen();
+
+void generatorExecute();
+
+
+
+//for this maybe use new file string .h / string.c
