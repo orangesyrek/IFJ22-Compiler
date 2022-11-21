@@ -12,12 +12,12 @@ typedef enum{
 	STRING,
 	INT,
 	FLOAT,
-	BOOL,
-	TNULL, // idk if not rename
 	VOID,
 	QSTRING,
 	QINT,
-	QFLOAT
+	QFLOAT,
+	UNKNOWN,
+	T_NULL
 } type;
 
 /*Binary tree*/
@@ -31,14 +31,13 @@ struct bs_tree {
 struct function_data{
 	type return_type;
 	int is_defined;
-	int *params;
+	type *params;
 	int param_count;
 };
 
 struct variable_data{
-	int is_init;
+	int is_defined;
 	type data_type;
-	int is_used;
 };
 
 struct bs_data{
@@ -88,5 +87,15 @@ Inicialization of data
 int dataInit(struct bs_data **data);
 
 void printTree(struct bs_tree *t);
+
+/**
+ * Insert builtin functions
+*/
+int insert_builtin_functions(struct bs_tree **tree);
+
+/**
+ * Reallocate parameters array
+ */
+type * realloc_func_params(type *params, int param_count);
 
 #endif

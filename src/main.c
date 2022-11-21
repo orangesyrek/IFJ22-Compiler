@@ -23,6 +23,11 @@ main(int argc, char **argv)
 		return COMP_ERR_INTERNAL;
 	}
 
+	ret = insert_builtin_functions(&ctx->global_sym_tab);
+	if (ret) {
+		return COMP_ERR_INTERNAL;
+	}
+
 	ret = synt_parse();
 	if (ret) {
 		return ret;

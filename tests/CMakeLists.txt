@@ -7,6 +7,7 @@ set(tests_src
 	../src/syntactic_analysis.c
 	../src/expression.c
 	../src/stack.c
+	../src/generator.c
 	)
 set(tests_header
 	../src/compiler.h
@@ -15,6 +16,7 @@ set(tests_header
 	../src/syntactic_analysis.h
 	../src/expression.h
 	../src/stack.h
+	../src/generator.h
 	)
 
 foreach(test_name IN LISTS tests)
