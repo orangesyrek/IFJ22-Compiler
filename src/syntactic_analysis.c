@@ -714,9 +714,18 @@ rule_if_statement()
 		goto cleanup;
 	}
 
-	if (expression_parse(current_token, current_token) != COMP_OK) {
+	ret = expression_parse(current_token, current_token);
+	if (ret == COMP_ERR_UNDEF_VAR) {
+		ERR_PRINT("Undefined variable in if statement.");
+		return COMP_ERR_UNDEF_VAR;
+
+	} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
+		ERR_PRINT("Mismatched types in if statement.");
+		return COMP_ERR_MISMATCHED_TYPES;
+	
+	} else if (ret == COMP_ERR_SA) {
 		goto cleanup;
-	}
+	} 
 
 	current_token = getToken();
 	if (current_token.type != L_CURLY) {
@@ -818,7 +827,16 @@ rule_var_declaration(char *var_name)
 				return COMP_OK;
 			}
 		} else {
-			if (expression_parse(current_token, next_token)) {
+			ret = expression_parse(current_token, next_token);
+			if (ret == COMP_ERR_UNDEF_VAR) {
+				ERR_PRINT("Undefined variable in variable declaration.");
+				return COMP_ERR_UNDEF_VAR;
+
+			} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
+				ERR_PRINT("Mismatched types in variable declaration.");
+				return COMP_ERR_MISMATCHED_TYPES;
+			
+			} else if (ret == COMP_ERR_SA) {
 				goto cleanup;
 			} else {
 				return COMP_OK;
@@ -857,9 +875,18 @@ rule_while_statement()
 		goto cleanup;
 	}
 
-	if (expression_parse(current_token, current_token) != COMP_OK) {
+	ret = expression_parse(current_token, current_token);
+	if (ret == COMP_ERR_UNDEF_VAR) {
+		ERR_PRINT("Undefined variable in while statement.");
+		return COMP_ERR_UNDEF_VAR;
+
+	} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
+		ERR_PRINT("Mismatched types in while statement.");
+		return COMP_ERR_MISMATCHED_TYPES;
+	
+	} else if (ret == COMP_ERR_SA) {
 		goto cleanup;
-	}
+	} 
 
 	current_token = getToken();
 	if (current_token.type != L_CURLY) {
@@ -907,7 +934,16 @@ rule_return(struct function_data data)
 
 	next_token = getToken();
 	if (next_token.type != SEMICOLON) {
-		if (expression_parse(current_token, next_token)) {
+		int ret = expression_parse(current_token, next_token);
+		if (ret == COMP_ERR_UNDEF_VAR) {
+			ERR_PRINT("Undefined variable in return.");
+			return COMP_ERR_UNDEF_VAR;
+
+		} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
+			ERR_PRINT("Mismatched types in return.");
+			return COMP_ERR_MISMATCHED_TYPES;
+		
+		} else if (ret == COMP_ERR_SA) {
 			ERR_PRINT("Syntax error in return");
 			return COMP_ERR_SA;
 		}
@@ -979,11 +1015,23 @@ rule_statement_list(struct bs_data *data)
 			goto cleanup;
 		}
 	} else if (current_token.type == L_PAR) {
-		if (expression_parse(current_token, current_token) != COMP_OK) {
+
+		ret = expression_parse(current_token, current_token);
+		if (ret == COMP_ERR_UNDEF_VAR) {
+			ERR_PRINT("Undefined variable."); // tady nevim, jak to upresnit
+			return COMP_ERR_UNDEF_VAR;
+
+		} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
+			ERR_PRINT("Mismatched types.");  // to stejne tady
+			return COMP_ERR_MISMATCHED_TYPES;
+		
+		} else if (ret == COMP_ERR_SA) {
 			goto cleanup;
+
 		} else {
 			return COMP_OK;
 		}
+
 	} else if (current_token.type == SEMICOLON) {
 		return COMP_OK;
 	} else if (current_token.type == COMMENT) {
@@ -1008,7 +1056,15 @@ rule_statement_list(struct bs_data *data)
 			} else if ((current_token.type == INT_LIT) || (current_token.type == VAR)) {
 				/* expression parse will consume the first token */
 				ret = expression_parse(tmp, current_token);
-				if (ret) {
+				if (ret == COMP_ERR_UNDEF_VAR) {
+					ERR_PRINT("Undefined variable."); // stejne
+					return COMP_ERR_UNDEF_VAR;
+
+				} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
+					ERR_PRINT("Mismatched types.");  // stejne zas
+					return COMP_ERR_MISMATCHED_TYPES;
+				
+				} else if (ret == COMP_ERR_SA) {
 					goto cleanup;
 				}
 			} else {
@@ -1022,8 +1078,16 @@ rule_statement_list(struct bs_data *data)
 		return COMP_OK;
 	} else if ((current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT) || (current_token.type == STR_LIT)) {
 		/* ex. 5; */
-		ret = expression_parse(current_token, current_token);
-		if (ret) {
+		int ret = expression_parse(current_token, current_token);
+		if (ret == COMP_ERR_UNDEF_VAR) {
+			ERR_PRINT("Undefined variable."); // zase
+			return COMP_ERR_UNDEF_VAR;
+
+		} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
+			ERR_PRINT("Mismatched types.");  // zase
+			return COMP_ERR_MISMATCHED_TYPES;
+		
+		} else if (ret == COMP_ERR_SA) {
 			goto cleanup;
 		}
 	} else {

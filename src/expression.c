@@ -250,16 +250,16 @@ int reduce (int count)
 	
 	} else {
 			//printf("COUNT IS NOT 1 OR 3\n");
-			return 1; // return COMP_ERR_SA;
+			return COMP_ERR_SA;
 	}
 
-	if (rule == NOT_A_RULE) return 1; // return COMP_ERR_SA;
-	if (semantics_check != COMP_OK) return 1;
+	if (rule == NOT_A_RULE) return COMP_ERR_SA;
+	if (semantics_check != COMP_OK) return semantics_check;
 
 
 	stack_pop_times(count + 1);
 	stack_push(E_NON_TERM, non_term_type, empty_token);
-	return 0;
+	return COMP_OK;
 }
 
 int test_semantics (rules rule, stack_item one, stack_item two, stack_item three, lex_types *non_term_type)
@@ -352,6 +352,7 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 	struct lexeme current_token;
 	stack_item stack_current_token;
 	stack_item stack_top_term;
+	comp_err reduce_error;
 
 	// Where to end
 	lex_types end_token_type;
@@ -409,7 +410,8 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 			case R:
 				//printf("CASE: R\n");
 				count = stack_until_shift();
-				if (reduce(count)) return COMP_ERR_SA; // Error in reduce function
+				reduce_error = reduce(count);
+				if (reduce_error != COMP_OK) return reduce_error; // Error in reduce function
 				break;
 			case X:
 				//printf("CASE: X\n");
