@@ -33,6 +33,8 @@ typedef enum {
 
 typedef enum {
 
+	E_TO_I,      // E -> i
+	LBRA_E_RBRA, // E -> (E)
 	E_PLUS_E,    // E -> E + E
 	E_MINUS_E,   // E -> E - E
 	E_CON_E,     // E -> E . E
@@ -44,8 +46,6 @@ typedef enum {
 	E_GEQ_E,     // E -> E >= E
 	E_EQ_E,      // E -> E === E
 	E_NEQ_E,     // E -> E !== E
-	LBRA_E_RBRA, // E -> (E)
-	E_TO_I,      // E -> i
 	NOT_A_RULE   // Wrong rule
 
 } rules;
@@ -62,6 +62,8 @@ expression_symbols get_op (expression_symbols stack_top, expression_symbols inpu
 int test_rule (int count, stack_item one, stack_item two, stack_item three);
 
 int reduce ();
+
+int test_semantics (rules rule, stack_item one, stack_item two, stack_item three, lex_types *non_term_type);
 
 int expression_parse (struct lexeme start_token, struct lexeme first_token);
 

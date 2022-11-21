@@ -169,86 +169,180 @@ int test_rule (int count, stack_item one, stack_item two, stack_item three)
 		case 1:
 			if (one.symbol == E_ID)
 			{
-				// apply rule
+				return E_TO_I;
 			}
 			break;
 		case 3:
-			if (one.symbol == E_L_BRACKET && two.symbol == E_NON_TERM && three.symbol == E_R_BRACKET)
+			if (three.symbol == E_L_BRACKET && two.symbol == E_NON_TERM && one.symbol == E_R_BRACKET)
 			{
-				// apply rule
+				return LBRA_E_RBRA;
 			}
 			else if (one.symbol == E_NON_TERM && three.symbol == E_NON_TERM)
 			{
 				switch (two.symbol)
 				{
 					case E_PLUS:
-						// apply rule
-					break;
+						return E_PLUS_E;
+						break;
 					case E_MINUS:
-						// apply rule
-					break;
+						return E_MINUS_E;
+						break;
 					case E_CON:
-						// apply rule
-					break;
+						return E_CON_E;
+						break;
 					case E_MUL:
-						// apply rule
-					break;
+						return E_MUL_E;
+						break;
 					case E_DIV:
-						// apply rule
-					break;
+						return E_DIV_E;
+						break;
 					case E_LT:
-						// apply rule
-					break;
+						return E_LT_E;
+						break;
 					case E_LEQ:
-						// apply rule
-					break;
+						return E_LEQ_E;
+						break;
 					case E_GT:
-						// apply rule
-					break;
+						return E_GT_E;
+						break;
 					case E_GEQ:
-						// apply rule
-					break;
+						return E_GEQ_E;
+						break;
 					case E_EQ:
-						// apply rule
-					break;
+						return E_EQ_E;
+						break;
 					case E_NEQ:
-						// apply rule
-					break;
+						return E_NEQ_E;
+						break;
 					default:
 						//printf("NOT A RULE!\n");
-						return 1;
+						return NOT_A_RULE;
+						break;
 				}
 			}
 			break;
 
 		default:
-			return 1;
+			return NOT_A_RULE;
 			break;
 	}
-	stack_pop_times(count + 1);
-	stack_push(E_NON_TERM, 0);
-	return 0;
+	return NOT_A_RULE;
 }
 
 int reduce (int count)
 {
-	switch (count)
-	{
-		stack_item tmp1;
-		stack_item tmp2;
+	stack_item tmp1 = {0};
+	stack_item tmp2 = {0};
 
-		case 1:
-			if (test_rule(1, stack_peek_1(), tmp1, tmp2)) return 1; // Error in test_rule function
+	rules rule;
+	lex_types non_term_type;
+	comp_err semantics_check;
+
+	if (count == 1) {
+
+		rule = test_rule(1, stack_peek_1(), tmp1, tmp2);
+		semantics_check = test_semantics(rule, stack_peek_1(), tmp1, tmp2, &non_term_type);
+	
+	} else if (count == 3) {
+	
+		rule = test_rule(3, stack_peek_1(), stack_peek_2(), stack_peek_3());
+		semantics_check = test_semantics(rule, stack_peek_1(), stack_peek_2(), stack_peek_3(), &non_term_type);
+	
+	} else {
+			//printf("COUNT IS NOT 1 OR 3\n");
+			return 1; // return COMP_ERR_SA;
+	}
+
+	if (rule == NOT_A_RULE) return 1; // return COMP_ERR_SA;
+	if (semantics_check != COMP_OK) return 1;
+
+
+	stack_pop_times(count + 1);
+	stack_push(E_NON_TERM, non_term_type);
+	return 0;
+}
+
+int test_semantics (rules rule, stack_item one, stack_item two, stack_item three, lex_types *non_term_type)
+{
+	// Just to get rid of warnings
+	stack_item item = two;
+	two = item;
+
+	//printf("rule: %d\n", rule);
+	//printf("one.type: %d\n", one.type);
+	//printf("two.type: %d\n", two.type);
+  //printf("three.type: %d\n", three.type);
+
+	switch (rule)
+	{
+		case E_TO_I:      // E -> i
+
+			// if (one is undefined)
+			// return COMP_ERR_UNDEF_VAR;
+			*non_term_type = one.type;
 			break;
-		case 3:
-			if (test_rule(3, stack_peek_1(), stack_peek_2(), stack_peek_3())) return 1; // Error in test_rule function
+		case LBRA_E_RBRA: // E -> (E)
+
+			// if (two is undefined)
+			// return COMP_ERR_UNDEF_VAR;
+			*non_term_type = two.type;
+			break;
+		case E_PLUS_E:    // E -> E + E
+		case E_MINUS_E:   // E -> E - E
+		case E_MUL_E:     // E -> E * E
+
+			// if (one is undefined or three is undefined)
+			// return COMP_ERR_UNDEF_VAR;
+
+			if (one.type == STR_LIT || three.type == STR_LIT) {
+				return COMP_ERR_MISMATCHED_TYPES;
+			}
+
+			if (one.type == DECIMAL_LIT || three.type == DECIMAL_LIT) {
+				*non_term_type = DECIMAL_LIT;
+			} else {
+				*non_term_type = INT_LIT;
+			}
+
+			break;
+		case E_CON_E:     // E -> E . E
+
+			// if (one is undefined or three is undefined)
+			// return COMP_ERR_UNDEF_VAR;
+
+			if (one.type == INT_LIT || one.type == DECIMAL_LIT || three.type == INT_LIT || three.type == DECIMAL_LIT)
+			{
+				return COMP_ERR_MISMATCHED_TYPES;
+			} else {
+				*non_term_type = STR_LIT;
+			}
+
+			break;
+		case E_DIV_E:     // E -> E / E
+
+			// if (one is undefined or three is undefined)
+			// return COMP_ERR_UNDEF_VAR;
+
+			if (one.type == STR_LIT || three.type == STR_LIT) {
+				return COMP_ERR_MISMATCHED_TYPES;
+			}
+
+			*non_term_type = DECIMAL_LIT;
+
+			break;
+		case E_LT_E:      // E -> E < E
+		case E_GT_E:      // E -> E > E
+		case E_LEQ_E:     // E -> E <= E
+		case E_GEQ_E:     // E -> E >= E
+		case E_EQ_E:      // E -> E === E
+		case E_NEQ_E:     // E -> E !== E
+
+			*non_term_type = INT_LIT;
 			break;
 		default:
-			//printf("COUNT IS NOT 1 OR 3\n");
-			return 1;
 			break;
 	}
-	return 0;
+	return COMP_OK;
 }
 
 int expression_parse (struct lexeme start_token, struct lexeme first_token)
