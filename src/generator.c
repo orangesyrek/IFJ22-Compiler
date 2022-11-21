@@ -1,5 +1,7 @@
 #include "generator.h"
 
+struct generator generator = {0};
+
 unsigned long id = 0;
 
 void generatorInit(){
