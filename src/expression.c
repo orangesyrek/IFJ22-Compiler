@@ -4,9 +4,12 @@
 #include "compiler.h"
 #include "stack.h"
 #include "expression.h"
+#include "symtab.h"
 
 extern int top;
 extern expression_symbols stack[MAX_STACK_SIZE];
+
+extern struct compiler_ctx *ctx;
 
 int precedence_table[8][8] = {
 // +-.  */ rel cmp  (   )   id  $
@@ -277,8 +280,18 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 	{
 		case E_TO_I:      // E -> i
 
-			// if (one is undefined)
-			// return COMP_ERR_UNDEF_VAR;
+			if (one.type == VAR || one.type == FUN_ID) {
+				if (ctx->in_function) {
+					if (!symtabSearch(ctx->local_sym_tab, one.token.id)) {
+						return COMP_ERR_UNDEF_VAR;
+					}
+				} else {
+					if (!symtabSearch(ctx->global_sym_tab, one.token.id)) {
+						return COMP_ERR_UNDEF_VAR;
+					}
+				}
+			}
+
 			*non_term_type = one.type;
 			break;
 		case LBRA_E_RBRA: // E -> (E)
@@ -337,6 +350,9 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 		case E_EQ_E:      // E -> E === E
 		case E_NEQ_E:     // E -> E !== E
 
+			// if (one is undefined or three is undefined)
+			// return COMP_ERR_UNDEF_VAR;
+
 			*non_term_type = INT_LIT;
 			break;
 		default:
@@ -376,6 +392,7 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 
 	do
 	{
+		//printToken(current_token);
 
 		// Get a symbol equivalent to current token
 		stack_current_token.symbol = token_to_symbol(current_token);
@@ -404,7 +421,7 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 			case S:
 				//printf("CASE: S\n");
 				stack_push_after_top_terminal(S, 0, empty_token);
-				stack_push(stack_current_token.symbol, stack_current_token.type, empty_token);
+				stack_push(stack_current_token.symbol, stack_current_token.type, current_token);
 				current_token = getToken();
 				break;
 			case R:
