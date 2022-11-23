@@ -280,6 +280,7 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 	{
 		case E_TO_I:      // E -> i
 
+			// Only need to test here because this rule will always be applied before the others
 			if (one.type == VAR || one.type == FUN_ID) {
 				if (ctx->in_function) {
 					if (!symtabSearch(ctx->local_sym_tab, one.token.id)) {
@@ -296,16 +297,11 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 			break;
 		case LBRA_E_RBRA: // E -> (E)
 
-			// if (two is undefined)
-			// return COMP_ERR_UNDEF_VAR;
 			*non_term_type = two.type;
 			break;
 		case E_PLUS_E:    // E -> E + E
 		case E_MINUS_E:   // E -> E - E
 		case E_MUL_E:     // E -> E * E
-
-			// if (one is undefined or three is undefined)
-			// return COMP_ERR_UNDEF_VAR;
 
 			if (one.type == STR_LIT || three.type == STR_LIT) {
 				return COMP_ERR_MISMATCHED_TYPES;
@@ -320,9 +316,6 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 			break;
 		case E_CON_E:     // E -> E . E
 
-			// if (one is undefined or three is undefined)
-			// return COMP_ERR_UNDEF_VAR;
-
 			if (one.type == INT_LIT || one.type == DECIMAL_LIT || three.type == INT_LIT || three.type == DECIMAL_LIT)
 			{
 				return COMP_ERR_MISMATCHED_TYPES;
@@ -332,9 +325,6 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 
 			break;
 		case E_DIV_E:     // E -> E / E
-
-			// if (one is undefined or three is undefined)
-			// return COMP_ERR_UNDEF_VAR;
 
 			if (one.type == STR_LIT || three.type == STR_LIT) {
 				return COMP_ERR_MISMATCHED_TYPES;
@@ -349,9 +339,6 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 		case E_GEQ_E:     // E -> E >= E
 		case E_EQ_E:      // E -> E === E
 		case E_NEQ_E:     // E -> E !== E
-
-			// if (one is undefined or three is undefined)
-			// return COMP_ERR_UNDEF_VAR;
 
 			*non_term_type = INT_LIT;
 			break;
