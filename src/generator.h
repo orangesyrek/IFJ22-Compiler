@@ -4,7 +4,6 @@
 #include <ctype.h>
 #include "symtab.h"
 
-
 struct params {
 	int is_constant;
 	union {

@@ -798,7 +798,7 @@ struct lexeme getToken()
         token.type = funIdToKeyword(token.id);
       }
     }
-    if(previousState != LEX_EOF_STATE && previousState != STR_LIT_STATE){ // wtf fix
+    if(previousState != LEX_EOF_STATE && previousState != STR_LIT_STATE){
       ungetc(input, stdin);
     }
     return token;

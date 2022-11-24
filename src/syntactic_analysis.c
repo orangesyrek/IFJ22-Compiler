@@ -787,10 +787,10 @@ rule_if_statement()
 	} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
 		ERR_PRINT("Mismatched types in if statement.");
 		return COMP_ERR_MISMATCHED_TYPES;
-	
+
 	} else if (ret == COMP_ERR_SA) {
 		goto cleanup;
-	} 
+	}
 
 	current_token = getToken();
 	if (current_token.type != L_CURLY) {
@@ -904,7 +904,7 @@ rule_var_declaration(char *var_name)
 			} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
 				ERR_PRINT("Mismatched types in variable declaration.");
 				return COMP_ERR_MISMATCHED_TYPES;
-			
+
 			} else if (ret == COMP_ERR_SA) {
 				goto cleanup;
 			} else {
@@ -952,10 +952,10 @@ rule_while_statement()
 	} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
 		ERR_PRINT("Mismatched types in while statement.");
 		return COMP_ERR_MISMATCHED_TYPES;
-	
+
 	} else if (ret == COMP_ERR_SA) {
 		goto cleanup;
-	} 
+	}
 
 	current_token = getToken();
 	if (current_token.type != L_CURLY) {
@@ -1000,10 +1000,11 @@ rule_return(struct function_data data)
 {
 	struct lexeme current_token = {0};
 	struct lexeme next_token;
+	int ret;
 
 	next_token = getToken();
 	if (next_token.type != SEMICOLON) {
-		int ret = expression_parse(current_token, next_token);
+		ret = expression_parse(current_token, next_token);
 		if (ret == COMP_ERR_UNDEF_VAR) {
 			ERR_PRINT("Undefined variable in return.");
 			return COMP_ERR_UNDEF_VAR;
@@ -1011,7 +1012,7 @@ rule_return(struct function_data data)
 		} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
 			ERR_PRINT("Mismatched types in return.");
 			return COMP_ERR_MISMATCHED_TYPES;
-		
+
 		} else if (ret == COMP_ERR_SA) {
 			ERR_PRINT("Syntax error in return");
 			return COMP_ERR_SA;
@@ -1100,7 +1101,7 @@ rule_statement_list(struct bs_data *data)
 		} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
 			ERR_PRINT("Mismatched types.");  // to stejne tady
 			return COMP_ERR_MISMATCHED_TYPES;
-		
+
 		} else if (ret == COMP_ERR_SA) {
 			goto cleanup;
 
@@ -1139,7 +1140,7 @@ rule_statement_list(struct bs_data *data)
 				} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
 					ERR_PRINT("Mismatched types.");  // stejne zas
 					return COMP_ERR_MISMATCHED_TYPES;
-				
+
 				} else if (ret == COMP_ERR_SA) {
 					goto cleanup;
 				}
@@ -1162,7 +1163,7 @@ rule_statement_list(struct bs_data *data)
 		} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
 			ERR_PRINT("Mismatched types.");  // zase
 			return COMP_ERR_MISMATCHED_TYPES;
-		
+
 		} else if (ret == COMP_ERR_SA) {
 			goto cleanup;
 		}
