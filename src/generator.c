@@ -1,4 +1,5 @@
 #include "generator.h"
+#include "compiler.h"
 
 struct generator generator = {0};
 
@@ -7,6 +8,41 @@ unsigned long id = 0;
 void generatorInit(){
   printf(".IFJcode22\n");
   printf("CREATEFRAME\n");
+}
+
+char* convertString(char* nonConvertedstr){
+  char* converted =(char*) calloc(1, 512);
+  if(nonConvertedstr != NULL){
+    int index = 0;
+    char i = nonConvertedstr[index];
+    int j = 0;
+    while(i != '\0'){
+      if( (i <= 32) || (i == 35) ){
+        converted[j] = 92;
+        converted[j+1] = 48;
+        converted[j+2] = (i / 10) + 48;
+        converted[j+3] = (i % 10) + 48;
+        j += 4;
+
+      } else if (i == '\\' && nonConvertedstr[index + 1] == 'n') {
+        converted[j] = '\\';
+        converted[j+1] = '0';
+        converted[j+2] = '1';
+        converted[j+3] = '0';
+        j += 4;
+        index++;
+      } else{
+        converted[j] = i;
+        j++;
+      }
+      i = nonConvertedstr[++index];
+    }
+
+  return converted;
+
+  }else{
+    return NULL;
+  }
 }
 
 
@@ -48,6 +84,7 @@ void generatorPushParamString(char *str){
 }
 
 void generatorExecute(char *fun){ // need to know function name
+  char *str;
   printf("PUSHFRAME\n");
   for (int i = 0; i < generator.param_count; i++) {
     if (generator.params[i].type == INT) {
@@ -55,7 +92,11 @@ void generatorExecute(char *fun){ // need to know function name
     } else if (generator.params[i].type == FLOAT) {
       printf("PUSHS float@%a\n", generator.params[i].value.flt_val);
     } else if (generator.params[i].type == STRING) {
-      printf("PUSHS string@%s\n", generator.params[i].value.str_val);
+      str = convertString(generator.params[i].value.str_val);
+      if (!str) {
+        exit(COMP_ERR_INTERNAL);
+      }
+      printf("PUSHS string@%s\n", str);
     }
   }
   printf("CALL %s%d\n", fun, generator.function_call_cnt);

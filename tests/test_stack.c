@@ -11,13 +11,14 @@ struct compiler_ctx *ctx;
 int
 main(void)
 {
+	struct lexeme token = {0};
 	stack_init();
 
-	stack_push(E_DOLLAR, 0);
+	stack_push(E_DOLLAR, 0, token);
 	stack_print();
 
-	stack_push(S, 0);
-	stack_push(E_ID, 0);
+	stack_push(S, 0, token);
+	stack_push(E_ID, 0, token);
 	stack_print();
 
 	int count;
@@ -26,22 +27,22 @@ main(void)
 
 	stack_pop();
 	stack_pop();
-	stack_push(E_NON_TERM, 0);
+	stack_push(E_NON_TERM, 0, token);
 	stack_print();
 
-	stack_push_after_top_terminal(S, 0);
+	stack_push_after_top_terminal(S, 0, token);
 	stack_print();
 
-	stack_push(E_PLUS, 0);
+	stack_push(E_PLUS, 0, token);
 	stack_print();
 
-	stack_push(S, 0);
-	stack_push(E_ID, 0);
+	stack_push(S, 0, token);
+	stack_push(E_ID, 0, token);
 	stack_print();
 
 	stack_pop();
 	stack_pop();
-	stack_push(E_NON_TERM, 0);
+	stack_push(E_NON_TERM, 0, token);
 	stack_print();
 
 	expression_symbols terminal;
@@ -49,14 +50,14 @@ main(void)
 	if (terminal == E_PLUS) printf("Top terminal: +\n");
 	else printf("Top terminal error\n");
 
-	stack_push_after_top_terminal(S, 0);
+	stack_push_after_top_terminal(S, 0, token);
 	stack_print();
 
-	stack_push(E_MUL, 0);
+	stack_push(E_MUL, 0, token);
 	stack_print();
 
-	stack_push(S, 0);
-	stack_push(E_ID, 0);
+	stack_push(S, 0, token);
+	stack_push(E_ID, 0, token);
 	stack_print();
 
 	terminal = stack_top_terminal().symbol;
@@ -65,7 +66,7 @@ main(void)
 
 	stack_pop();
 	stack_pop();
-	stack_push(E_NON_TERM, 0);
+	stack_push(E_NON_TERM, 0, token);
 	stack_print();
 
 	count = stack_until_shift();
@@ -76,11 +77,11 @@ main(void)
 	else printf("Top terminal error\n");
 
 	stack_pop_times(4);
-	stack_push(E_NON_TERM, 0);
+	stack_push(E_NON_TERM, 0, token);
 	stack_print();
 
 	stack_pop_times(4);
-	stack_push(E_NON_TERM, 0);
+	stack_push(E_NON_TERM, 0, token);
 	stack_print();
 
 	terminal = stack_top_terminal().symbol;

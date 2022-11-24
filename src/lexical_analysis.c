@@ -644,7 +644,8 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             }
         case STR_LIT_ESCAPE:
             if(input == EOF){
-                return ERROR_STATE;
+                ERR_PRINT("ERROR STR_LIT_ESCAPE EOF");
+                exit(COMP_ERR_LA);
             }
             else {
                 return STR_LIT_STATE;
@@ -739,20 +740,21 @@ struct lexeme getToken()
         currentState = getNextState(currentState, input);
         /*if we read Function id or variable id we want save it to dynamic string */
         if(currentState == FUN_ID_STATE || currentState == VAR_STATE || currentState == INT_LIT_STATE
-            || currentState == INT_LIT_DOT || currentState == DEC_LIT_TMP || currentState == STR_LIT_STATE){
+            || currentState == INT_LIT_DOT || currentState == DEC_LIT_TMP || currentState == STR_LIT_STATE ||
+            currentState == STR_LIT_ESCAPE){
             if (input != '\"') {
                 buffer[len] = input;
                 len++;
             }
         }
         if(currentState == QUESTION_MARK_i_n_t){
-            buffer[0] = '?';buffer[1] = 'i';buffer[2] = 'n';buffer[3] = 't';
+            strcpy(buffer, "?int");
         }
         if(currentState == QUESTION_MARK_f_l_o_a_t){
-            buffer[0] = '?';buffer[1] = 'f';buffer[2] = 'l';buffer[3] = 'o';buffer[4] = 'a';buffer[5] = 't';
+            strcpy(buffer, "?float");
         }
         if(currentState == QUESTION_MARK_s_t_r_i_n_g){
-            buffer[0] = '?';buffer[1] = 's';buffer[2] = 't';buffer[3] = 'r';buffer[4] = 'i';buffer[5] = 'n';buffer[6] = 'g';
+            strcpy(buffer, "?string");
         }
         if (currentState != MULTI_LINE_COMMENT || currentState != STR_LIT_STATE) {
             if (input == '\n') {

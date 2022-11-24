@@ -4,9 +4,12 @@
 #include "compiler.h"
 #include "stack.h"
 #include "expression.h"
+#include "symtab.h"
 
 extern int top;
 extern expression_symbols stack[MAX_STACK_SIZE];
+
+extern struct compiler_ctx *ctx;
 
 int precedence_table[8][8] = {
 // +-.  */ rel cmp  (   )   id  $
@@ -169,94 +172,190 @@ int test_rule (int count, stack_item one, stack_item two, stack_item three)
 		case 1:
 			if (one.symbol == E_ID)
 			{
-				// apply rule
+				return E_TO_I;
 			}
 			break;
 		case 3:
-			if (one.symbol == E_L_BRACKET && two.symbol == E_NON_TERM && three.symbol == E_R_BRACKET)
+			if (three.symbol == E_L_BRACKET && two.symbol == E_NON_TERM && one.symbol == E_R_BRACKET)
 			{
-				// apply rule
+				return LBRA_E_RBRA;
 			}
 			else if (one.symbol == E_NON_TERM && three.symbol == E_NON_TERM)
 			{
 				switch (two.symbol)
 				{
 					case E_PLUS:
-						// apply rule
-					break;
+						return E_PLUS_E;
+						break;
 					case E_MINUS:
-						// apply rule
-					break;
+						return E_MINUS_E;
+						break;
 					case E_CON:
-						// apply rule
-					break;
+						return E_CON_E;
+						break;
 					case E_MUL:
-						// apply rule
-					break;
+						return E_MUL_E;
+						break;
 					case E_DIV:
-						// apply rule
-					break;
+						return E_DIV_E;
+						break;
 					case E_LT:
-						// apply rule
-					break;
+						return E_LT_E;
+						break;
 					case E_LEQ:
-						// apply rule
-					break;
+						return E_LEQ_E;
+						break;
 					case E_GT:
-						// apply rule
-					break;
+						return E_GT_E;
+						break;
 					case E_GEQ:
-						// apply rule
-					break;
+						return E_GEQ_E;
+						break;
 					case E_EQ:
-						// apply rule
-					break;
+						return E_EQ_E;
+						break;
 					case E_NEQ:
-						// apply rule
-					break;
+						return E_NEQ_E;
+						break;
 					default:
 						//printf("NOT A RULE!\n");
-						return 1;
+						return NOT_A_RULE;
+						break;
 				}
 			}
 			break;
 
 		default:
-			return 1;
+			return NOT_A_RULE;
 			break;
 	}
-	stack_pop_times(count + 1);
-	stack_push(E_NON_TERM, 0);
-	return 0;
+	return NOT_A_RULE;
 }
 
 int reduce (int count)
 {
-	switch (count)
-	{
-		stack_item tmp1;
-		stack_item tmp2;
+	stack_item tmp = {0};
+	struct lexeme empty_token = {0};
 
-		case 1:
-			if (test_rule(1, stack_peek_1(), tmp1, tmp2)) return 1; // Error in test_rule function
+	rules rule;
+	lex_types non_term_type;
+	comp_err semantics_check;
+
+	if (count == 1) {
+
+		rule = test_rule(1, stack_peek_1(), tmp, tmp);
+		semantics_check = test_semantics(rule, stack_peek_1(), tmp, tmp, &non_term_type);
+	
+	} else if (count == 3) {
+	
+		rule = test_rule(3, stack_peek_1(), stack_peek_2(), stack_peek_3());
+		semantics_check = test_semantics(rule, stack_peek_1(), stack_peek_2(), stack_peek_3(), &non_term_type);
+	
+	} else {
+			//printf("COUNT IS NOT 1 OR 3\n");
+			return COMP_ERR_SA;
+	}
+
+	if (rule == NOT_A_RULE) return COMP_ERR_SA;
+	if (semantics_check != COMP_OK) return semantics_check;
+
+
+	stack_pop_times(count + 1);
+	stack_push(E_NON_TERM, non_term_type, empty_token);
+	return COMP_OK;
+}
+
+int test_semantics (rules rule, stack_item one, stack_item two, stack_item three, lex_types *non_term_type)
+{
+	// Just to get rid of warnings
+	stack_item item = two;
+	two = item;
+
+	//printf("rule: %d\n", rule);
+	//printf("one.type: %d\n", one.type);
+	//printf("two.type: %d\n", two.type);
+  //printf("three.type: %d\n", three.type);
+
+	switch (rule)
+	{
+		case E_TO_I:      // E -> i
+
+			// Only need to test here because this rule will always be applied before the others
+			if (one.type == VAR || one.type == FUN_ID) {
+				if (ctx->in_function) {
+					if (!symtabSearch(ctx->local_sym_tab, one.token.id)) {
+						return COMP_ERR_UNDEF_VAR;
+					}
+				} else {
+					if (!symtabSearch(ctx->global_sym_tab, one.token.id)) {
+						return COMP_ERR_UNDEF_VAR;
+					}
+				}
+			}
+
+			*non_term_type = one.type;
 			break;
-		case 3:
-			if (test_rule(3, stack_peek_1(), stack_peek_2(), stack_peek_3())) return 1; // Error in test_rule function
+		case LBRA_E_RBRA: // E -> (E)
+
+			*non_term_type = two.type;
+			break;
+		case E_PLUS_E:    // E -> E + E
+		case E_MINUS_E:   // E -> E - E
+		case E_MUL_E:     // E -> E * E
+
+			if (one.type == STR_LIT || three.type == STR_LIT) {
+				return COMP_ERR_MISMATCHED_TYPES;
+			}
+
+			if (one.type == DECIMAL_LIT || three.type == DECIMAL_LIT) {
+				*non_term_type = DECIMAL_LIT;
+			} else {
+				*non_term_type = INT_LIT;
+			}
+
+			break;
+		case E_CON_E:     // E -> E . E
+
+			if (one.type == INT_LIT || one.type == DECIMAL_LIT || three.type == INT_LIT || three.type == DECIMAL_LIT)
+			{
+				return COMP_ERR_MISMATCHED_TYPES;
+			} else {
+				*non_term_type = STR_LIT;
+			}
+
+			break;
+		case E_DIV_E:     // E -> E / E
+
+			if (one.type == STR_LIT || three.type == STR_LIT) {
+				return COMP_ERR_MISMATCHED_TYPES;
+			}
+
+			*non_term_type = DECIMAL_LIT;
+
+			break;
+		case E_LT_E:      // E -> E < E
+		case E_GT_E:      // E -> E > E
+		case E_LEQ_E:     // E -> E <= E
+		case E_GEQ_E:     // E -> E >= E
+		case E_EQ_E:      // E -> E === E
+		case E_NEQ_E:     // E -> E !== E
+
+			*non_term_type = INT_LIT;
 			break;
 		default:
-			//printf("COUNT IS NOT 1 OR 3\n");
-			return 1;
 			break;
 	}
-	return 0;
+	return COMP_OK;
 }
 
 int expression_parse (struct lexeme start_token, struct lexeme first_token)
 {
 	stack_init();
+	struct lexeme empty_token = {0};
 	struct lexeme current_token;
 	stack_item stack_current_token;
 	stack_item stack_top_term;
+	comp_err reduce_error;
 
 	// Where to end
 	lex_types end_token_type;
@@ -268,7 +367,7 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 	else if (end_token_type == R_PAR) printf("END TOKEN: R_PAR\n");
 	else printf("END TOKEN ERROR\n");*/
 
-	stack_push(E_DOLLAR, 0);
+	stack_push(E_DOLLAR, 0, empty_token);
 
 	if (start_token.type != first_token.type) {
 		current_token = first_token;
@@ -280,6 +379,7 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 
 	do
 	{
+		//printToken(current_token);
 
 		// Get a symbol equivalent to current token
 		stack_current_token.symbol = token_to_symbol(current_token);
@@ -302,19 +402,20 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 		{
 			case E:
 				//printf("CASE: E\n");
-				stack_push(stack_current_token.symbol, stack_current_token.type);
+				stack_push(stack_current_token.symbol, stack_current_token.type, empty_token);
 				current_token = getToken();
 				break;
 			case S:
 				//printf("CASE: S\n");
-				stack_push_after_top_terminal(S, 0);
-				stack_push(stack_current_token.symbol, stack_current_token.type);
+				stack_push_after_top_terminal(S, 0, empty_token);
+				stack_push(stack_current_token.symbol, stack_current_token.type, current_token);
 				current_token = getToken();
 				break;
 			case R:
 				//printf("CASE: R\n");
 				count = stack_until_shift();
-				if (reduce(count)) return COMP_ERR_SA; // Error in reduce function
+				reduce_error = reduce(count);
+				if (reduce_error != COMP_OK) return reduce_error; // Error in reduce function
 				break;
 			case X:
 				//printf("CASE: X\n");
