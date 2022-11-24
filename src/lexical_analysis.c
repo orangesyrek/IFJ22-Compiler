@@ -472,7 +472,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             else {
                 ERR_PRINT("QUESTION_MARK_s ERROR");
                 exit(COMP_ERR_LA);
-            }   
+            }
         case QUESTION_MARK_s_t:
             if(input == 'r'){
                 return QUESTION_MARK_s_t_r;
@@ -480,7 +480,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             else {
                 ERR_PRINT("QUESTION_MARK_s_t ERROR");
                 exit(COMP_ERR_LA);
-            } 
+            }
         case QUESTION_MARK_s_t_r:
             if(input == 'i'){
                 return QUESTION_MARK_s_t_r_i;
@@ -514,7 +514,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             else {
                 ERR_PRINT("QUESTION_MARK_s_t_r_i_n_g ERROR");
                 exit(COMP_ERR_LA);
-            }    
+            }
         case QUESTION_MARK_f_l:
             if(input == 'o'){
                 return QUESTION_MARK_f_l_o;
@@ -522,7 +522,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             else {
                 ERR_PRINT("QUESTION_MARK_f_l ERROR");
                 exit(COMP_ERR_LA);
-            } 
+            }
         case QUESTION_MARK_f_l_o:
             if(input == 'a'){
                 return QUESTION_MARK_f_l_o_a;
@@ -530,7 +530,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             else {
                 ERR_PRINT("QUESTION_MARK_f_l_o ERROR");
                 exit(COMP_ERR_LA);
-            } 
+            }
         case QUESTION_MARK_f_l_o_a:
             if(input == 't'){
                 return QUESTION_MARK_f_l_o_a_t;
@@ -538,7 +538,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             else {
                 ERR_PRINT("QUESTION_MARK_f_l_o_a ERROR");
                 exit(COMP_ERR_LA);
-            } 
+            }
         case QUESTION_MARK_f_l_o_a_t:
             return ERROR_STATE;
         case QUESTION_MARK_i:
@@ -738,9 +738,12 @@ struct lexeme getToken()
         previousState = currentState;
         currentState = getNextState(currentState, input);
         /*if we read Function id or variable id we want save it to dynamic string */
-        if(currentState == FUN_ID_STATE || currentState == VAR_STATE || currentState == INT_LIT_STATE){
-            buffer[len] = input;
-            len++;
+        if(currentState == FUN_ID_STATE || currentState == VAR_STATE || currentState == INT_LIT_STATE
+            || currentState == INT_LIT_DOT || currentState == DEC_LIT_TMP || currentState == STR_LIT_STATE){
+            if (input != '\"') {
+                buffer[len] = input;
+                len++;
+            }
         }
         if(currentState == QUESTION_MARK_i_n_t){
             buffer[0] = '?';buffer[1] = 'i';buffer[2] = 'n';buffer[3] = 't';

@@ -10,6 +10,7 @@
 #include "generator.h"
 
 extern struct compiler_ctx *ctx;
+extern struct generator generator;
 
 static comp_err rule_statement_list();
 
@@ -74,6 +75,68 @@ cleanup:
 	return COMP_ERR_SA;
 }
 
+static void
+generator_reverse_params()
+{
+	int i;
+	struct params *aux;
+
+	aux = malloc(generator.param_count * sizeof *aux);
+	if (!aux) {
+		exit(COMP_ERR_INTERNAL);
+	}
+
+	for (i = 0; i < generator.param_count; i++) {
+		aux[generator.param_count - i - 1] = generator.params[i];
+	}
+
+	for (i = 0; i < generator.param_count; i++) {
+		generator.params[i] = aux[i];
+	}
+
+	free(aux);
+}
+
+static void
+generator_insert_param(struct lexeme token)
+{
+
+	switch (token.type) {
+	case STR_LIT:
+		generator.params[generator.param_count].is_constant = 1;
+		generator.params[generator.param_count].value.str_val = token.value.str_val;
+		generator.params[generator.param_count].type = STRING;
+		break;
+
+	case INT_LIT:
+		generator.params[generator.param_count].is_constant = 1;
+		generator.params[generator.param_count].value.int_val = token.value.int_val;
+		generator.params[generator.param_count].type = INT;
+		break;
+	case DECIMAL_LIT:
+		generator.params[generator.param_count].is_constant = 1;
+		generator.params[generator.param_count].value.flt_val = token.value.flt_val;
+		generator.params[generator.param_count].type = FLOAT;
+		break;
+
+	case VAR:
+		generator.params[generator.param_count].is_constant = 0;
+		generator.params[generator.param_count].value.var_name = token.id;
+		generator.params[generator.param_count].type = UNKNOWN;
+		break;
+
+	default:
+		/* should not happen */
+		break;
+	}
+
+	generator.param_count++;
+	if (generator.param_count > 10) {
+		/* hard cap */
+		exit(COMP_ERR_INTERNAL);
+	}
+}
+
 static comp_err
 rule_next_param(struct function_data data, int is_not_defined, struct function_data *new_data)
 {
@@ -96,6 +159,7 @@ rule_next_param(struct function_data data, int is_not_defined, struct function_d
 		/*generatorPrepare(data);
 		generatorPushParamString(param2);*/
 		param_counter = 1;
+		generator_reverse_params();
 		return COMP_OK;
 	} else if (current_token.type == COMMA) {
 		/* next_param -> , Terminal next_param */
@@ -105,6 +169,7 @@ rule_next_param(struct function_data data, int is_not_defined, struct function_d
 		if ((p_count == -1) && ((current_token.type == STR_LIT) || (current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT)
 		|| (current_token.type == VAR) || (current_token.type == KEYWORD_NULL))) {
 			param_counter++;
+			generator_insert_param(current_token);
 			return rule_next_param(data, is_not_defined, new_data);
 		}
 
@@ -201,16 +266,16 @@ rule_func_params(struct function_data data, int is_not_defined, char *function_n
 			goto cleanup;
 		}
 		if (is_not_defined) {
-			/* todo check later */
+			/* check later */
 			new_data->data.fdata.param_count = 0;
 		}
-		/* generate without param */
-		//generatorPrepare(data);
-		//generatorExecute("reads");
+
+		/* generate no params */
 		goto cleanup;
 	} else if (!p_count && !is_not_defined) {
 		ERR_PRINT("Expected 0 parameters in function call.");
 		ret = COMP_ERR_FUNC_PARAM;
+		goto cleanup;
 	} else if (p_count == -1) {
 		/* write */
 
@@ -230,9 +295,9 @@ rule_func_params(struct function_data data, int is_not_defined, char *function_n
 				}
 			}
 		}
+
+		generator_insert_param(current_token);
 		ret = rule_next_param(data, 0, NULL);
-		/*generatorPushParamString(current_token.value.str_val);
-		generatorExecute("write");*/
 		goto cleanup;
 	}
 
@@ -786,6 +851,10 @@ rule_var_declaration(char *var_name)
 
 		next_token = getToken();
 		if (next_token.type == FUN_ID) {
+			/* save function name in generator */
+			generator.function_name = next_token.id;
+
+			/* search for the function */
 			data = symtabSearch(ctx->global_sym_tab, next_token.id);
 			if (!data) {
 				ret = dataInit(&data);
@@ -936,6 +1005,10 @@ rule_statement_list(struct bs_data *data)
 	ctx->last_token = -1;
 	current_token = getToken();
 	if (current_token.type == FUN_ID) {
+		/* save function name in generator */
+		generator.function_name = current_token.id;
+
+		/* search for the function */
 		data = symtabSearch(ctx->global_sym_tab, current_token.id);
 		if (!data) {
 			ctx->unchecked_functions[ctx->empty_index] = current_token.id;
@@ -944,6 +1017,9 @@ rule_statement_list(struct bs_data *data)
 		} else {
 			ret = rule_func(data->data.fdata, 0, current_token.id);
 		}
+
+		generatorExecute("write");
+		generator.param_count = 0;
 
 		if (ret != COMP_OK) {
 			goto cleanup;

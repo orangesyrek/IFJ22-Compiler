@@ -170,12 +170,12 @@ insert_builtin_functions(struct bs_tree **tree)
   strlen_data->is_function = 1;
   strlen_data->data.fdata.return_type = INT;
   strlen_data->data.fdata.is_defined = 1;
+  strlen_data->data.fdata.param_count = 1;
   strlen_data->data.fdata.params = realloc_func_params(strlen_data->data.fdata.params, strlen_data->data.fdata.param_count);
   if (!strlen_data->data.fdata.params) {
     return 99;
   }
   strlen_data->data.fdata.params[0] = STRING;
-  strlen_data->data.fdata.param_count = 1;
 
   substring_data->is_function = 1;
   substring_data->data.fdata.return_type = QSTRING;

@@ -60,3 +60,9 @@ add_test(NAME ifj_tester
 	COMMAND ${CMAKE_SOURCE_DIR}/tests/test.py
 	${CMAKE_CURRENT_BINARY_DIR}/compiler
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests)
+
+add_test(NAME ifj_generator
+	COMMAND ${CMAKE_SOURCE_DIR}/tests/test.py
+	${CMAKE_CURRENT_BINARY_DIR}/compiler
+	${CMAKE_SOURCE_DIR}/../ic22int
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests)

@@ -7,8 +7,6 @@ unsigned long id = 0;
 void generatorInit(){
   printf(".IFJcode22\n");
   printf("CREATEFRAME\n");
-  printf("GF@ret\n"); // need some more global variables
-  //printf("DEFVAR GF@bool");
 }
 
 
@@ -51,7 +49,16 @@ void generatorPushParamString(char *str){
 
 void generatorExecute(char *fun){ // need to know function name
   printf("PUSHFRAME\n");
-  printf("CALL %s\n", fun);
+  for (int i = 0; i < generator.param_count; i++) {
+    if (generator.params[i].type == INT) {
+      printf("PUSHS int@%d\n", generator.params[i].value.int_val);
+    } else if (generator.params[i].type == FLOAT) {
+      printf("PUSHS float@%a\n", generator.params[i].value.flt_val);
+    } else if (generator.params[i].type == STRING) {
+      printf("PUSHS string@%s\n", generator.params[i].value.str_val);
+    }
+  }
+  printf("CALL %s%d\n", fun, generator.function_call_cnt);
   generatorFunWrite(); // to test
   printf("POPFRAME\n");// maybe delete depends
 }
@@ -64,31 +71,17 @@ void generatorBuiltinFunctions(){
 }
 
 void generatorFunWrite(){
-  printf("JUMP $writeend\n");
-  printf("LABEL write\n");
+  printf("JUMP $writeend%d\n", generator.function_call_cnt);
+  printf("LABEL write%d\n", generator.function_call_cnt);
   printf("CREATEFRAME\n");
-  //printf("DEFVAR TF@cnt_of_parameter\n");
-  printf("DEFVAR TF@to_print\n");
-  printf("DEFVAR TF@cnt\n");
-  //printf("POPS TF@cnt_of_parameter\n");
-  printf("MOVE TF@cnt int@0\n");
-  printf("LABEL _print_while_start\n");
-  //printf("LT GF@bool TF@cnt LF@pcount\n");
-  printf("JUMPIFEQ _print_while_end TF@cnt LF@pcount\n");
-  printf("POPS TF@to_print\n");
-  //idk about this part *** maybe for for not to empty stack if bad count of params come
-      // printf("JUMPIFNEQ exprint TF@to_print nil@nil \n");
-      // printf("PUSHS string@nil\n");
-      // printf("POPS TF@to_print\n");
-      // printf("LABEL exprint\n");
-  //                    ***
-  printf("WRITE TF@to_print\n");
-  printf("ADD TF@cnt TF@cnt int@1\n");
-  printf("JUMP _print_while_start\n");
-  printf("LABEL _print_while_end\n");
-  //printf("POPFRAME\n");
+  for (int i = 0; i < generator.param_count; i++) {
+    printf("DEFVAR TF@param%d\n", i);
+    printf("POPS TF@param%d\n", i);
+    printf("WRITE TF@param%d\n", i);
+  }
   printf("RETURN\n");
-  printf("LABEL $writeend\n");
+  printf("LABEL $writeend%d\n", generator.function_call_cnt);
+  generator.function_call_cnt++;
 }
 
 //other builting functions
