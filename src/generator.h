@@ -4,13 +4,27 @@
 #include <ctype.h>
 #include "symtab.h"
 
+struct params {
+	int is_constant;
+	union {
+		char *var_name;
+		int int_val;
+		double flt_val;
+		char *str_val;
+	} value;
+	type type;
+};
 
 struct generator {
 	char *global_str;
 	char *local_str_var;
 	char *local_str;
 
+	int function_call_cnt;
+
+	char *function_name;
 	int param_count;
+	struct params params[10];
 	char **param_names;
 	char **param_types;
 };

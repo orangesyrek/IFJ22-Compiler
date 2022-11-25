@@ -2,6 +2,9 @@
 declare(strict_types=1);
 // Program 2: Vypocet faktorialu (rekurzivne)
 // Hlavni telo programu
+write("Zadejte cislo pro vypocet faktorialu: ");
+$a = readi();
+// Definice funkce pro vypocet hodnoty faktorialu
 function factorial(int $n) : int {
 	if ($n < 2) {
 		$result = 1;
@@ -12,6 +15,7 @@ function factorial(int $n) : int {
 	}
 	return $result;
 }
+
 if ($a !== null) {
 	if ($a < 0) { // Pokracovani hlavniho tela programu
 		write("Faktorial nelze spocitat\n");

@@ -31,13 +31,40 @@ typedef enum {
 	X, // error
 } expression_symbols;
 
+typedef enum {
+
+	E_TO_I,      // E -> i
+	LBRA_E_RBRA, // E -> (E)
+	E_PLUS_E,    // E -> E + E
+	E_MINUS_E,   // E -> E - E
+	E_CON_E,     // E -> E . E
+	E_MUL_E,     // E -> E * E
+	E_DIV_E,     // E -> E / E
+	E_LT_E,      // E -> E < E
+	E_GT_E,      // E -> E > E
+	E_LEQ_E,     // E -> E <= E
+	E_GEQ_E,     // E -> E >= E
+	E_EQ_E,      // E -> E === E
+	E_NEQ_E,     // E -> E !== E
+	NOT_A_RULE   // Wrong rule
+
+} rules;
+
+typedef struct item {
+	expression_symbols symbol;
+	lex_types type;
+	struct lexeme token;
+} stack_item;
+
 expression_symbols token_to_symbol (struct lexeme token);
 
 expression_symbols get_op (expression_symbols stack_top, expression_symbols input);
 
-int test_rule (int count, expression_symbols one, expression_symbols two, expression_symbols three);
+int test_rule (int count, stack_item one, stack_item two, stack_item three);
 
 int reduce ();
+
+int test_semantics (rules rule, stack_item one, stack_item two, stack_item three, lex_types *non_term_type);
 
 int expression_parse (struct lexeme start_token, struct lexeme first_token);
 

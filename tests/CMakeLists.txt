@@ -7,6 +7,7 @@ set(tests_src
 	../src/syntactic_analysis.c
 	../src/expression.c
 	../src/stack.c
+	../src/generator.c
 	)
 set(tests_header
 	../src/compiler.h
@@ -15,6 +16,7 @@ set(tests_header
 	../src/syntactic_analysis.h
 	../src/expression.h
 	../src/stack.h
+	../src/generator.h
 	)
 
 foreach(test_name IN LISTS tests)
@@ -57,4 +59,10 @@ endforeach()
 add_test(NAME ifj_tester
 	COMMAND ${CMAKE_SOURCE_DIR}/tests/test.py
 	${CMAKE_CURRENT_BINARY_DIR}/compiler
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests)
+
+add_test(NAME ifj_generator
+	COMMAND ${CMAKE_SOURCE_DIR}/tests/test.py
+	${CMAKE_CURRENT_BINARY_DIR}/compiler
+	${CMAKE_SOURCE_DIR}/../ic22int
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests)

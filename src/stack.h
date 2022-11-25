@@ -7,23 +7,23 @@
 
 void stack_init();
 
-int stack_push(expression_symbols input);
+int stack_push(expression_symbols symbol, lex_types type, struct lexeme token);
 
-int stack_push_after_top_terminal (expression_symbols input);
+int stack_push_after_top_terminal (expression_symbols symbol, lex_types type, struct lexeme token);
 
 void stack_pop();
 
 void stack_pop_times(int times);
 
-expression_symbols stack_peek_1();
+stack_item stack_peek_1();
 
-expression_symbols stack_peek_2();
+stack_item stack_peek_2();
 
-expression_symbols stack_peek_3();
+stack_item stack_peek_3();
 
-expression_symbols stack_get();
+stack_item stack_get();
 
-expression_symbols stack_top_terminal();
+stack_item stack_top_terminal();
 
 int stack_top_terminal_pos();
 

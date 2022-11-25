@@ -5,6 +5,7 @@
 #include "lexical_analysis.h"
 #include "syntactic_analysis.h"
 #include "symtab.h"
+#include "generator.h"
 
 #define DEBUGLEX
 
@@ -22,6 +23,13 @@ main(int argc, char **argv)
 	if (ret) {
 		return COMP_ERR_INTERNAL;
 	}
+
+	ret = insert_builtin_functions(&ctx->global_sym_tab);
+	if (ret) {
+		return COMP_ERR_INTERNAL;
+	}
+
+	generatorInit();
 
 	ret = synt_parse();
 	if (ret) {

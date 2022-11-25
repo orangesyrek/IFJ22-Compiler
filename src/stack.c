@@ -4,7 +4,7 @@
 #include "stack.h"
 
 int top;
-expression_symbols stack[MAX_STACK_SIZE];
+stack_item stack[MAX_STACK_SIZE];
 
 void
 stack_init()
@@ -13,28 +13,38 @@ stack_init()
 }
 
 int
-stack_push(expression_symbols input)
+stack_push(expression_symbols symbol, lex_types type, struct lexeme token)
 {
 
   if (stack_is_full()) {
     return 1;
   }
 
+  stack_item new_item;
+  new_item.symbol = symbol;
+  new_item.type = type;
+  new_item.token = token;
+
   top += 1;
-  stack[top] = input;
+  stack[top] = new_item;
   return 0;
 
   printf(" %d", top);
 }
 
 int
-stack_push_after_top_terminal(expression_symbols input)
+stack_push_after_top_terminal(expression_symbols symbol, lex_types type, struct lexeme token)
 {
   //printf("stack_push_after_top_terminal() start\n");
   if (stack_is_full())
   {
     return 1;
   }
+
+  stack_item new_item;
+  new_item.symbol = symbol;
+  new_item.type = type;
+  new_item.token = token;
 
   int pos = stack_top_terminal_pos() + 1;
   int insert_pos = pos;
@@ -56,7 +66,7 @@ stack_push_after_top_terminal(expression_symbols input)
   }
 
   //printf("insert_pos: %d\n", pos);
-  stack[insert_pos] = input;
+  stack[insert_pos] = new_item;
   //printf("stack_push_after_top_terminal() end\n");
   return 0;
 }
@@ -78,43 +88,46 @@ stack_pop_times(int times)
   }
 }
 
-expression_symbols
+stack_item
 stack_peek_1()
 {
   return stack[top];
 }
 
-expression_symbols
+stack_item
 stack_peek_2()
 {
   return stack[top-1];
 }
 
-expression_symbols
+stack_item
 stack_peek_3()
 {
   return stack[top-2];
 }
 
-expression_symbols
+stack_item
 stack_get(int pos)
 {
   return stack[pos];
 }
 
-expression_symbols
+stack_item
 stack_top_terminal()
 {
 
   for (int i = top; i != -1; i--) {
 
-    if(stack_get(i) != E_NON_TERM && stack_get(i) != R && stack_get(i) != S && stack_get(i) != E && stack_get(i) != X)
+    if(stack_get(i).symbol != E_NON_TERM && stack_get(i).symbol != R && stack_get(i).symbol != S && stack_get(i).symbol != E && stack_get(i).symbol != X)
     {
-      expression_symbols terminal = stack_get(i);
+      stack_item terminal = stack_get(i);
       return terminal;
     }
   }
-  return X;
+  stack_item terminal;
+  terminal.symbol = X;
+  terminal.type = 0;
+  return terminal;
 }
 
 int
@@ -123,7 +136,7 @@ stack_top_terminal_pos()
 
   for (int i = top; i != -1; i--) {
 
-    if(stack_get(i) != E_NON_TERM && stack_get(i) != R && stack_get(i) != S && stack_get(i) != E && stack_get(i) != X)
+    if(stack_get(i).symbol != E_NON_TERM && stack_get(i).symbol != R && stack_get(i).symbol != S && stack_get(i).symbol != E && stack_get(i).symbol != X)
     {
       return i;
     }
@@ -138,7 +151,7 @@ stack_until_shift()
 
   for (int i = top; i != -1; i--)
   {
-    if (stack_get(i) == S)
+    if (stack_get(i).symbol == S)
     {
       return count;
     }
@@ -172,7 +185,7 @@ void stack_print()
   while (pos != top)
   {
     pos += 1;
-    switch(stack_get(pos))
+    switch(stack_get(pos).symbol)
     {
       case E_PLUS:
         printf("+");
