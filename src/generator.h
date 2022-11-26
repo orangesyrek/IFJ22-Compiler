@@ -60,6 +60,7 @@ void generatorExecute();
 
 char* convertString();
 
+void convertCharToEsc(char character, char* converted, int* position);
 
 
 //for this maybe use new file string .h / string.c

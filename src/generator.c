@@ -11,32 +11,94 @@ void generatorInit(){
   printf("CREATEFRAME\n");
 }
 
+void convertCharToEsc(char character, char* converted, int* position){
+  switch(character){
+    case 'n':
+      converted[*position] = '\\';
+      converted[*position+1] = '0';
+      converted[*position+2] = '1';
+      converted[*position+3] = '0';
+      *position+=4;
+      break;
+    case 'b':
+      converted[*position] = '\\';
+      converted[*position+1] = '0';
+      converted[*position+2] = '0';
+      converted[*position+3] = '8';
+      *position+=4;
+      break;
+    case 'f':
+      converted[*position] = '\\';
+      converted[*position+1] = '0';
+      converted[*position+2] = '1';
+      converted[*position+3] = '2';
+      *position+=4;
+      break;
+    case 'a':
+      converted[*position] = '\\';
+      converted[*position+1] = '0';
+      converted[*position+2] = '0';
+      converted[*position+3] = '7';
+      *position+=4;
+      break;
+    case 'v':
+      converted[*position] = '\\';
+      converted[*position+1] = '0';
+      converted[*position+2] = '1';
+      converted[*position+3] = '1';
+      *position+=4;
+      break;
+    case 't':
+      converted[*position] = '\\';
+      converted[*position+1] = '0';
+      converted[*position+2] = '0';
+      converted[*position+3] = '9';
+      *position+=4;
+      break;
+    case 'r':
+      converted[*position] = '\\';
+      converted[*position+1] = '0';
+      converted[*position+2] = '1';
+      converted[*position+3] = '3';
+      *position+=4;
+      break;
+    case '\\':
+      converted[*position] = '\\';
+      converted[*position+1] = '0';
+      converted[*position+2] = '9';
+      converted[*position+3] = '2';
+      *position+=4;
+      break;
+    default:
+      converted[*position] = character;
+      *position+=1;
+      break;
+  }
+}
+
 char* convertString(char* nonConvertedstr){
   char* converted =(char*) calloc(1, 512);
   if(nonConvertedstr != NULL){
     int index = 0;
-    char i = nonConvertedstr[index];
-    int j = 0;
-    while(i != '\0'){
-      if( (i <= 32) || (i == 35) ){
-        converted[j] = 92;
-        converted[j+1] = 48;
-        converted[j+2] = (i / 10) + 48;
-        converted[j+3] = (i % 10) + 48;
-        j += 4;
+    char character = nonConvertedstr[index];
+    int position = 0;
+    while(character != '\0'){
+      if( (character <= 32) || (character == 35) ){
+        converted[position] = '\\';
+        converted[position+1] = '0';
+        converted[position+2] = (character / 10) + 48;
+        converted[position+3] = (character % 10) + 48;
+        position += 4;
 
-      } else if (i == '\\' && nonConvertedstr[index + 1] == 'n') {
-        converted[j] = '\\';
-        converted[j+1] = '0';
-        converted[j+2] = '1';
-        converted[j+3] = '0';
-        j += 4;
-        index++;
+      } else if (character == '\\') {
+        character = nonConvertedstr[++index];
+        convertCharToEsc(character, converted, &position);
+
       } else{
-        converted[j] = i;
-        j++;
+        converted[position] = character;
+        position++;
       }
-      i = nonConvertedstr[++index];
+      character = nonConvertedstr[++index];
     }
 
   return converted;
