@@ -19,6 +19,7 @@ struct generator {
 	char *global_str;
 	char *local_str_var;
 	char *local_str;
+	char *function_def_str;
 
 	int function_call_cnt;
 
@@ -61,6 +62,17 @@ void generatorExecute();
 char* convertString();
 
 void convertCharToEsc(char character, char* converted, int* position);
+
+int realloc_global_str(const char *str);
+
+int realloc_local_str(const char *str);
+
+int realloc_local_str_var(const char *str);
+
+int realloc_function_def_str(const char *str);
+
+int defvar_global(const char *var_name);
+
 
 
 //for this maybe use new file string .h / string.c

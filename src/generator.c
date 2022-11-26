@@ -1,5 +1,7 @@
+#define _GNU_SOURCE /* strdup */
 #include "generator.h"
 #include "compiler.h"
+#define _GNU_SOURCE
 
 struct generator generator = {0};
 
@@ -9,6 +11,7 @@ unsigned long id = 0;
 void generatorInit(){
   printf(".IFJcode22\n");
   printf("CREATEFRAME\n");
+  printf("DEFVAR GF@ret\n");
 }
 
 void convertCharToEsc(char character, char* converted, int* position){
@@ -109,6 +112,94 @@ char* convertString(char* nonConvertedstr){
 }
 
 
+
+int defvar_global(const char *var_name){
+  char *ptr;
+  int ret = asprintf(&ptr, "DEFVAR GF@%s\n", var_name);
+  if (ret == -1){
+    return COMP_ERR_INTERNAL;
+  }
+
+  if (realloc_global_str(ptr) == 99){
+    return COMP_ERR_INTERNAL;
+  }
+  free(ptr);
+  return 0;
+}
+
+int realloc_global_str(const char *str){
+
+  if (!generator.global_str) {
+    generator.global_str = strdup(str);
+    if (!generator.global_str) {
+      return COMP_ERR_INTERNAL;
+    }
+  } else {
+    generator.global_str = realloc(generator.global_str, strlen(generator.global_str) + strlen(str) + 1);
+    if (!generator.global_str) {
+      return COMP_ERR_INTERNAL;
+    }
+    strcat(generator.global_str, str);
+  }
+
+  return 0;
+}
+
+
+int realloc_local_str_var(const char *str){
+
+  if (!generator.local_str_var) {
+    generator.local_str_var = strdup(str);
+    if (!generator.local_str_var) {
+      return COMP_ERR_INTERNAL;
+    }
+  } else {
+    generator.local_str_var = realloc(generator.local_str_var, strlen(generator.local_str_var) + strlen(str) + 1);
+    if (!generator.local_str_var) {
+      return COMP_ERR_INTERNAL;
+    }
+    strcat(generator.local_str_var, str);
+  }
+
+  return 0;
+}
+
+int realloc_local_str(const char *str){
+
+  if (!generator.local_str) {
+    generator.local_str = strdup(str);
+    if (!generator.local_str) {
+      return COMP_ERR_INTERNAL;
+    }
+  } else {
+    generator.local_str = realloc(generator.local_str, strlen(generator.local_str) + strlen(str) + 1);
+    if (!generator.local_str) {
+      return COMP_ERR_INTERNAL;
+    }
+    strcat(generator.local_str, str);
+  }
+
+  return 0;
+}
+
+
+int realloc_function_def_str(const char *str){
+
+  if (!generator.function_def_str) {
+    generator.function_def_str = strdup(str);
+    if (!generator.function_def_str) {
+      return COMP_ERR_INTERNAL;
+    }
+  } else {
+    generator.function_def_str = realloc(generator.function_def_str, strlen(generator.function_def_str) + strlen(str) + 1);
+    if (!generator.function_def_str) {
+      return COMP_ERR_INTERNAL;
+    }
+    strcat(generator.function_def_str, str);
+  }
+
+  return 0;
+}
 
 
 
