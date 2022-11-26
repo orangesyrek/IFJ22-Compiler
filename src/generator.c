@@ -240,30 +240,57 @@ void generatorPushParamStringNonB(char *str){
 
 //before pushing need to convert them to string
 //pushing and popping will reverse the order of strings -- idea maybe use own stack to change order back
-void generatorPushParamString(char *str){
-  printf("PUSHS string@%s\n", str);
+int generatorPushParam(){
+  if(generator.inFuntion){
+    // todo
+    return 0;
+  }else{
+    char* ptr;
+    for (int i = 0; i < generator.param_count; i++) {
+      if (generator.params[i].type == INT) {
+        //printf("PUSHS int@%d\n", generator.params[i].value.int_val);
+        if (asprintf(&ptr, "PUSHS int@%d\n", generator.params[i].value.int_val) == -1) return COMP_ERR_INTERNAL;
+        if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+      } else if (generator.params[i].type == FLOAT) {
+        //printf("PUSHS float@%a\n", generator.params[i].value.flt_val);
+        if (asprintf(&ptr, "PUSHS float@%a\n", generator.params[i].value.flt_val) == -1) return COMP_ERR_INTERNAL;
+        if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+      } else if (generator.params[i].type == STRING) {
+        char* str;
+        str = convertString(generator.params[i].value.str_val);
+        if (!str) {
+          return COMP_ERR_INTERNAL;
+        }
+        if (asprintf(&ptr, "PUSHS string@%s\n", str) == -1) return COMP_ERR_INTERNAL;
+        if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+        //printf("PUSHS string@%s\n", str);
+      }
+    }
+    return 0;
+  }
+  //printf("PUSHS string@%s\n", str);
 }
 
 void generatorExecute(char *fun){ // need to know function name
-  char *str;
-  printf("PUSHFRAME\n");
-  for (int i = 0; i < generator.param_count; i++) {
-    if (generator.params[i].type == INT) {
-      printf("PUSHS int@%d\n", generator.params[i].value.int_val);
-    } else if (generator.params[i].type == FLOAT) {
-      printf("PUSHS float@%a\n", generator.params[i].value.flt_val);
-    } else if (generator.params[i].type == STRING) {
-      str = convertString(generator.params[i].value.str_val);
-      if (!str) {
-        exit(COMP_ERR_INTERNAL);
-      }
-      printf("PUSHS string@%s\n", str);
-    }
+  //generator.inFuntion = 0; // SA should tell
+  char* ptr;
+  //printf("PUSHFRAME\n");
+  if (asprintf(&ptr, "PUSHFRAME\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+
+
+  if(generatorPushParam()){
+    exit(COMP_ERR_INTERNAL);
   }
-  printf("CALL %s%d\n", fun, generator.function_call_cnt);
+
+  if (asprintf(&ptr, "CALL %s%d\n", fun, generator.function_call_cnt) == -1) exit(COMP_ERR_INTERNAL);;
+  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);;
+
+  if (asprintf(&ptr, "POPFRAME\n") == -1) exit(COMP_ERR_INTERNAL); // maybe delete depends
+  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+
   generatorFunWriteR(); // to test
-  printf("POPFRAME\n");// maybe delete depends
-  //printf("%s\n", generator.function_def_str);
+
 }
 
 void generatorWriteCode(){

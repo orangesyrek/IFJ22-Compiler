@@ -23,6 +23,7 @@ struct generator {
 
 	int function_call_cnt;
 
+	int inFuntion;
 	char *function_name;
 	int param_count;
 	struct params params[10];
@@ -41,7 +42,7 @@ char* generatorCalculateId();
 
 void generatorPushParamStringNonB(char *str);
 
-void generatorPushParamString(char *str);
+int generatorPushParam();
 
 void generatorFunWrite();
 
