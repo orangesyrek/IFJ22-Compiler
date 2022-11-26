@@ -1119,6 +1119,8 @@ rule_statement_list(struct bs_data *data)
 			goto cleanup;
 		}
 	} else if (current_token.type == LEX_EOF) {
+		//here write code
+		generatorWriteCode();
 		return COMP_OK;
 	} else if (current_token.type == KEYWORD_RETURN) {
 		if (ctx->in_function) {

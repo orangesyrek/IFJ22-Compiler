@@ -8,10 +8,15 @@ struct generator generator = {0};
 
 unsigned long id = 0;
 
-void generatorInit(){
+int generatorInit(){
+  if (realloc_local_str("")) return COMP_ERR_INTERNAL;
+  if (realloc_local_str_var("")) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str("")) return COMP_ERR_INTERNAL;
+  if (realloc_global_str("")) return COMP_ERR_INTERNAL;
   printf(".IFJcode22\n");
   printf("CREATEFRAME\n");
   printf("DEFVAR GF@ret\n");
+  return 0;
 }
 
 void convertCharToEsc(char character, char* converted, int* position){
@@ -256,15 +261,46 @@ void generatorExecute(char *fun){ // need to know function name
     }
   }
   printf("CALL %s%d\n", fun, generator.function_call_cnt);
-  generatorFunWrite(); // to test
+  generatorFunWriteR(); // to test
   printf("POPFRAME\n");// maybe delete depends
+  //printf("%s\n", generator.function_def_str);
 }
 
-void generatorBuiltinFunctions(){
-  generatorFunWrite();
-  generatorFunReadf();
-  generatorFunReadi();
-  generatorFunReads();
+void generatorWriteCode(){
+  printf("%s\n", generator.global_str);
+  printf("%s\n", generator.local_str_var);
+  printf("%s\n", generator.local_str);
+  printf("%s\n", generator.function_def_str);
+}
+
+int generatorFunWriteR(){
+  char *ptr;
+  if (asprintf(&ptr, "JUMP $writeend%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "LABEL write%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "CREATEFRAME\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+  for (int i = 0; i < generator.param_count; i++) {
+    if (asprintf(&ptr, "DEFVAR TF@param%d\n", i) == -1) return COMP_ERR_INTERNAL;
+    if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "POPS TF@param%d\n", i) == -1) return COMP_ERR_INTERNAL;
+    if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "WRITE TF@param%d\n", i) == -1) return COMP_ERR_INTERNAL;
+    if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  }
+  if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "LABEL $writeend%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  generator.function_call_cnt++;
+  free(ptr);
+  return 0;
 }
 
 void generatorFunWrite(){

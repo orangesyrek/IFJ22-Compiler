@@ -31,7 +31,7 @@ struct generator {
 };
 
 
-void generatorInit();
+int generatorInit();
 
 
 //need to know how many params we have, what types are there, what is the return value
@@ -73,6 +73,8 @@ int realloc_function_def_str(const char *str);
 
 int defvar_global(const char *var_name);
 
+void generatorWriteCode();
 
-
+//test
+int generatorFunWriteR();
 //for this maybe use new file string .h / string.c
