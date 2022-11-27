@@ -917,8 +917,8 @@ rule_var_declaration(char *var_name)
 			} else {
 				ret = rule_func(data->data.fdata, 0, next_token.id);
 			}
-			generatorExecute();
-			generator_reset();
+			// generatorExecute();
+			// generator_reset();
 
 			generatorExecute();
 			generator_reset();

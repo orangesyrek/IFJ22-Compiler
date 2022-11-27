@@ -319,6 +319,7 @@ int generatorPushParam(){
 }
 
 void generatorExecute(){ // need to know function name
+//  printf("%s\n", "jebej");
   //generator.inFuntion = 0; // SA should tell
   char* ptr;
   //printf("PUSHFRAME\n");
@@ -627,6 +628,12 @@ int generatorFunOrd(){
 
   //return 0;
 }
+
+int generatorFunChr(){
+
+return 0;
+}
+
 
 
 /*todo substring | ord | chr*/
