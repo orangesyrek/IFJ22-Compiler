@@ -8,15 +8,22 @@ struct generator generator = {0};
 
 unsigned long id = 0;
 
-int generatorInit(){
-  if (realloc_local_str("")) return COMP_ERR_INTERNAL;
-  if (realloc_local_str_var("")) return COMP_ERR_INTERNAL;
-  if (realloc_function_def_str("")) return COMP_ERR_INTERNAL;
-  if (realloc_global_str("")) return COMP_ERR_INTERNAL;
-  printf(".IFJcode22\n");
-  printf("CREATEFRAME\n");
-  printf("DEFVAR GF@ret\n");
-  return 0;
+void generatorInit(){
+  char* ptr;
+  if (realloc_local_str("")) exit(COMP_ERR_INTERNAL);
+  if (realloc_local_str_var("")) exit(COMP_ERR_INTERNAL);
+  if (realloc_function_def_str("")) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str("")) exit(COMP_ERR_INTERNAL);
+
+  if (asprintf(&ptr, ".IFJcode22\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+
+  if (asprintf(&ptr, "CREATEFRAME\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+
+  if (asprintf(&ptr, "DEFVAR GF@ret\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+
 }
 
 void convertCharToEsc(char character, char* converted, int* position){
@@ -125,9 +132,9 @@ int defvar_global(const char *var_name){
     return COMP_ERR_INTERNAL;
   }
 
-  if (realloc_global_str(ptr) == 99){
-    return COMP_ERR_INTERNAL;
-  }
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if(generatorAssigment(var_name, 1)) return COMP_ERR_INTERNAL;
   free(ptr);
   return 0;
 }
@@ -207,6 +214,22 @@ int realloc_function_def_str(const char *str){
 }
 
 
+int generatorAssigment(const char* var_name, int isGlobal){
+  char* ptr;
+  //case globar var | local var
+  //then need to solve typecasting
+  if(isGlobal){
+    //printf("MOVE GF@%s GF@ret\n", var_name);
+    if (asprintf(&ptr, "MOVE GF@%s GF@ret\n", var_name) == -1) return COMP_ERR_INTERNAL;
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  }else{
+    if (asprintf(&ptr, "MOVE LF@%s GF@ret\n", var_name) == -1) return COMP_ERR_INTERNAL;
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+    //printf("MOVE LF@%s GF@ret\n", var_name);
+  }
+  return 0;
+
+}
 
 void generatorPrepare(struct bs_data *functionData){ // redo to fdata
   printf("PUSHFRAME");
@@ -264,6 +287,10 @@ int generatorPushParam(){
         if (asprintf(&ptr, "PUSHS string@%s\n", str) == -1) return COMP_ERR_INTERNAL;
         if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
         //printf("PUSHS string@%s\n", str);
+      } else if (generator.params[i].type == UNKNOWN) {
+          //need to solve convertions types
+            if (asprintf(&ptr, "PUSHS GF@%s\n", generator.params[i].value.var_name) == -1) return COMP_ERR_INTERNAL;
+            if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
       }
     }
     return 0;
@@ -271,7 +298,7 @@ int generatorPushParam(){
   //printf("PUSHS string@%s\n", str);
 }
 
-void generatorExecute(char *fun){ // need to know function name
+void generatorExecute(){ // need to know function name
   //generator.inFuntion = 0; // SA should tell
   char* ptr;
   //printf("PUSHFRAME\n");
@@ -283,14 +310,46 @@ void generatorExecute(char *fun){ // need to know function name
     exit(COMP_ERR_INTERNAL);
   }
 
-  if (asprintf(&ptr, "CALL %s%d\n", fun, generator.function_call_cnt) == -1) exit(COMP_ERR_INTERNAL);;
+  if (asprintf(&ptr, "CALL %s%d\n", generator.function_name, generator.function_call_cnt) == -1) exit(COMP_ERR_INTERNAL);;
   if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);;
 
   if (asprintf(&ptr, "POPFRAME\n") == -1) exit(COMP_ERR_INTERNAL); // maybe delete depends
   if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
 
-  generatorFunWriteR(); // to test
+  if (generateBuiltInFunc(generator.function_name)) exit(COMP_ERR_INTERNAL);
+  //generatorFunWriteR(); // to test
 
+}
+
+int generateBuiltInFunc(char* funName){
+  if(strcmp(funName, "write") == 0){
+    if(generatorFunWriteR()) return COMP_ERR_INTERNAL;
+  }else if (strcmp(funName, "reads") == 0){
+    if (generatorFunReads()) return COMP_ERR_INTERNAL;
+  }
+  else if (strcmp(funName, "readi") == 0){
+    if (generatorFunReadi()) return COMP_ERR_INTERNAL;
+  }
+  else if (strcmp(funName, "readf") == 0){
+    if (generatorFunReadf()) return COMP_ERR_INTERNAL;
+  }
+  else if (strcmp(funName, "strlen") == 0){
+    //if (generatorFunStrLen()) return COMP_ERR_INTERNAL;
+    return 0;
+  }
+  else if (strcmp(funName, "substring") == 0){
+    //todo
+    return 0;
+  }
+  else if (strcmp(funName, "ord") == 0){
+    //todo
+    return 0;
+  }
+  else if (strcmp(funName, "chr") == 0){
+    //todo
+    return 0;
+  }
+  return 0;
 }
 
 void generatorWriteCode(){
@@ -347,31 +406,94 @@ void generatorFunWrite(){
 //other builting functions
 
 
-void generatorFunReads(){
-  printf("JUMP $readsend\n");
-  printf("LABEL reads\n");
-  printf("CREATEFRAME\n"); // maybe not needed too
-  printf("READ LF@ret string\n");
-  printf("RETURN\n");
-  printf("LABEL $readsend\n");
+int generatorFunReads(){
+  char *ptr;
+  if (asprintf(&ptr, "JUMP $readsend%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "LABEL reads%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "CREATEFRAME\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "READ GF@ret string\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "LABEL $readsend%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  //interesting way
+  if (realloc_global_str(generator.local_str)) return COMP_ERR_INTERNAL;
+  generator.local_str = NULL;
+  if (realloc_local_str("")) return COMP_ERR_INTERNAL;
+
+  generator.function_call_cnt++;
+  return 0;
 }
 
-void generatorFunReadi(){
-  printf("JUMP $readiend\n");
-  printf("LABEL readi\n");
-  printf("CREATEFRAME\n"); // maybe not needed too
-  printf("READ LF@ret int\n");
-  printf("RETURN\n");
-  printf("LABEL $readiend\n");
+int generatorFunReadi(){
+  char *ptr;
+  if (asprintf(&ptr, "JUMP $readseni%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "LABEL readi%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "CREATEFRAME\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "READ GF@ret int\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "LABEL $readseni%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  //interesting way
+  if (realloc_global_str(generator.local_str)) return COMP_ERR_INTERNAL;
+  generator.local_str = NULL;
+  if (realloc_local_str("")) return COMP_ERR_INTERNAL;
+
+  generator.function_call_cnt++;
+  return 0;
 }
 
-void generatorFunReadf(){
-  printf("JUMP $readfend\n");
-  printf("LABEL readf\n");
-  printf("CREATEFRAME\n"); // maybe not needed too
-  printf("READ LF@ret float\n");
-  printf("RETURN\n");
-  printf("LABEL $readfend\n");
+int generatorFunReadf(){
+  char *ptr;
+  if (asprintf(&ptr, "JUMP $readsenf%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "LABEL readf%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "CREATEFRAME\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "READ GF@ret float\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "LABEL $readsenf%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  //interesting way
+  if (realloc_global_str(generator.local_str)) return COMP_ERR_INTERNAL;
+  generator.local_str = NULL;
+  if (realloc_local_str("")) return COMP_ERR_INTERNAL;
+
+  generator.function_call_cnt++;
+  return 0;
 }
 
 

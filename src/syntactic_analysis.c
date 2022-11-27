@@ -851,6 +851,11 @@ rule_var_declaration(char *var_name)
 		if (ctx->in_function) {
 			rc = symtabInsert(&ctx->local_sym_tab, var_name, v_data);
 		} else {
+			// info to generator
+			if(defvar_global(var_name)){
+				ret = COMP_ERR_INTERNAL;
+				goto cleanup;
+			}
 			rc = symtabInsert(&ctx->global_sym_tab, var_name, v_data);
 		}
 		if (rc) {
@@ -862,7 +867,8 @@ rule_var_declaration(char *var_name)
 		if (next_token.type == FUN_ID) {
 			/* save function name in generator */
 			generator.function_name = next_token.id;
-
+			//printf("%s\n", next_token.id);
+			generatorExecute();
 			/* search for the function */
 			data = symtabSearch(ctx->global_sym_tab, next_token.id);
 			if (!data) {
@@ -1044,6 +1050,8 @@ rule_statement_list(struct bs_data *data)
 	if (current_token.type == FUN_ID) {
 		/* save function name in generator */
 		generator.function_name = current_token.id;
+		//generatorExecute("");
+		//printf("where is%s\n", current_token.id); // to delete
 
 		/* search for the function */
 		data = symtabSearch(ctx->global_sym_tab, current_token.id);
@@ -1055,7 +1063,7 @@ rule_statement_list(struct bs_data *data)
 			ret = rule_func(data->data.fdata, 0, current_token.id);
 		}
 
-		generatorExecute("write");
+		generatorExecute();
 		generator.param_count = 0;
 
 		if (ret != COMP_OK) {

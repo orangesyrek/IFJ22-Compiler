@@ -32,7 +32,7 @@ struct generator {
 };
 
 
-int generatorInit();
+void generatorInit();
 
 
 //need to know how many params we have, what types are there, what is the return value
@@ -50,11 +50,11 @@ void generatorBuiltinFunctions();
 
 void  generatorFunWrite();
 
-void  generatorFunReadf();
+int  generatorFunReadf();
 
-void  generatorFunReadi();
+int  generatorFunReadi();
 
-void  generatorFunReads();
+int  generatorFunReads();
 
 void generatorFunStrLen();
 
@@ -76,6 +76,9 @@ int defvar_global(const char *var_name);
 
 void generatorWriteCode();
 
+int generatorAssigment(const char* var_name, int isGlobal);
 //test
 int generatorFunWriteR();
+
+int generateBuiltInFunc(char* funName);
 //for this maybe use new file string .h / string.c

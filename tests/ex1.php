@@ -4,4 +4,4 @@ declare(strict_types=1);
 // Hlavni telo programu
 write("Zadejte string co chcete nacist \n");
 $x = reads();
-write($x);
+write($x, " toto si napsal \n");
