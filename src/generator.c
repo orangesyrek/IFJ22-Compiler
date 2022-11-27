@@ -5,7 +5,20 @@
 
 struct generator generator = {0};
 
+/*
+Todo
 
+typecasting other builtin functions
+if else blocks
+expressions
+think about pushing params inside function
+
+*/
+
+/*
+someinfo
+used local_str as tmp str value need to change that to something else  
+*/
 unsigned long id = 0;
 
 void generatorInit(){
