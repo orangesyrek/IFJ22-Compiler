@@ -82,3 +82,5 @@ int generatorFunWriteR();
 
 int generateBuiltInFunc(char* funName);
 //for this maybe use new file string .h / string.c
+
+int generator_finish();

@@ -36,6 +36,11 @@ main(int argc, char **argv)
 		return ret;
 	}
 
+	ret = generator_finish();
+	if (ret) {
+		return ret;
+	}
+
 	compiler_ctx_destroy(ctx);
 	return 0;
 }

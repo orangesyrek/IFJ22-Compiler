@@ -17,7 +17,7 @@ think about pushing params inside function
 
 /*
 someinfo
-used local_str as tmp str value need to change that to something else  
+used local_str as tmp str value need to change that to something else
 */
 unsigned long id = 0;
 
@@ -524,4 +524,25 @@ void generatorFunStrLen(){
 
 /*todo substring | ord | chr*/
 
+int
+generator_finish()
+{
+  char *ptr;
 
+  if (asprintf(&ptr, "JUMP $#_end") == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+  if (realloc_global_str(ptr)) {
+    return COMP_ERR_INTERNAL;
+  }
+
+  free(ptr);
+  if (asprintf(&ptr, "LABEL $#_end") == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+  if (realloc_function_def_str(ptr)) {
+    return COMP_ERR_INTERNAL;
+  }
+
+  return COMP_OK;
+}
