@@ -319,7 +319,6 @@ int generatorPushParam(){
 }
 
 void generatorExecute(){ // need to know function name
-//  printf("%s\n", "jebej");
   //generator.inFuntion = 0; // SA should tell
   char* ptr;
   //printf("PUSHFRAME\n");
@@ -358,16 +357,16 @@ int generateBuiltInFunc(char* funName){
     if (generatorFunStrLen()) return COMP_ERR_INTERNAL;
     return 0;
   }
-  else if (strcmp(funName, "substring") == 0){
-    //todo
-    return 0;
-  }
   else if (strcmp(funName, "ord") == 0){
     if (generatorFunOrd()) return COMP_ERR_INTERNAL;
     return 0;
   }
   else if (strcmp(funName, "chr") == 0){
-    //todo
+    if (generatorFunChr()) return COMP_ERR_INTERNAL;
+    return 0;
+  }
+  else if (strcmp(funName, "substring") == 0){
+    if (generatorFunSubstring()) return COMP_ERR_INTERNAL;
     return 0;
   }
   return 0;
@@ -576,9 +575,6 @@ int generatorFunOrd(){
   if (asprintf(&ptr, "LABEL ord%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
-  //  printf("JUMP $strlenend\n");
-  //  printf("LABEL strlen\n");
-  //  printf("CREATEFRAME\n");
   if (asprintf(&ptr, "CREATEFRAME\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
@@ -612,7 +608,7 @@ int generatorFunOrd(){
   if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
-  //  printf("RETURN\n");
+
   if (asprintf(&ptr, "LABEL $ordlenend%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
@@ -625,19 +621,57 @@ int generatorFunOrd(){
   generator.function_call_cnt++;
   return 0;
 
-
-  //return 0;
 }
+
+
+//todo solve problem with negative input
 
 int generatorFunChr(){
+  char* ptr;
+  if (asprintf(&ptr, "JUMP $chrend%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
-return 0;
+  if (asprintf(&ptr, "LABEL chr%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "CREATEFRAME\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "DEFVAR TF@param\n" ) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "POPS TF@param\n" ) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "INT2CHAR GF@ret TF@param\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  //  printf("RETURN\n");
+  if (asprintf(&ptr, "LABEL $chrend%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (realloc_global_str(generator.local_str)) return COMP_ERR_INTERNAL;
+  free(generator.local_str);
+  generator.local_str = NULL;
+  if (realloc_local_str("")) return COMP_ERR_INTERNAL;
+
+
+  generator.function_call_cnt++;
+  return 0;
+
 }
 
 
 
-/*todo substring | ord | chr*/
 
+int generatorFunSubstring(){
+
+  /*todo substring */
+  return 0;
+}
 int
 generator_finish()
 {

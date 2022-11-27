@@ -85,6 +85,8 @@ int generatorFunOrd();
 
 int generatorFunChr();
 
+int generatorFunSubstring();
+
 int generateBuiltInFunc(char* funName);
 //for this maybe use new file string .h / string.c
 

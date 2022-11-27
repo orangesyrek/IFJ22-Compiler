@@ -3,6 +3,5 @@ declare(strict_types=1);
 // Program 1: Vypocet faktorialu (iterativne)
 // Hlavni telo programu
 
-$x = strlen("x");
 
-write($x);
+write("ahoj ");
