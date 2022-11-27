@@ -56,7 +56,7 @@ int  generatorFunReadi();
 
 int  generatorFunReads();
 
-void generatorFunStrLen();
+int generatorFunStrLen();
 
 void generatorExecute();
 

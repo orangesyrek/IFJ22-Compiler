@@ -281,6 +281,7 @@ int generatorPushParam(){
     // todo
     return 0;
   }else{
+//    printf("%s%d\n", "problem", generator.param_count);
     char* ptr;
     for (int i = 0; i < generator.param_count; i++) {
       if (generator.params[i].type == INT) {
@@ -304,6 +305,7 @@ int generatorPushParam(){
           //need to solve convertions types
             if (asprintf(&ptr, "PUSHS GF@%s\n", generator.params[i].value.var_name) == -1) return COMP_ERR_INTERNAL;
             if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+      }else{
       }
     }
     return 0;
@@ -347,7 +349,7 @@ int generateBuiltInFunc(char* funName){
     if (generatorFunReadf()) return COMP_ERR_INTERNAL;
   }
   else if (strcmp(funName, "strlen") == 0){
-    //if (generatorFunStrLen()) return COMP_ERR_INTERNAL;
+    if (generatorFunStrLen()) return COMP_ERR_INTERNAL;
     return 0;
   }
   else if (strcmp(funName, "substring") == 0){
@@ -510,15 +512,47 @@ int generatorFunReadf(){
 }
 
 
-void generatorFunStrLen(){
-  printf("JUMP $strlenend\n");
-  printf("LABEL strlen\n");
-  printf("CREATEFRAME\n");
-  printf("DEFVAR TF@input\n");
-  printf("POPS TF@input\n");
-  printf("STRLEN LF@ret TF@input\n");
-  printf("RETURN\n");
-  printf("LABEL $strlenend\n");
+int generatorFunStrLen(){
+
+  char* ptr;
+  if (asprintf(&ptr, "JUMP $strlenend%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "LABEL strlen%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+//  printf("JUMP $strlenend\n");
+//  printf("LABEL strlen\n");
+//  printf("CREATEFRAME\n");
+  if (asprintf(&ptr, "CREATEFRAME\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "DEFVAR TF@input\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+//  printf("DEFVAR TF@input\n");
+//  printf("POPS TF@input\n");
+  if (asprintf(&ptr, "STRLEN GF@ret TF@input\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  //printf("STRLEN LF@ret TF@input\n");
+
+  if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+//  printf("RETURN\n");
+  if (asprintf(&ptr, "LABEL $strlenend%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (realloc_global_str(generator.local_str)) return COMP_ERR_INTERNAL;
+  generator.local_str = NULL;
+  if (realloc_local_str("")) return COMP_ERR_INTERNAL;
+
+
+  generator.function_call_cnt++;
+  return 0;
+//  printf("LABEL $strlenend\n");
 }
 
 
