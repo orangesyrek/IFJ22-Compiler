@@ -21,14 +21,15 @@ struct generator {
 	char *local_str;
 	char *function_def_str;
 
-	int function_call_cnt;
+	int function_call_cnt;		/**< function call id */
 
 	int inFuntion;
-	char *function_name;
-	int param_count;
-	struct params params[10];
-	char **param_names;
-	char **param_types;
+	char *function_name;		/**< function call/definition name */
+	int param_count;			/**< function call/definition parameter count */
+	struct params params[10];	/**< function call parameters data */
+
+	char *param_names[100];	/**< names of function definition parameters */
+	type param_types[100];	/**< types of function definition parameters */
 };
 
 

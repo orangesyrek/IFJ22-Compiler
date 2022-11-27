@@ -161,7 +161,7 @@ lex_types funIdToKeyword(char* id)
       return KEYWORD_STRICT_TYPES;
     } else if (!strcmp(id, "function")) {
         return KEYWORD_FUNCTION;
-    } else if ((!strcmp(id, "int")) || (!strcmp(id, "float")) || (!strcmp(id, "string")) || (!strcmp(id, "void")) || (!strcmp(id, "?int")) || (!strcmp(id, "?float")) || (!strcmp(id, "?string"))) {
+    } else if ((!strcmp(id, "int")) || (!strcmp(id, "float")) || (!strcmp(id, "string")) || (!strcmp(id, "?int")) || (!strcmp(id, "?float")) || (!strcmp(id, "?string"))) {
         return PARAM_TYPE;
     }
     else{
