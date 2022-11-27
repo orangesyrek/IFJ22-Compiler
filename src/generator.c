@@ -444,6 +444,7 @@ int generatorFunReads(){
 
   //interesting way
   if (realloc_global_str(generator.local_str)) return COMP_ERR_INTERNAL;
+  free(generator.local_str);
   generator.local_str = NULL;
   if (realloc_local_str("")) return COMP_ERR_INTERNAL;
 
@@ -474,6 +475,7 @@ int generatorFunReadi(){
 
   //interesting way
   if (realloc_global_str(generator.local_str)) return COMP_ERR_INTERNAL;
+  free(generator.local_str);
   generator.local_str = NULL;
   if (realloc_local_str("")) return COMP_ERR_INTERNAL;
 
@@ -504,6 +506,7 @@ int generatorFunReadf(){
 
   //interesting way
   if (realloc_global_str(generator.local_str)) return COMP_ERR_INTERNAL;
+  free(generator.local_str);
   generator.local_str = NULL;
   if (realloc_local_str("")) return COMP_ERR_INTERNAL;
 
@@ -527,12 +530,13 @@ int generatorFunStrLen(){
   if (asprintf(&ptr, "CREATEFRAME\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "DEFVAR TF@input\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "DEFVAR TF@param\n" ) == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
-//  printf("DEFVAR TF@input\n");
-//  printf("POPS TF@input\n");
-  if (asprintf(&ptr, "STRLEN GF@ret TF@input\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS TF@param\n" ) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "STRLEN GF@ret TF@param\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
   //printf("STRLEN LF@ret TF@input\n");
@@ -546,6 +550,7 @@ int generatorFunStrLen(){
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
   if (realloc_global_str(generator.local_str)) return COMP_ERR_INTERNAL;
+  free(generator.local_str);
   generator.local_str = NULL;
   if (realloc_local_str("")) return COMP_ERR_INTERNAL;
 
@@ -579,4 +584,10 @@ generator_finish()
   }
 
   return COMP_OK;
+}
+
+void
+generator_reset()
+{
+  generator.param_count = 0;
 }

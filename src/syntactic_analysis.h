@@ -5,4 +5,6 @@
 
 comp_err synt_parse();
 
+int check_undefined_functions();
+
 #endif
