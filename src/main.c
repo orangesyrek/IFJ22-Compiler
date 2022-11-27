@@ -36,6 +36,11 @@ main(int argc, char **argv)
 		return ret;
 	}
 
+	ret = check_undefined_functions();
+	if (ret) {
+		return ret;
+	}
+
 	ret = generator_finish();
 	if (ret) {
 		return ret;

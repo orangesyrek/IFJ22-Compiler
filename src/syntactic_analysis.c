@@ -125,6 +125,12 @@ generator_insert_param(struct lexeme token)
 		generator.params[generator.param_count].type = UNKNOWN;
 		break;
 
+	case KEYWORD_NULL:
+		generator.params[generator.param_count].is_constant = 0;
+		generator.params[generator.param_count].value.var_name = NULL;
+		generator.params[generator.param_count].type = T_NULL;
+		break;
+
 	default:
 		/* should not happen */
 		break;
@@ -235,6 +241,7 @@ rule_next_param(struct function_data data, int is_not_defined, struct function_d
 			return COMP_ERR_SA;
 		}
 
+		generator_insert_param(current_token);
 		param_counter++;
 		return rule_next_param(data, is_not_defined, new_data);
 	} else {
@@ -315,11 +322,6 @@ rule_func_params(struct function_data data, int is_not_defined, char *function_n
 			ret = COMP_ERR_FUNC_PARAM;
 			goto cleanup;
 		}
-		if (is_not_defined) {
-			ret = rule_next_param(data, 1, &new_data->data.fdata);
-		} else {
-			ret = rule_next_param(data, 0, NULL);
-		}
 	} else if (current_token.type == INT_LIT) {
 		if (is_not_defined) {
 			new_data->data.fdata.param_count = 1;
@@ -334,11 +336,6 @@ rule_func_params(struct function_data data, int is_not_defined, char *function_n
 			ret = COMP_ERR_FUNC_PARAM;
 			goto cleanup;
 		}
-		if (is_not_defined) {
-			ret = rule_next_param(data, 1, &new_data->data.fdata);
-		} else {
-			ret = rule_next_param(data, 0, NULL);
-		}
 	} else if (current_token.type == DECIMAL_LIT) {
 		if (is_not_defined) {
 			new_data->data.fdata.param_count = 1;
@@ -352,11 +349,6 @@ rule_func_params(struct function_data data, int is_not_defined, char *function_n
 			ERR_PRINT("Decimal parameter not expected.");
 			ret = COMP_ERR_FUNC_PARAM;
 			goto cleanup;
-		}
-		if (is_not_defined) {
-			ret = rule_next_param(data, 1, &new_data->data.fdata);
-		} else {
-			ret = rule_next_param(data, 0, NULL);
 		}
 	} else if (current_token.type == VAR) {
 		/* check variable definition */
@@ -385,11 +377,6 @@ rule_func_params(struct function_data data, int is_not_defined, char *function_n
 			/* unknown */
 			new_data->data.fdata.params[0] = UNKNOWN;
 		}
-		if (is_not_defined) {
-			ret = rule_next_param(data, 1, &new_data->data.fdata);
-		} else {
-			ret = rule_next_param(data, 0, NULL);
-		}
 	} else if (current_token.type == KEYWORD_NULL) {
 		if (is_not_defined) {
 			new_data->data.fdata.param_count = 1;
@@ -403,11 +390,6 @@ rule_func_params(struct function_data data, int is_not_defined, char *function_n
 			ERR_PRINT("Null parameter found in a function that does not accept it.");
 			ret = COMP_ERR_FUNC_PARAM;
 			goto cleanup;
-		}
-		if (is_not_defined) {
-			ret = rule_next_param(data, 1, &new_data->data.fdata);
-		} else {
-			ret = rule_next_param(data, 0, NULL);
 		}
 	} else if ((current_token.type == MINUS) || (current_token.type == PLUS)) {
 		current_token = getToken();
@@ -426,6 +408,14 @@ rule_func_params(struct function_data data, int is_not_defined, char *function_n
 		ERR_PRINT("Syntax error in parsing function call.");
 		ret = COMP_ERR_SA;
 		goto cleanup;
+	}
+
+	generator_insert_param(current_token);
+
+	if (is_not_defined) {
+		ret = rule_next_param(data, 1, &new_data->data.fdata);
+	} else {
+		ret = rule_next_param(data, 0, NULL);
 	}
 
 cleanup:
@@ -524,6 +514,21 @@ check_param(type param, char *param_str, struct function_data *data, int idx)
 
 cleanup:
 	return ret;
+}
+
+int
+check_undefined_functions()
+{
+	int i;
+
+	for (i = 0; i < 20; i++) {
+		if (ctx->unchecked_functions[i]) {
+			ERR_PRINT("Undefined function found.");
+			return COMP_ERR_UNDEF_FUNC;
+		}
+	}
+
+	return COMP_OK;
 }
 
 static comp_err
@@ -759,6 +764,9 @@ rule_func_def()
 		goto cleanup;
 	}
 
+	if (param_check) {
+		ctx->unchecked_functions[rc] = NULL;
+	}
 	ctx->seen_return = 0;
 	ctx->in_function = 0;
 	return COMP_OK;
@@ -869,6 +877,7 @@ rule_var_declaration(char *var_name)
 			generator.function_name = next_token.id;
 			//printf("%s\n", next_token.id);
 			generatorExecute();
+			generator_reset();
 			/* search for the function */
 			data = symtabSearch(ctx->global_sym_tab, next_token.id);
 			if (!data) {
@@ -1064,7 +1073,7 @@ rule_statement_list(struct bs_data *data)
 		}
 
 		generatorExecute();
-		generator.param_count = 0;
+		generator_reset();
 
 		if (ret != COMP_OK) {
 			goto cleanup;

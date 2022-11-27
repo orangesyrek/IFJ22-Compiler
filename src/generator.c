@@ -546,3 +546,9 @@ generator_finish()
 
   return COMP_OK;
 }
+
+void
+generator_reset()
+{
+  generator.param_count = 0;
+}
