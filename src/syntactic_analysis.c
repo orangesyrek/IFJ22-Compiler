@@ -463,7 +463,7 @@ token_get_param_type(char *id)
 	} else if (!strcmp(id, "?int")) {
 		return QINT;
 	} else {
-		return VOID;
+		return -1;
 	}
 }
 
@@ -531,6 +531,22 @@ check_undefined_functions()
 	return COMP_OK;
 }
 
+int
+check_not_complete_record(char *function_name)
+{
+	int i;
+
+	for (i = 0; i < 20; i++) {
+		if (ctx->unchecked_functions[i]) {
+			if (!strcmp(ctx->unchecked_functions[i], function_name)) {
+				return 0;
+			}
+		}
+	}
+
+	return 1;
+}
+
 static comp_err
 rule_func_def_next_param(struct function_data *data, int check_params)
 {
@@ -565,6 +581,9 @@ rule_func_def_next_param(struct function_data *data, int check_params)
 				data->params[data->param_count - 1] = token_get_param_type(current_token.id);
 			}
 
+			/* insert into generator */
+			generator.param_types[generator.param_count] = token_get_param_type(current_token.id);
+
 			current_token = getToken();
 			if (current_token.type == VAR) {
 				if (dataInit(&v_data)) {
@@ -575,6 +594,10 @@ rule_func_def_next_param(struct function_data *data, int check_params)
 				if (symtabInsert(&ctx->local_sym_tab, current_token.id, v_data)) {
 					return COMP_ERR_INTERNAL;
 				}
+				/* insert into generator */
+				generator.param_names[generator.param_count] = current_token.id;
+				generator.param_count++;
+
 				return rule_func_def_next_param(data, check_params);
 			} else {
 				return COMP_ERR_SA;
@@ -598,6 +621,7 @@ rule_func_def_parameters(struct function_data *data, int check_params)
 	if (current_token.type == R_PAR) {
 		/* no params */
 		data->param_count = 0;
+		generator.param_count = 0;
 		goto cleanup;
 	} else if (current_token.type == PARAM_TYPE) {
 		if (check_params) {
@@ -616,6 +640,8 @@ rule_func_def_parameters(struct function_data *data, int check_params)
 			}
 			data->params[0] = token_get_param_type(current_token.id);
 		}
+		/* insert into generator */
+		generator.param_types[0] = token_get_param_type(current_token.id);
 
 		current_token = getToken();
 		if (current_token.type == VAR) {
@@ -630,6 +656,10 @@ rule_func_def_parameters(struct function_data *data, int check_params)
 				ret = COMP_ERR_INTERNAL;
 				goto cleanup;
 			}
+
+			/* insert into generator */
+			generator.param_names[0] = current_token.id;
+			generator.param_count++;
 
 			ret = rule_func_def_next_param(data, check_params);
 			if (ret != COMP_OK) {
@@ -649,22 +679,6 @@ rule_func_def_parameters(struct function_data *data, int check_params)
 
 cleanup:
 	return ret;
-}
-
-int
-check_not_complete_record(char *function_name)
-{
-	int i;
-
-	for (i = 0; i < 20; i++) {
-		if (ctx->unchecked_functions[i]) {
-			if (!strcmp(ctx->unchecked_functions[i], function_name)) {
-				return 0;
-			}
-		}
-	}
-
-	return 1;
 }
 
 /* statement -> function function_name_T ( parameters ) : type_T { statement_list } */
@@ -687,6 +701,8 @@ rule_func_def()
 
 	/* save function name for later */
 	function_name = current_token.id;
+	/* store in generator */
+	generator.function_name = function_name;
 
 	/* check redefinition */
 	data = symtabSearch(ctx->global_sym_tab, current_token.id);
@@ -741,6 +757,7 @@ rule_func_def()
 		ctx->seen_return = 1;
 	}
 
+
 	while ((current_token = getToken()).type == COMMENT);
 	if (current_token.type != L_CURLY) {
 		goto cleanup;
@@ -767,8 +784,11 @@ rule_func_def()
 	if (param_check) {
 		ctx->unchecked_functions[rc] = NULL;
 	}
+
 	ctx->seen_return = 0;
 	ctx->in_function = 0;
+	generator_reset();
+
 	return COMP_OK;
 
 cleanup:
@@ -897,6 +917,9 @@ rule_var_declaration(char *var_name)
 			} else {
 				ret = rule_func(data->data.fdata, 0, next_token.id);
 			}
+			generatorExecute();
+			generator_reset();
+
 			generatorExecute();
 			generator_reset();
 

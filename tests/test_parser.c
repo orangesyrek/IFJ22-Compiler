@@ -9,26 +9,46 @@
 struct compiler_ctx *ctx = NULL;
 
 int
-main(void)
+main(int argc, char **argv)
 {
-	int ret;
+	int ret = COMP_OK;
 
-	if (compiler_ctx_new(&ctx)) {
-		return 1;
+	(void) argc;
+	(void) argv;
+
+	ret = compiler_ctx_new(&ctx);
+	if (ret) {
+		printf("new ctx failed\n");
+		return COMP_ERR_INTERNAL;
 	}
 
 	ret = insert_builtin_functions(&ctx->global_sym_tab);
 	if (ret) {
+		printf("insert builtin functions failed\n");
 		return COMP_ERR_INTERNAL;
 	}
 
 	generatorInit();
 
 	ret = synt_parse();
-	if (ret != COMP_OK) {
+	if (ret) {
+		printf("parsing failed\n");
 		return ret;
 	}
 
-	//printf("test ok \n");
+	ret = check_undefined_functions();
+	if (ret) {
+		printf("check undefined functions failed\n");
+		return ret;
+	}
+
+	ret = generator_finish();
+	if (ret) {
+		printf("generator finish failed\n");
+		return ret;
+	}
+
+	compiler_ctx_destroy(ctx);
+	printf("test ok\n");
 	return 0;
 }
