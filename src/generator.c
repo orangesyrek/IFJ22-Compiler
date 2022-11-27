@@ -31,8 +31,13 @@ void generatorInit(){
   if (asprintf(&ptr, ".IFJcode22\n") == -1) exit(COMP_ERR_INTERNAL);
   if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
 
+
   if (asprintf(&ptr, "CREATEFRAME\n") == -1) exit(COMP_ERR_INTERNAL);
   if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+
+  if (asprintf(&ptr, "DEFVAR GF@bool\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+
 
   if (asprintf(&ptr, "DEFVAR GF@ret\n") == -1) exit(COMP_ERR_INTERNAL);
   if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
@@ -357,7 +362,7 @@ int generateBuiltInFunc(char* funName){
     return 0;
   }
   else if (strcmp(funName, "ord") == 0){
-    //todo
+    if (generatorFunOrd()) return COMP_ERR_INTERNAL;
     return 0;
   }
   else if (strcmp(funName, "chr") == 0){
@@ -558,6 +563,69 @@ int generatorFunStrLen(){
   generator.function_call_cnt++;
   return 0;
 //  printf("LABEL $strlenend\n");
+}
+
+int generatorFunOrd(){
+  //todo add soon
+
+  char* ptr;
+  if (asprintf(&ptr, "JUMP $ordend%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "LABEL ord%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  //  printf("JUMP $strlenend\n");
+  //  printf("LABEL strlen\n");
+  //  printf("CREATEFRAME\n");
+  if (asprintf(&ptr, "CREATEFRAME\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "DEFVAR TF@param\n" ) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "POPS TF@param\n" ) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "STRLEN GF@bool TF@param\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $empty GF@bool int@0\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "STRI2INT GF@ret TF@param int@0\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMP $notEmpty\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "LABEL $empty\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "MOVE GF@ret int@0\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "LABEL $notEmpty\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  //  printf("RETURN\n");
+  if (asprintf(&ptr, "LABEL $ordlenend%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (realloc_global_str(generator.local_str)) return COMP_ERR_INTERNAL;
+  free(generator.local_str);
+  generator.local_str = NULL;
+  if (realloc_local_str("")) return COMP_ERR_INTERNAL;
+
+
+  generator.function_call_cnt++;
+  return 0;
+
+
+  //return 0;
 }
 
 

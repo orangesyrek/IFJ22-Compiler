@@ -80,6 +80,8 @@ int generatorAssigment(const char* var_name, int isGlobal);
 //test
 int generatorFunWriteR();
 
+int generatorFunOrd();
+
 int generateBuiltInFunc(char* funName);
 //for this maybe use new file string .h / string.c
 
