@@ -379,6 +379,28 @@ void generatorWriteCode(){
   printf("%s\n", generator.function_def_str);
 }
 
+int generatorExpression(struct lexeme token){
+  char* ptr;
+  if (token.type == INT_LIT) {
+    if (asprintf(&ptr, "PUSHS int@%d\n", token.value.int_val) == -1) return COMP_ERR_INTERNAL;
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+  return 0;
+}
+
+int generatorExpressionCalculated(){
+  char* ptr;
+  if (asprintf(&ptr, "POPS GF@ret\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (realloc_global_str(generator.local_str)) return COMP_ERR_INTERNAL;
+  free(generator.local_str);
+  generator.local_str = NULL;
+  if (realloc_local_str("")) return COMP_ERR_INTERNAL;
+
+  return 0;
+}
+
 int generatorFunWriteR(){
   char *ptr;
   if (asprintf(&ptr, "JUMP $writeend%d\n", generator.function_call_cnt) == -1) return COMP_ERR_INTERNAL;

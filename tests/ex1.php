@@ -4,4 +4,8 @@ declare(strict_types=1);
 // Hlavni telo programu
 
 
-write("ahoj ");
+//vyrazy
+//
+$x = 5;
+
+write($x, "\n");
