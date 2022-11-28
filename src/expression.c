@@ -5,6 +5,7 @@
 #include "stack.h"
 #include "expression.h"
 #include "symtab.h"
+#include "generator.h"
 
 extern int top;
 extern expression_symbols stack[MAX_STACK_SIZE];
@@ -13,7 +14,7 @@ extern struct compiler_ctx *ctx;
 
 int precedence_table[8][8] = {
 // +-.  */ rel cmp  (   )   id  $
-	{ R , S , R , R , S , R , S , R }, // +-.	
+	{ R , S , R , R , S , R , S , R }, // +-.
 	{ R , R , R , R , S , R , S , R }, // */
 	{ S , S , X , R , S , R , S , R }, // rel
 	{ S , S , S , X , S , R , S , R }, // cmp
@@ -245,12 +246,12 @@ int reduce (int count)
 
 		rule = test_rule(1, stack_peek_1(), tmp, tmp);
 		semantics_check = test_semantics(rule, stack_peek_1(), tmp, tmp, &non_term_type);
-	
+
 	} else if (count == 3) {
-	
+
 		rule = test_rule(3, stack_peek_1(), stack_peek_2(), stack_peek_3());
 		semantics_check = test_semantics(rule, stack_peek_1(), stack_peek_2(), stack_peek_3(), &non_term_type);
-	
+
 	} else {
 			//printf("COUNT IS NOT 1 OR 3\n");
 			return COMP_ERR_SA;
@@ -292,7 +293,7 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 					}
 				}
 			}
-
+			if (generatorExpression(one.token)) return COMP_ERR_INTERNAL;
 			*non_term_type = one.type;
 			break;
 		case LBRA_E_RBRA: // E -> (E)
@@ -300,7 +301,33 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 			*non_term_type = two.type;
 			break;
 		case E_PLUS_E:    // E -> E + E
+
+			if (one.type == STR_LIT || three.type == STR_LIT) {
+				return COMP_ERR_MISMATCHED_TYPES;
+			}
+
+			if (one.type == DECIMAL_LIT || three.type == DECIMAL_LIT) {
+				*non_term_type = DECIMAL_LIT;
+			} else {
+				*non_term_type = INT_LIT;
+			}
+			generatorExprPlus();
+			break;
+
 		case E_MINUS_E:   // E -> E - E
+
+			if (one.type == STR_LIT || three.type == STR_LIT) {
+				return COMP_ERR_MISMATCHED_TYPES;
+			}
+
+			if (one.type == DECIMAL_LIT || three.type == DECIMAL_LIT) {
+				*non_term_type = DECIMAL_LIT;
+			} else {
+				*non_term_type = INT_LIT;
+			}
+			generatorExprMinus();
+			break;
+
 		case E_MUL_E:     // E -> E * E
 
 			if (one.type == STR_LIT || three.type == STR_LIT) {
@@ -312,7 +339,7 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 			} else {
 				*non_term_type = INT_LIT;
 			}
-
+			generatorExprMul();
 			break;
 		case E_CON_E:     // E -> E . E
 
@@ -322,7 +349,7 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 			} else {
 				*non_term_type = STR_LIT;
 			}
-
+			generatorExprConcat();
 			break;
 		case E_DIV_E:     // E -> E / E
 
@@ -331,7 +358,7 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 			}
 
 			*non_term_type = DECIMAL_LIT;
-
+			generatorExprDiv();
 			break;
 		case E_LT_E:      // E -> E < E
 		case E_GT_E:      // E -> E > E
@@ -431,5 +458,6 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 	} while (!(stack_top_terminal().symbol == E_DOLLAR && current_token.type == end_token_type));
 
 	//printf("EXPRESSION PARSING OK\n");
+	if (generatorExpressionCalculated()) return COMP_ERR_INTERNAL;
 	return COMP_OK;
 }

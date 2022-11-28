@@ -35,8 +35,16 @@ void generatorInit(){
   if (asprintf(&ptr, "CREATEFRAME\n") == -1) exit(COMP_ERR_INTERNAL);
   if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
 
+
   if (asprintf(&ptr, "DEFVAR GF@bool\n") == -1) exit(COMP_ERR_INTERNAL);
   if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+
+  if (asprintf(&ptr, "DEFVAR GF@tmp1\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+
+  if (asprintf(&ptr, "DEFVAR GF@tmp2\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+
 
 
   if (asprintf(&ptr, "DEFVAR GF@ret\n") == -1) exit(COMP_ERR_INTERNAL);
@@ -384,14 +392,77 @@ int generatorExpression(struct lexeme token){
   if (token.type == INT_LIT) {
     if (asprintf(&ptr, "PUSHS int@%d\n", token.value.int_val) == -1) return COMP_ERR_INTERNAL;
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }else if (token.type == STR_LIT) {
+    if (asprintf(&ptr, "PUSHS string@%s\n", token.value.str_val) == -1) return COMP_ERR_INTERNAL;
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }else if (token.type == DECIMAL_LIT) {
+    if (asprintf(&ptr, "PUSHS float@%a\n", token.value.flt_val) == -1) return COMP_ERR_INTERNAL;
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }else if (token.type == VAR) {
+    // difference betweem global var and local
+    if (asprintf(&ptr, "PUSHS GF@%s\n", token.id) == -1) return COMP_ERR_INTERNAL;
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }else if (token.type == KEYWORD_NULL) {
+    if (asprintf(&ptr, "PUSHS nil@nil\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
   return 0;
 }
 
+int generatorExprPlus(){
+  char* ptr;
+  if (asprintf(&ptr, "ADDS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  return 0;
+}
+
+int generatorExprMinus(){
+  char* ptr;
+  if (asprintf(&ptr, "SUBS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  return 0;
+}
+
+int generatorExprMul(){
+  char* ptr;
+  if (asprintf(&ptr, "MULS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  return 0;
+}
+
+int generatorExprDiv(){
+  char* ptr;
+  // todo pop from stack typecast and then push back
+
+  if (asprintf(&ptr, "DIVS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  return 0;
+}
+
+int generatorExprConcat(){
+  char* ptr;
+
+
+  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+ //todo check if its string
+ if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+ if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+ if (asprintf(&ptr, "CONCAT GF@ret GF@tmp1 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+ if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+ if (asprintf(&ptr, "PUSHS GF@ret\n") == -1) return COMP_ERR_INTERNAL;
+ if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  return 0;
+}
+
+
 int generatorExpressionCalculated(){
   char* ptr;
   if (asprintf(&ptr, "POPS GF@ret\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
 
   if (realloc_global_str(generator.local_str)) return COMP_ERR_INTERNAL;
   free(generator.local_str);

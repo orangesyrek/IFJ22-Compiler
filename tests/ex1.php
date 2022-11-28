@@ -6,6 +6,11 @@ declare(strict_types=1);
 
 //vyrazy
 //
-$x = 5;
+// $x = 5 < 6; thing about this case
+$x = 5-2*6+9;
 
-write($x, "\n");
+$y = readi();
+
+$z = $x+$y;
+
+write($x, "\n", $y, " \n", "vysledek ", $z, "\n");

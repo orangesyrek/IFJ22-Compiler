@@ -36,7 +36,11 @@ struct generator {
 
 int generatorExpression(struct lexeme token);
 int generatorExpressionCalculated();
-
+int generatorExprPlus();
+int generatorExprMinus();
+int generatorExprMul();
+int generatorExprDiv();
+int generatorExprConcat();
 
 void generatorInit();
 
