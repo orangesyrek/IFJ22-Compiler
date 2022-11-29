@@ -837,6 +837,7 @@ rule_if_statement()
 	if (current_token.type != L_CURLY) {
 		goto cleanup;
 	}
+	generatorIfTrue();
 
 	ret = rule_statement_list();
 	if (ret != COMP_OK) {
@@ -846,6 +847,7 @@ rule_if_statement()
 	if (ctx->last_token != R_CURLY) {
 		goto cleanup;
 	}
+	generatorIfTrueEnd();
 
 	current_token = getToken();
 	if (current_token.type != KEYWORD_ELSE) {
@@ -857,6 +859,7 @@ rule_if_statement()
 		goto cleanup;
 	}
 
+	generatorIfFalse();
 	ret = rule_statement_list();
 	if (ret != COMP_OK) {
 		goto cleanup;
@@ -865,6 +868,8 @@ rule_if_statement()
 	if (ctx->last_token != R_CURLY) {
 		goto cleanup;
 	}
+
+	generatorIfEnd();
 
 	return COMP_OK;
 cleanup:

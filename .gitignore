@@ -1,3 +1,9 @@
 build/
 tests/temp_out
 tests/tests
+tests/ex1.php
+tests/ex2.php
+tests/ex3.php
+tests/ex4.php
+tests/ex5.php
+tests/ex6.php
