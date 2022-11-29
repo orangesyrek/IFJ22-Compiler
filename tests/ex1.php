@@ -3,7 +3,7 @@ declare(strict_types=1);
 // Program 1: Vypocet faktorialu (iterativne)
 // Hlavni telo programu
 
-$a = 2 * 3;
+
 //vyrazy
 //
 // $x = 5 < 6; thing about this case
