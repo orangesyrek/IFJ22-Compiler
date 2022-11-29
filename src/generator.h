@@ -24,7 +24,10 @@ struct generator {
 	char *function_def_str;
 
 	int function_call_cnt;		/**< function call id */
+	int ifLabelCount; /** Label naming*/
+	int ifCountMax; /** Maximal count of nested if's*/
 
+	int isIf;
 	int inFuntion;
 	char *function_name;		/**< function call/definition name */
 	int param_count;			/**< function call/definition parameter count */
@@ -41,6 +44,12 @@ int generatorExprMinus();
 int generatorExprMul();
 int generatorExprDiv();
 int generatorExprConcat();
+
+int generatorIfTrueEnd();
+int generatorIfEquals();
+int generatorIfFalse();
+int generatorIfTrue();
+int generatorIfEnd();
 
 void generatorInit();
 

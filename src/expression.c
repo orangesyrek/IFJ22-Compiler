@@ -11,6 +11,7 @@ extern int top;
 extern expression_symbols stack[MAX_STACK_SIZE];
 
 extern struct compiler_ctx *ctx;
+extern struct generator generator;
 
 int precedence_table[8][8] = {
 // +-.  */ rel cmp  (   )   id  $
@@ -349,7 +350,7 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 				*non_term_type = STR_LIT;
 			}
 			break;
-		
+
 		case E_DIV_E:     // E -> E / E
 
 			if (one.type == STR_LIT || three.type == STR_LIT) {
@@ -385,38 +386,41 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 			break;
 
 		case E_PLUS_E:    // E -> E + E
-
+			generator.isIf = 0;
 			generatorExprPlus();
 			break;
 
 		case E_MINUS_E:   // E -> E - E
-
+			generator.isIf = 0;
 			generatorExprMinus();
 			break;
 
 		case E_MUL_E:     // E -> E * E
-
+			generator.isIf = 0;
 			generatorExprMul();
 			break;
-		
-		case E_CON_E:     // E -> E . E
 
+		case E_CON_E:     // E -> E . E
+			generator.isIf = 0;
 			generatorExprConcat();
 			break;
 
 		case E_DIV_E:     // E -> E / E
-
+			generator.isIf = 0;
 			generatorExprDiv();
 			break;
-		
+
 		case E_LT_E:      // E -> E < E
 		case E_GT_E:      // E -> E > E
 		case E_LEQ_E:     // E -> E <= E
 		case E_GEQ_E:     // E -> E >= E
 		case E_EQ_E:      // E -> E === E
+			generator.isIf = 1;
+			generatorIfEquals();
+			break;
 		case E_NEQ_E:     // E -> E !== E
 			break;
-			
+
 		default:
 			break;
 	}

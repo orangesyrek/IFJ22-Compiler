@@ -465,11 +465,79 @@ int generatorExprConcat(){
 
 int generatorExpressionCalculated(){
   char* ptr;
-  if (asprintf(&ptr, "POPS GF@ret\n") == -1) return COMP_ERR_INTERNAL;
+  if(!generator.isIf){
+    if (asprintf(&ptr, "POPS GF@ret\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  }else{
+    if (asprintf(&ptr, "PUSHS int@0\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "POPS GF@ret\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  }
+  return 0;
+}
+
+int generatorIfEquals(){
+
+  char* ptr;
+  if (asprintf(&ptr, "EQS\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
 
   return 0;
 }
+int generatorIfTrue(){
+  if(generator.ifCountMax != 0 && generator.ifLabelCount == 0){
+    generator.ifLabelCount = generator.ifCountMax;
+  }
+  char* ptr;
+  if (asprintf(&ptr, "LABEL trueif%d\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ falseif%d GF@bool bool@false\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  generator.ifLabelCount++;
+  if(generator.ifLabelCount > generator.ifCountMax){
+    generator.ifCountMax = generator.ifLabelCount;
+  }
+
+  return 0;
+}
+
+int generatorIfTrueEnd(){
+
+  generator.ifLabelCount--;
+
+  char* ptr;
+  if (asprintf(&ptr, "JUMP endif%d\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  return 0;
+}
+
+int generatorIfFalse(){
+  char* ptr;
+  if (asprintf(&ptr, "LABEL falseif%d\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  return 0;
+}
+int generatorIfEnd(){
+  char* ptr;
+  if (asprintf(&ptr, "LABEL endif%d\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  //generator.ifLabelCount++;
+  return 0;
+}
+
 
 int generatorFunWriteR(){
   char *ptr;
