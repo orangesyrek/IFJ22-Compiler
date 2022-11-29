@@ -38,6 +38,9 @@ struct generator {
 };
 
 
+int generatorDivConversion();
+
+
 int generatorExpression(struct lexeme token);
 int generatorExpressionCalculated();
 int generatorExprPlus();
