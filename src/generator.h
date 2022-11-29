@@ -102,3 +102,5 @@ int generateBuiltInFunc(char* funName);
 int generator_finish();
 
 void generator_reset();
+
+int generate_function_def();

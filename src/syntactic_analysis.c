@@ -769,6 +769,13 @@ rule_func_def()
 		goto cleanup;
 	}
 
+	rc = generate_function_def();
+	if (rc) {
+		ERR_PRINT("Generating function definiton failed.");
+		ret = rc;
+		goto cleanup;
+	}
+
 	ret = rule_statement_list(data);
 	if (ret != COMP_OK) {
 		goto cleanup;

@@ -45,7 +45,11 @@ void generatorInit(){
   if (asprintf(&ptr, "DEFVAR GF@tmp2\n") == -1) exit(COMP_ERR_INTERNAL);
   if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
 
+  if (asprintf(&ptr, "DEFVAR GF@type1\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
 
+  if (asprintf(&ptr, "DEFVAR GF@type2\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
 
   if (asprintf(&ptr, "DEFVAR GF@ret\n") == -1) exit(COMP_ERR_INTERNAL);
   if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
@@ -338,8 +342,14 @@ void generatorExecute(){ // need to know function name
     exit(COMP_ERR_INTERNAL);
   }
 
-  if (asprintf(&ptr, "CALL %s%d\n", generator.function_name, generator.function_call_cnt) == -1) exit(COMP_ERR_INTERNAL);;
-  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);;
+  /* only need id for write */
+  if (!strcmp("write", generator.function_name)) {
+    if (asprintf(&ptr, "CALL %s%d\n", generator.function_name, generator.function_call_cnt) == -1) exit(COMP_ERR_INTERNAL);
+    if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+  } else {
+    if (asprintf(&ptr, "CALL %s\n", generator.function_name) == -1) exit(COMP_ERR_INTERNAL);
+    if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+  }
 
   if (asprintf(&ptr, "POPFRAME\n") == -1) exit(COMP_ERR_INTERNAL); // maybe delete depends
   if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
@@ -382,8 +392,6 @@ int generateBuiltInFunc(char* funName){
 
 void generatorWriteCode(){
   printf("%s\n", generator.global_str);
-  printf("%s\n", generator.local_str_var);
-  printf("%s\n", generator.local_str);
   printf("%s\n", generator.function_def_str);
 }
 
@@ -770,7 +778,7 @@ generator_finish()
 {
   char *ptr;
 
-  if (asprintf(&ptr, "JUMP $#_end") == -1) {
+  if (asprintf(&ptr, "JUMP $!end\n") == -1) {
     return COMP_ERR_INTERNAL;
   }
   if (realloc_global_str(ptr)) {
@@ -778,7 +786,51 @@ generator_finish()
   }
 
   free(ptr);
-  if (asprintf(&ptr, "LABEL $#_end") == -1) {
+  if (asprintf(&ptr, "LABEL $!exit4\n") == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+  if (realloc_function_def_str(ptr)) {
+    return COMP_ERR_INTERNAL;
+  }
+  free(ptr);
+  if (asprintf(&ptr, "EXIT int@4\n") == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+  if (realloc_function_def_str(ptr)) {
+    return COMP_ERR_INTERNAL;
+  }
+
+  free(ptr);
+  if (asprintf(&ptr, "LABEL $!exit6\n") == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+  if (realloc_function_def_str(ptr)) {
+    return COMP_ERR_INTERNAL;
+  }
+  free(ptr);
+  if (asprintf(&ptr, "EXIT int@6\n") == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+  if (realloc_function_def_str(ptr)) {
+    return COMP_ERR_INTERNAL;
+  }
+
+  free(ptr);
+  if (asprintf(&ptr, "LABEL $!exit7\n") == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+  if (realloc_function_def_str(ptr)) {
+    return COMP_ERR_INTERNAL;
+  }
+  free(ptr);
+  if (asprintf(&ptr, "EXIT int@7\n") == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+  if (realloc_function_def_str(ptr)) {
+    return COMP_ERR_INTERNAL;
+  }
+
+  if (asprintf(&ptr, "LABEL $!end") == -1) {
     return COMP_ERR_INTERNAL;
   }
   if (realloc_function_def_str(ptr)) {
@@ -792,4 +844,118 @@ void
 generator_reset()
 {
   generator.param_count = 0;
+}
+
+char *
+get_str_from_type(type type)
+{
+  /* todo: null */
+  char *ret = NULL;
+
+  switch (type) {
+  case INT:
+    ret = strdup("int");
+    break;
+  case STRING:
+    ret = strdup("string");
+    break;
+  case FLOAT:
+    ret = strdup("float");
+    break;
+  default:
+    break;
+  }
+
+  return ret;
+}
+
+int
+generate_function_def()
+{
+  int i;
+  char *ptr;
+  char *p_type;
+
+  if (asprintf(&ptr, "LABEL %s\n", generator.function_name) == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+  if (realloc_function_def_str(ptr)) {
+    return COMP_ERR_INTERNAL;
+  }
+
+  if (asprintf(&ptr, "CREATEFRAME\n") == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+  if (realloc_function_def_str(ptr)) {
+    return COMP_ERR_INTERNAL;
+  }
+
+  if (asprintf(&ptr, "PUSHFRAME\n") == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+  if (realloc_function_def_str(ptr)) {
+    return COMP_ERR_INTERNAL;
+  }
+
+  for (i = 0; i < generator.param_count; i++) {
+    /* define the var */
+    if (asprintf(&ptr, "DEFVAR LF@%s\n", generator.param_names[i]) == -1) {
+    return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str_var(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+
+    /* load the var from stack */
+    if (asprintf(&ptr, "POPS LF@%s\n", generator.param_names[i]) == -1) {
+    return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str_var(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+
+    /* check the type */
+    if (asprintf(&ptr, "TYPE GF@type1 LF@%s\n", generator.param_names[i]) == -1) {
+    return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str_var(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+
+    p_type = get_str_from_type(generator.param_types[i]);
+    if (!p_type) {
+      /* todo */
+      fprintf(stderr, "type err\n");
+    }
+
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@%s GF@type1\n", p_type) == -1) {
+    return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str_var(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+
+  }
+
+  if (asprintf(&ptr, "RETURN\n") == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+  if (realloc_local_str(ptr)) {
+    return COMP_ERR_INTERNAL;
+  }
+
+  if (realloc_function_def_str(generator.local_str_var)) {
+    return COMP_ERR_INTERNAL;
+  }
+
+  if (realloc_function_def_str(generator.local_str)) {
+    return COMP_ERR_INTERNAL;
+  }
+
+  free(generator.local_str_var);
+  generator.local_str_var = NULL;
+  free(generator.local_str);
+  generator.local_str = NULL;
+
+  return COMP_OK;
 }
