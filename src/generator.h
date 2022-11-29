@@ -86,7 +86,7 @@ int defvar_global(const char *var_name);
 
 void generatorWriteCode();
 
-int generatorAssigment(const char* var_name, int isGlobal);
+int generatorAssigment(const char* var_name);
 //test
 int generatorFunWriteR();
 

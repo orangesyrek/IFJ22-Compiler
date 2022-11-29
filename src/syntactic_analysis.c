@@ -924,8 +924,6 @@ rule_var_declaration(char *var_name)
 			} else {
 				ret = rule_func(data->data.fdata, 0, next_token.id);
 			}
-			// generatorExecute();
-			// generator_reset();
 
 			generatorExecute();
 			generator_reset();
@@ -938,6 +936,7 @@ rule_var_declaration(char *var_name)
 			if (next_token.type != SEMICOLON) {
 				goto cleanup;
 			} else {
+				generatorAssigment(var_name);
 				return COMP_OK;
 			}
 		} else {
@@ -953,6 +952,7 @@ rule_var_declaration(char *var_name)
 			} else if (ret == COMP_ERR_SA) {
 				goto cleanup;
 			} else {
+				generatorAssigment(var_name);
 				return COMP_OK;
 			}
 		}
