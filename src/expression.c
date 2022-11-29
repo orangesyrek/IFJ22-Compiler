@@ -276,8 +276,7 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 	//printf("one.type: %d\n", one.type);
 	//printf("two.type: %d\n", two.type);
   //printf("three.type: %d\n", three.type);
-
-	switch (rule)
+  	switch (rule)
 	{
 		case E_TO_I:      // E -> i
 
@@ -293,13 +292,15 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 					}
 				}
 			}
-			if (generatorExpression(one.token)) return COMP_ERR_INTERNAL;
+
 			*non_term_type = one.type;
 			break;
+
 		case LBRA_E_RBRA: // E -> (E)
 
 			*non_term_type = two.type;
 			break;
+
 		case E_PLUS_E:    // E -> E + E
 
 			if (one.type == STR_LIT || three.type == STR_LIT) {
@@ -311,7 +312,6 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 			} else {
 				*non_term_type = INT_LIT;
 			}
-			generatorExprPlus();
 			break;
 
 		case E_MINUS_E:   // E -> E - E
@@ -325,7 +325,6 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 			} else {
 				*non_term_type = INT_LIT;
 			}
-			generatorExprMinus();
 			break;
 
 		case E_MUL_E:     // E -> E * E
@@ -339,8 +338,8 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 			} else {
 				*non_term_type = INT_LIT;
 			}
-			generatorExprMul();
 			break;
+
 		case E_CON_E:     // E -> E . E
 
 			if (one.type == INT_LIT || one.type == DECIMAL_LIT || three.type == INT_LIT || three.type == DECIMAL_LIT)
@@ -349,8 +348,8 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 			} else {
 				*non_term_type = STR_LIT;
 			}
-			generatorExprConcat();
 			break;
+		
 		case E_DIV_E:     // E -> E / E
 
 			if (one.type == STR_LIT || three.type == STR_LIT) {
@@ -358,8 +357,8 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 			}
 
 			*non_term_type = DECIMAL_LIT;
-			generatorExprDiv();
 			break;
+
 		case E_LT_E:      // E -> E < E
 		case E_GT_E:      // E -> E > E
 		case E_LEQ_E:     // E -> E <= E
@@ -369,6 +368,55 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 
 			*non_term_type = INT_LIT;
 			break;
+
+		default:
+			break;
+	}
+
+
+	switch (rule)
+	{
+		case E_TO_I:      // E -> i
+
+			if (generatorExpression(one.token)) return COMP_ERR_INTERNAL;
+			break;
+
+		case LBRA_E_RBRA: // E -> (E)
+			break;
+
+		case E_PLUS_E:    // E -> E + E
+
+			generatorExprPlus();
+			break;
+
+		case E_MINUS_E:   // E -> E - E
+
+			generatorExprMinus();
+			break;
+
+		case E_MUL_E:     // E -> E * E
+
+			generatorExprMul();
+			break;
+		
+		case E_CON_E:     // E -> E . E
+
+			generatorExprConcat();
+			break;
+
+		case E_DIV_E:     // E -> E / E
+
+			generatorExprDiv();
+			break;
+		
+		case E_LT_E:      // E -> E < E
+		case E_GT_E:      // E -> E > E
+		case E_LEQ_E:     // E -> E <= E
+		case E_GEQ_E:     // E -> E >= E
+		case E_EQ_E:      // E -> E === E
+		case E_NEQ_E:     // E -> E !== E
+			break;
+			
 		default:
 			break;
 	}
