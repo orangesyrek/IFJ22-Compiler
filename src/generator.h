@@ -22,6 +22,7 @@ struct generator {
 	char *local_str_var;
 	char *local_str;
 	char *function_def_str;
+	char *write_str;
 
 	int function_call_cnt;		/**< function call id */
 
@@ -54,11 +55,7 @@ void generatorPushParamStringNonB(char *str);
 
 int generatorPushParam();
 
-void generatorFunWrite();
-
 void generatorBuiltinFunctions();
-
-void  generatorFunWrite();
 
 int  generatorFunReadf();
 
@@ -88,7 +85,7 @@ void generatorWriteCode();
 
 int generatorAssigment(const char* var_name);
 //test
-int generatorFunWriteR();
+int generatorFunWrite();
 
 int generatorFunOrd();
 
@@ -104,3 +101,5 @@ int generator_finish();
 void generator_reset();
 
 int generate_function_def();
+
+int generate_function_return();

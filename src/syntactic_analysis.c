@@ -693,6 +693,7 @@ rule_func_def()
 	int param_check = 0;
 
 	ctx->in_function = 1;
+	generator.inFuntion = 1;
 
 	current_token = getToken();
 	if (current_token.type != FUN_ID) {
@@ -775,6 +776,7 @@ rule_func_def()
 		ret = rc;
 		goto cleanup;
 	}
+	generator_reset();
 
 	ret = rule_statement_list(data);
 	if (ret != COMP_OK) {
@@ -792,8 +794,12 @@ rule_func_def()
 		ctx->unchecked_functions[rc] = NULL;
 	}
 
+	if (generate_function_return()) {
+		return COMP_ERR_INTERNAL;
+	}
 	ctx->seen_return = 0;
 	ctx->in_function = 0;
+	generator.inFuntion = 0;
 	generator_reset();
 
 	return COMP_OK;
