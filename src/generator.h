@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "symtab.h"
+#include "lexical_analysis.h"
 
 struct params {
 	int is_constant;
@@ -14,6 +15,7 @@ struct params {
 	} value;
 	type type;
 };
+
 
 struct generator {
 	char *global_str;
@@ -27,11 +29,18 @@ struct generator {
 	char *function_name;		/**< function call/definition name */
 	int param_count;			/**< function call/definition parameter count */
 	struct params params[10];	/**< function call parameters data */
-
 	char *param_names[100];	/**< names of function definition parameters */
 	type param_types[100];	/**< types of function definition parameters */
 };
 
+
+int generatorExpression(struct lexeme token);
+int generatorExpressionCalculated();
+int generatorExprPlus();
+int generatorExprMinus();
+int generatorExprMul();
+int generatorExprDiv();
+int generatorExprConcat();
 
 void generatorInit();
 
