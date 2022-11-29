@@ -411,14 +411,28 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 			break;
 
 		case E_LT_E:      // E -> E < E
+			generator.isIf = 1;
+			generatorIfLess();
+			break;
 		case E_GT_E:      // E -> E > E
+			generator.isIf = 1;
+			generatorIfGreater();
+			break;
 		case E_LEQ_E:     // E -> E <= E
+			generator.isIf = 1;
+			generatorIfEqualsLess();
+			break;
 		case E_GEQ_E:     // E -> E >= E
+			generator.isIf = 1;
+			generatorIfEqualsGreater();
+			break;
 		case E_EQ_E:      // E -> E === E
 			generator.isIf = 1;
 			generatorIfEquals();
 			break;
 		case E_NEQ_E:     // E -> E !== E
+			generator.isIf = 1;
+			generatorIfNotEquals();
 			break;
 
 		default:

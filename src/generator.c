@@ -523,6 +523,82 @@ int generatorIfEquals(){
 
   return 0;
 }
+
+int generatorIfNotEquals(){
+
+  char* ptr;
+  if (asprintf(&ptr, "EQS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "NOTS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  return 0;
+}
+
+int generatorIfLess(){
+
+  char* ptr;
+  if (asprintf(&ptr, "LTS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  return 0;
+}
+
+int generatorIfGreater(){
+
+  char* ptr;
+  if (asprintf(&ptr, "GTS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  return 0;
+}
+
+int generatorIfEqualsGreater(){
+
+  char* ptr;
+  if (asprintf(&ptr, "LTS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "NOTS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  return 0;
+
+}
+
+int generatorIfEqualsLess(){
+  char* ptr;
+  if (asprintf(&ptr, "GTS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "NOTS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  return 0;
+
+}
+
+
 int generatorIfTrue(){
   if(generator.ifCountMax != 0 && generator.ifLabelCount == 0){
     generator.ifLabelCount = generator.ifCountMax;

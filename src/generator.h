@@ -51,6 +51,11 @@ int generatorIfEquals();
 int generatorIfFalse();
 int generatorIfTrue();
 int generatorIfEnd();
+int generatorIfLess();
+int generatorIfGreater();
+int generatorIfEqualsGreater();
+int generatorIfEqualsLess();
+int generatorIfNotEquals();
 
 void generatorInit();
 
