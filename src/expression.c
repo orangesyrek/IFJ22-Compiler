@@ -426,7 +426,7 @@ int expression_parse (struct lexeme start_token, struct lexeme first_token)
 				return COMP_ERR_SA;
 				break;
 		}
-		//stack_print();
+		// stack_print();
 
 	} while (!(stack_top_terminal().symbol == E_DOLLAR && current_token.type == end_token_type));
 
