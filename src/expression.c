@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "compiler.h"
 #include "stack.h"
 #include "expression.h"
 #include "symtab.h"
@@ -167,7 +166,7 @@ expression_symbols get_op (expression_symbols stack_top, expression_symbols inpu
 	else return precedence_table[row][col];
 }
 
-int test_rule (int count, stack_item one, stack_item two, stack_item three)
+rules test_rule (int count, stack_item one, stack_item two, stack_item three)
 {
 	switch (count)
 	{
@@ -234,7 +233,7 @@ int test_rule (int count, stack_item one, stack_item two, stack_item three)
 	return NOT_A_RULE;
 }
 
-int reduce (int count)
+comp_err reduce (int count)
 {
 	stack_item tmp = {0};
 	struct lexeme empty_token = {0};
@@ -267,7 +266,7 @@ int reduce (int count)
 	return COMP_OK;
 }
 
-int test_semantics (rules rule, stack_item one, stack_item two, stack_item three, lex_types *non_term_type)
+comp_err test_semantics (rules rule, stack_item one, stack_item two, stack_item three, lex_types *non_term_type)
 {
 	// Just to get rid of warnings
 	stack_item item = two;
@@ -441,7 +440,7 @@ int test_semantics (rules rule, stack_item one, stack_item two, stack_item three
 	return COMP_OK;
 }
 
-int expression_parse (struct lexeme start_token, struct lexeme first_token)
+comp_err expression_parse (struct lexeme start_token, struct lexeme first_token)
 {
 	stack_init();
 	struct lexeme empty_token = {0};
