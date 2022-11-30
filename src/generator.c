@@ -298,6 +298,12 @@ int generatorAssigment(const char* var_name){
     //printf("MOVE GF@%s GF@ret\n", var_name);
     if (asprintf(&ptr, "MOVE LF@%s GF@ret\n", var_name) == -1) return COMP_ERR_INTERNAL;
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+    /* store into fun */
+    if (realloc_function_def_str(generator.local_str)) {
+      return COMP_ERR_INTERNAL;
+    }
+    free(generator.local_str);
+    generator.local_str = NULL;
   }else{
     if (asprintf(&ptr, "MOVE GF@%s GF@ret\n", var_name) == -1) return COMP_ERR_INTERNAL;
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
@@ -359,7 +365,7 @@ int generatorPushParam(){
         if (asprintf(&ptr, "PUSHS string@%s\n", str) == -1) return COMP_ERR_INTERNAL;
         if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
       } else if (generator.params[i].type == UNKNOWN) {
-          if (asprintf(&ptr, "PUSHS GF@%s\n", generator.params[i].value.var_name) == -1) {
+          if (asprintf(&ptr, "PUSHS LF@%s\n", generator.params[i].value.var_name) == -1) {
             return COMP_ERR_INTERNAL;
           }
           if (realloc_function_def_str(ptr)) {
@@ -443,7 +449,7 @@ int generatorExpression(struct lexeme token){
       if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
     }else if (token.type == VAR) {
       // difference betweem global var and local
-      if (asprintf(&ptr, "PUSHS GF@%s\n", token.id) == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "PUSHS LF@%s\n", token.id) == -1) return COMP_ERR_INTERNAL;
       if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
     }else if (token.type == KEYWORD_NULL) {
       if (asprintf(&ptr, "PUSHS nil@nil\n") == -1) return COMP_ERR_INTERNAL;
@@ -600,7 +606,17 @@ int generatorExpressionCalculated(){
   char* ptr;
   if(!generator.isIf){
     if (asprintf(&ptr, "POPS GF@ret\n") == -1) return COMP_ERR_INTERNAL;
-    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+    if (generator.inFuntion) {
+      if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+      /* finalize */
+      if (realloc_function_def_str(generator.local_str)) {
+        return COMP_ERR_INTERNAL;
+      }
+      free(generator.local_str);
+      generator.local_str = NULL;
+    } else {
+      if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+    }
 
   }else{
     if (asprintf(&ptr, "PUSHS int@0\n") == -1) return COMP_ERR_INTERNAL;

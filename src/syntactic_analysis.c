@@ -1060,6 +1060,12 @@ rule_return(struct function_data data)
 
 	next_token = getToken();
 	if (next_token.type != SEMICOLON) {
+		/* check if function returns void */
+		if (data.return_type == VOID && strcmp(generator.function_name, "write")) {
+			ERR_PRINT("Return expression found in void function.");
+			return COMP_ERR_FUNC_RETURN;
+		}
+
 		ret = expression_parse(current_token, next_token);
 		if (ret == COMP_ERR_UNDEF_VAR) {
 			ERR_PRINT("Undefined variable in return.");
