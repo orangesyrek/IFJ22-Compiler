@@ -55,6 +55,12 @@ void generatorInit(){
   if (asprintf(&ptr, "DEFVAR GF@ret\n") == -1) exit(COMP_ERR_INTERNAL);
   if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
 
+//inserting here before builtin funs
+
+  if (generatorDivConversion()) {
+    exit(COMP_ERR_INTERNAL);
+  }
+
   if (generatorFunReads()) {
     exit(COMP_ERR_INTERNAL);
   }
@@ -505,8 +511,68 @@ int generatorExprDiv(){
   char* ptr;
   // todo pop from stack typecast and then push back
 
+  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "CALL $divConversion\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+
   if (asprintf(&ptr, "DIVS\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  return 0;
+}
+
+int generatorDivConversion(){
+  char *ptr;
+
+  //think of cases who should stop the error if string comes for example interpret / we
+
+  if (asprintf(&ptr, "LABEL $divConversion\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "TYPE GF@type1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFNEQ $notFirstConversiondiv GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "INT2FLOAT GF@tmp1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $notFirstConversiondiv\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "TYPE GF@type1 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFNEQ $notSecondConversiondiv GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "INT2FLOAT GF@tmp2 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $notSecondConversiondiv\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
   return 0;
 }
 
@@ -559,6 +625,82 @@ int generatorIfEquals(){
 
   return 0;
 }
+
+int generatorIfNotEquals(){
+
+  char* ptr;
+  if (asprintf(&ptr, "EQS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "NOTS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  return 0;
+}
+
+int generatorIfLess(){
+
+  char* ptr;
+  if (asprintf(&ptr, "LTS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  return 0;
+}
+
+int generatorIfGreater(){
+
+  char* ptr;
+  if (asprintf(&ptr, "GTS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  return 0;
+}
+
+int generatorIfEqualsGreater(){
+
+  char* ptr;
+  if (asprintf(&ptr, "LTS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "NOTS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  return 0;
+
+}
+
+int generatorIfEqualsLess(){
+  char* ptr;
+  if (asprintf(&ptr, "GTS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "NOTS\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  return 0;
+
+}
+
+
 int generatorIfTrue(){
   if(generator.ifCountMax != 0 && generator.ifLabelCount == 0){
     generator.ifLabelCount = generator.ifCountMax;
