@@ -1073,6 +1073,13 @@ rule_return(struct function_data data)
 			ERR_PRINT("Syntax error in return");
 			return COMP_ERR_SA;
 		}
+
+		/* return type check */
+		ret = return_type_check(data.return_type);
+		if (ret) {
+			ERR_PRINT("Generating return type check failed.");
+			return ret;
+		}
 	} else {
 		/* it's return; -> fun has to have void return */
 		if (data.return_type != VOID) {

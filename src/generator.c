@@ -424,22 +424,43 @@ void generatorWriteCode(){
 
 int generatorExpression(struct lexeme token){
   char* ptr;
-  if (token.type == INT_LIT) {
-    if (asprintf(&ptr, "PUSHS int@%d\n", token.value.int_val) == -1) return COMP_ERR_INTERNAL;
-    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
-  }else if (token.type == STR_LIT) {
-    if (asprintf(&ptr, "PUSHS string@%s\n", token.value.str_val) == -1) return COMP_ERR_INTERNAL;
-    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
-  }else if (token.type == DECIMAL_LIT) {
-    if (asprintf(&ptr, "PUSHS float@%a\n", token.value.flt_val) == -1) return COMP_ERR_INTERNAL;
-    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
-  }else if (token.type == VAR) {
-    // difference betweem global var and local
-    if (asprintf(&ptr, "PUSHS GF@%s\n", token.id) == -1) return COMP_ERR_INTERNAL;
-    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
-  }else if (token.type == KEYWORD_NULL) {
-    if (asprintf(&ptr, "PUSHS nil@nil\n") == -1) return COMP_ERR_INTERNAL;
-    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (generator.inFuntion) {
+    if (token.type == INT_LIT) {
+      if (asprintf(&ptr, "PUSHS int@%d\n", token.value.int_val) == -1) return COMP_ERR_INTERNAL;
+      if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+    }else if (token.type == STR_LIT) {
+      if (asprintf(&ptr, "PUSHS string@%s\n", token.value.str_val) == -1) return COMP_ERR_INTERNAL;
+      if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+    }else if (token.type == DECIMAL_LIT) {
+      if (asprintf(&ptr, "PUSHS float@%a\n", token.value.flt_val) == -1) return COMP_ERR_INTERNAL;
+      if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+    }else if (token.type == VAR) {
+      // difference betweem global var and local
+      if (asprintf(&ptr, "PUSHS GF@%s\n", token.id) == -1) return COMP_ERR_INTERNAL;
+      if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+    }else if (token.type == KEYWORD_NULL) {
+      if (asprintf(&ptr, "PUSHS nil@nil\n") == -1) return COMP_ERR_INTERNAL;
+      if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+    }
+  } else {
+    if (token.type == INT_LIT) {
+      if (asprintf(&ptr, "PUSHS int@%d\n", token.value.int_val) == -1) return COMP_ERR_INTERNAL;
+      if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+    }else if (token.type == STR_LIT) {
+      if (asprintf(&ptr, "PUSHS string@%s\n", token.value.str_val) == -1) return COMP_ERR_INTERNAL;
+      if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+    }else if (token.type == DECIMAL_LIT) {
+      if (asprintf(&ptr, "PUSHS float@%a\n", token.value.flt_val) == -1) return COMP_ERR_INTERNAL;
+      if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+    }else if (token.type == VAR) {
+      // difference betweem global var and local
+      if (asprintf(&ptr, "PUSHS GF@%s\n", token.id) == -1) return COMP_ERR_INTERNAL;
+      if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+    }else if (token.type == KEYWORD_NULL) {
+      if (asprintf(&ptr, "PUSHS nil@nil\n") == -1) return COMP_ERR_INTERNAL;
+      if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+    }
   }
   return 0;
 }
@@ -447,21 +468,36 @@ int generatorExpression(struct lexeme token){
 int generatorExprPlus(){
   char* ptr;
   if (asprintf(&ptr, "ADDS\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
   return 0;
 }
 
 int generatorExprMinus(){
   char* ptr;
   if (asprintf(&ptr, "SUBS\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
   return 0;
 }
 
 int generatorExprMul(){
   char* ptr;
   if (asprintf(&ptr, "MULS\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
   return 0;
 }
 
@@ -1111,6 +1147,34 @@ generate_function_return()
   }
   if (realloc_function_def_str(ptr)) {
     return COMP_ERR_INTERNAL;
+  }
+
+  return COMP_OK;
+}
+
+int
+return_type_check(type return_type)
+{
+  char *ptr;
+
+  if (asprintf(&ptr, "TYPE GF@type1 GF@ret\n") == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+  if (realloc_function_def_str(ptr)) {
+    return COMP_ERR_INTERNAL;
+  }
+
+  switch (return_type) {
+  case INT:
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@int GF@type1\n") == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_function_def_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    break;
+  default:
+    break;
   }
 
   return COMP_OK;

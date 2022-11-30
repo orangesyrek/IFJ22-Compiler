@@ -114,3 +114,5 @@ void generator_reset();
 int generate_function_def();
 
 int generate_function_return();
+
+int return_type_check(type return_type);
