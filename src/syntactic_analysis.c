@@ -14,6 +14,7 @@ extern struct generator generator;
 
 static comp_err rule_statement_list();
 
+/* parsing prolog */
 static comp_err
 parse_prolog(struct lexeme token)
 {
@@ -143,6 +144,7 @@ generator_insert_param(struct lexeme token)
 	}
 }
 
+/* checking function call's 2nd and so on params */
 static comp_err
 rule_next_param(struct function_data data, int is_not_defined, struct function_data *new_data)
 {
@@ -162,8 +164,6 @@ rule_next_param(struct function_data data, int is_not_defined, struct function_d
 			return COMP_ERR_FUNC_PARAM;
 		}
 		data.param_count = param_counter;
-		/*generatorPrepare(data);
-		generatorPushParamString(param2);*/
 		param_counter = 1;
 		generator_reverse_params();
 		return COMP_OK;
@@ -216,7 +216,6 @@ rule_next_param(struct function_data data, int is_not_defined, struct function_d
 				return COMP_ERR_FUNC_PARAM;
 			}
 		} else if (current_token.type == VAR) {
-			/* todo: code gen */
 			if (is_not_defined) {
 				new_data->param_count++;
 				new_data->params = realloc_func_params(new_data->params, new_data->param_count);
@@ -249,8 +248,9 @@ rule_next_param(struct function_data data, int is_not_defined, struct function_d
 	}
 }
 
-/* if the function is not defined yet, just count the params
- * and check it later when its defined */
+/* checking function call's 1st param
+ * if the function is not defined yet, just count the params
+ * and check it later when and if its defined */
 static comp_err
 rule_func_params(struct function_data data, int is_not_defined, char *function_name)
 {
@@ -366,7 +366,6 @@ rule_func_params(struct function_data data, int is_not_defined, char *function_n
 			}
 		}
 
-		/* todo: runtime check */
 		if (is_not_defined) {
 			new_data->data.fdata.param_count = 1;
 			new_data->data.fdata.params = realloc_func_params(new_data->data.fdata.params, new_data->data.fdata.param_count);
@@ -422,6 +421,7 @@ cleanup:
 	return ret;
 }
 
+/* syntactically check function call */
 static comp_err
 rule_func(struct function_data data, int is_not_defined, char *function_name)
 {
@@ -467,7 +467,8 @@ token_get_param_type(char *id)
 	}
 }
 
-int
+/* checks if function definition params match, if the function was called before it's definition */
+static int
 check_param(type param, char *param_str, struct function_data *data, int idx)
 {
 	int ret = 0;
@@ -531,7 +532,7 @@ check_undefined_functions()
 	return COMP_OK;
 }
 
-int
+static int
 check_not_complete_record(char *function_name)
 {
 	int i;
@@ -547,6 +548,7 @@ check_not_complete_record(char *function_name)
 	return 1;
 }
 
+/* check function definiton's 2nd and so on params */
 static comp_err
 rule_func_def_next_param(struct function_data *data, int check_params)
 {
@@ -610,6 +612,7 @@ rule_func_def_next_param(struct function_data *data, int check_params)
 	}
 }
 
+/* check function definition 1st param */
 static comp_err
 rule_func_def_parameters(struct function_data *data, int check_params)
 {
@@ -681,7 +684,8 @@ cleanup:
 	return ret;
 }
 
-/* statement -> function function_name_T ( parameters ) : type_T { statement_list } */
+/* syntactically check function definition
+ * statement -> function function_name_T ( parameters ) : type_T { statement_list } */
 static comp_err
 rule_func_def()
 {
@@ -815,6 +819,7 @@ cleanup:
 	return ret;
 }
 
+/* syntactically check if statement */
 static comp_err
 rule_if_statement()
 {
@@ -883,6 +888,7 @@ cleanup:
 	return COMP_ERR_SA;
 }
 
+/* syntactically check variable declaration */
 static comp_err
 rule_var_declaration(char *var_name)
 {
@@ -907,7 +913,6 @@ rule_var_declaration(char *var_name)
 			}
 			rc = symtabInsert(&ctx->local_sym_tab, var_name, v_data);
 		} else {
-			// info to generator
 			if(defvar_global(var_name)){
 				ret = COMP_ERR_INTERNAL;
 				goto cleanup;
@@ -923,8 +928,6 @@ rule_var_declaration(char *var_name)
 		if (next_token.type == FUN_ID) {
 			/* save function name in generator */
 			generator.function_name = next_token.id;
-			//printf("%s\n", next_token.id);
-			/* search for the function */
 			data = symtabSearch(ctx->global_sym_tab, next_token.id);
 			if (!data) {
 				ret = dataInit(&data);
@@ -999,6 +1002,7 @@ cleanup:
 	return ret;
 }
 
+/* syntactically check while statement */
 static comp_err
 rule_while_statement()
 {
@@ -1048,6 +1052,7 @@ cleanup:
 	return COMP_ERR_SA;
 }
 
+/* syntactically check prolog end */
 static comp_err
 rule_prolog_end()
 {
@@ -1065,6 +1070,7 @@ cleanup:
 	return COMP_ERR_SA;
 }
 
+/* syntactically check return statement */
 static comp_err
 rule_return(struct function_data data)
 {
@@ -1112,7 +1118,8 @@ rule_return(struct function_data data)
 	return COMP_OK;
 }
 
-/* rule: program -> prolog statement_list EOF */
+/* main LL-grammar rule, recursively call itself
+ * rule: program -> prolog statement_list EOF */
 static comp_err
 rule_statement_list(struct bs_data *data)
 {
@@ -1127,7 +1134,6 @@ rule_statement_list(struct bs_data *data)
 	if (current_token.type == FUN_ID) {
 		/* save function name in generator */
 		generator.function_name = current_token.id;
-		//printf("where is%s\n", current_token.id); // to delete
 
 		/* search for the function */
 		data = symtabSearch(ctx->global_sym_tab, current_token.id);
@@ -1167,6 +1173,8 @@ rule_statement_list(struct bs_data *data)
 		}
 	} else if (current_token.type == KEYWORD_FUNCTION) {
 		if (ctx->in_function) {
+			/* can not define a function inside a function */
+			ERR_PRINT("Function definiton inside a function attempted.");
 			ret = COMP_ERR_SA;
 			goto cleanup;
 		}
@@ -1176,14 +1184,14 @@ rule_statement_list(struct bs_data *data)
 			goto cleanup;
 		}
 	} else if (current_token.type == L_PAR) {
-
+		/* expecting (expr); */
 		ret = expression_parse(current_token, current_token);
 		if (ret == COMP_ERR_UNDEF_VAR) {
-			ERR_PRINT("Undefined variable."); // tady nevim, jak to upresnit
+			ERR_PRINT("Undefined variable.");
 			return COMP_ERR_UNDEF_VAR;
 
 		} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
-			ERR_PRINT("Mismatched types.");  // to stejne tady
+			ERR_PRINT("Mismatched types.");
 			return COMP_ERR_MISMATCHED_TYPES;
 
 		} else if (ret == COMP_ERR_SA) {
@@ -1203,7 +1211,6 @@ rule_statement_list(struct bs_data *data)
 			goto cleanup;
 		}
 	} else if (current_token.type == LEX_EOF) {
-		//here write code
 		return COMP_OK;
 	} else if (current_token.type == KEYWORD_RETURN) {
 		if (ctx->in_function) {
@@ -1219,11 +1226,11 @@ rule_statement_list(struct bs_data *data)
 				/* expression parse will consume the first token */
 				ret = expression_parse(tmp, current_token);
 				if (ret == COMP_ERR_UNDEF_VAR) {
-					ERR_PRINT("Undefined variable."); // stejne
+					ERR_PRINT("Undefined variable.");
 					return COMP_ERR_UNDEF_VAR;
 
 				} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
-					ERR_PRINT("Mismatched types.");  // stejne zas
+					ERR_PRINT("Mismatched types.");
 					return COMP_ERR_MISMATCHED_TYPES;
 
 				} else if (ret == COMP_ERR_SA) {
@@ -1236,17 +1243,18 @@ rule_statement_list(struct bs_data *data)
 			}
 		}
 	} else if (current_token.type == R_CURLY) {
+		/* todo: fix single }*/
 		ctx->last_token = R_CURLY;
 		return COMP_OK;
 	} else if ((current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT) || (current_token.type == STR_LIT)) {
-		/* ex. 5; */
-		int ret = expression_parse(current_token, current_token);
+		/* expecting expr; */
+		ret = expression_parse(current_token, current_token);
 		if (ret == COMP_ERR_UNDEF_VAR) {
-			ERR_PRINT("Undefined variable."); // zase
+			ERR_PRINT("Undefined variable.");
 			return COMP_ERR_UNDEF_VAR;
 
 		} else if (ret == COMP_ERR_MISMATCHED_TYPES) {
-			ERR_PRINT("Mismatched types.");  // zase
+			ERR_PRINT("Mismatched types.");
 			return COMP_ERR_MISMATCHED_TYPES;
 
 		} else if (ret == COMP_ERR_SA) {

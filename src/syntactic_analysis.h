@@ -3,8 +3,19 @@
 
 #include "compiler.h"
 
+/**
+ * @brief Main parser function.
+ *	Syntactically check the prolog and then the rest of the program.
+ *
+ * @return COMP_OK on success, error otherwise.
+ */
 comp_err synt_parse();
 
+/**
+ * @brief Check if there were any undefined functions referenced.
+ *
+ * @return 0 if there were not, 1 if there were any.
+ */
 int check_undefined_functions();
 
 #endif

@@ -32,11 +32,6 @@ void generatorInit(){
   if (asprintf(&ptr, ".IFJcode22\n") == -1) exit(COMP_ERR_INTERNAL);
   if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
 
-
-  if (asprintf(&ptr, "CREATEFRAME\n") == -1) exit(COMP_ERR_INTERNAL);
-  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
-
-
   if (asprintf(&ptr, "DEFVAR GF@bool\n") == -1) exit(COMP_ERR_INTERNAL);
   if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
 
@@ -311,19 +306,6 @@ int generatorAssigment(const char* var_name){
 
 }
 
-void generatorPrepare(struct bs_data *functionData){ // redo to fdata
-  printf("PUSHFRAME");
-  printf("CREATEFRAME\n");
-
-  if(functionData->data.fdata.return_type != VOID){
-    printf("DEFVAR TF@ret\n");// can leave it here
-  }
-  if(functionData->data.fdata.param_count!= 0){
-    printf("DEFVAR TF@pcount\n");
-    printf("MOVE TF@pcount int@%d\n", functionData->data.fdata.param_count);
-  }
-}
-
 //for non-builtin functions creating frame id etc
 char* generatorCalculateId(){
 char idstr[1024]; // need some dynamic string or strdup
@@ -408,9 +390,6 @@ int generatorPushParam(){
 void generatorExecute(){ // need to know function name
   char* ptr;
 
-  if (asprintf(&ptr, "PUSHFRAME\n") == -1) exit(COMP_ERR_INTERNAL);
-  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
-
   if(generatorPushParam()){
     exit(COMP_ERR_INTERNAL);
   }
@@ -420,11 +399,13 @@ void generatorExecute(){ // need to know function name
     generatorFunWrite();
   } else {
     if (asprintf(&ptr, "CALL %s\n", generator.function_name) == -1) exit(COMP_ERR_INTERNAL);
-    if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+    if (generator.inFuntion) {
+      if (realloc_local_str(ptr)) exit(COMP_ERR_INTERNAL);
+    } else {
+      if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+  }
   }
 
-  if (asprintf(&ptr, "POPFRAME\n") == -1) exit(COMP_ERR_INTERNAL); // maybe delete depends
-  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
 }
 
 void generatorWriteCode(){
@@ -440,7 +421,7 @@ int generatorExpression(struct lexeme token){
       if (asprintf(&ptr, "PUSHS int@%d\n", token.value.int_val) == -1) return COMP_ERR_INTERNAL;
       if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
     }else if (token.type == STR_LIT) {
-      if (asprintf(&ptr, "PUSHS string@%s\n", token.value.str_val) == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "PUSHS string@%s\n", convertString(token.value.str_val)) == -1) return COMP_ERR_INTERNAL;
       if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
     }else if (token.type == DECIMAL_LIT) {
       if (asprintf(&ptr, "PUSHS float@%a\n", token.value.flt_val) == -1) return COMP_ERR_INTERNAL;
@@ -458,7 +439,7 @@ int generatorExpression(struct lexeme token){
       if (asprintf(&ptr, "PUSHS int@%d\n", token.value.int_val) == -1) return COMP_ERR_INTERNAL;
       if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
     }else if (token.type == STR_LIT) {
-      if (asprintf(&ptr, "PUSHS string@%s\n", token.value.str_val) == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "PUSHS string@%s\n", convertString(token.value.str_val)) == -1) return COMP_ERR_INTERNAL;
       if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
     }else if (token.type == DECIMAL_LIT) {
       if (asprintf(&ptr, "PUSHS float@%a\n", token.value.flt_val) == -1) return COMP_ERR_INTERNAL;
@@ -585,16 +566,32 @@ int generatorExprConcat(){
 
 
   if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
  //todo check if its string
  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
- if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+ if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
  if (asprintf(&ptr, "CONCAT GF@ret GF@tmp1 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
- if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+ if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
  if (asprintf(&ptr, "PUSHS GF@ret\n") == -1) return COMP_ERR_INTERNAL;
- if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+ if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   return 0;
 }
@@ -625,11 +622,18 @@ int generatorIfEquals(){
 
   char* ptr;
   if (asprintf(&ptr, "EQS\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
-
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   return 0;
 }
@@ -638,15 +642,26 @@ int generatorIfNotEquals(){
 
   char* ptr;
   if (asprintf(&ptr, "EQS\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   if (asprintf(&ptr, "NOTS\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
 
   if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
-
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   return 0;
 }
@@ -655,10 +670,18 @@ int generatorIfLess(){
 
   char* ptr;
   if (asprintf(&ptr, "LTS\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   return 0;
 }
@@ -667,10 +690,18 @@ int generatorIfGreater(){
 
   char* ptr;
   if (asprintf(&ptr, "GTS\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   return 0;
 }
@@ -679,14 +710,25 @@ int generatorIfEqualsGreater(){
 
   char* ptr;
   if (asprintf(&ptr, "LTS\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   if (asprintf(&ptr, "NOTS\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
-
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   return 0;
 
@@ -695,14 +737,26 @@ int generatorIfEqualsGreater(){
 int generatorIfEqualsLess(){
   char* ptr;
   if (asprintf(&ptr, "GTS\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   if (asprintf(&ptr, "NOTS\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
 
   if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   return 0;
 
@@ -715,10 +769,18 @@ int generatorIfTrue(){
   }
   char* ptr;
   if (asprintf(&ptr, "LABEL trueif%d\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   if (asprintf(&ptr, "JUMPIFEQ falseif%d GF@bool bool@false\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   generator.ifLabelCount++;
   if(generator.ifLabelCount > generator.ifCountMax){
@@ -734,22 +796,33 @@ int generatorIfTrueEnd(){
 
   char* ptr;
   if (asprintf(&ptr, "JUMP endif%d\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
   return 0;
 }
 
 int generatorIfFalse(){
   char* ptr;
   if (asprintf(&ptr, "LABEL falseif%d\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
-
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   return 0;
 }
 int generatorIfEnd(){
   char* ptr;
   if (asprintf(&ptr, "LABEL endif%d\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   //generator.ifLabelCount++;
   return 0;
@@ -763,14 +836,24 @@ int generatorWhileStart(){
 
   char *ptr;
   if (asprintf(&ptr, "LABEL while%d\n", generator.whileLabelCount) == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
   return 0;
 }
 
 int generatorWhileBody(){
   char* ptr;
   if (asprintf(&ptr, "JUMPIFEQ whileend%d GF@bool bool@false\n", generator.whileLabelCount) == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
   generator.whileLabelCount++;
 
   if(generator.whileLabelCount > generator.whileCountMax){
@@ -786,12 +869,20 @@ int generatorWhileEnd(){
   generator.whileLabelCount--;
 
   if (asprintf(&ptr, "JUMP while%d\n", generator.whileLabelCount) == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
   if (asprintf(&ptr, "LABEL whileend%d\n", generator.whileLabelCount) == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
-  return 0;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
 
+  return 0;
 }
 
 
@@ -1348,6 +1439,13 @@ int
 generate_function_return()
 {
   char *ptr;
+
+  if (asprintf(&ptr, "POPFRAME\n") == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+  if (realloc_function_def_str(ptr)) {
+    return COMP_ERR_INTERNAL;
+  }
 
   if (asprintf(&ptr, "RETURN\n") == -1) {
     return COMP_ERR_INTERNAL;
