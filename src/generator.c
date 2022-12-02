@@ -55,11 +55,7 @@ void generatorInit(){
   if (asprintf(&ptr, "DEFVAR GF@ret\n") == -1) exit(COMP_ERR_INTERNAL);
   if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
 
-//inserting here before builtin funs
 
-  if (generatorDivConversion()) {
-    exit(COMP_ERR_INTERNAL);
-  }
 
   if (generatorFunReads()) {
     exit(COMP_ERR_INTERNAL);
@@ -440,7 +436,8 @@ int generatorExpression(struct lexeme token){
       if (asprintf(&ptr, "PUSHS int@%d\n", token.value.int_val) == -1) return COMP_ERR_INTERNAL;
       if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
     }else if (token.type == STR_LIT) {
-      if (asprintf(&ptr, "PUSHS string@%s\n", token.value.str_val) == -1) return COMP_ERR_INTERNAL;
+      //here fixing fix to converted string
+      if (asprintf(&ptr, "PUSHS string@%s\n", convertString(token.value.str_val)) == -1) return COMP_ERR_INTERNAL;
       if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
     }else if (token.type == DECIMAL_LIT) {
       if (asprintf(&ptr, "PUSHS float@%a\n", token.value.flt_val) == -1) return COMP_ERR_INTERNAL;
@@ -458,7 +455,8 @@ int generatorExpression(struct lexeme token){
       if (asprintf(&ptr, "PUSHS int@%d\n", token.value.int_val) == -1) return COMP_ERR_INTERNAL;
       if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
     }else if (token.type == STR_LIT) {
-      if (asprintf(&ptr, "PUSHS string@%s\n", token.value.str_val) == -1) return COMP_ERR_INTERNAL;
+      //here fixing fix to converted string
+      if (asprintf(&ptr, "PUSHS string@%s\n", convertString(token.value.str_val)) == -1) return COMP_ERR_INTERNAL;
       if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
     }else if (token.type == DECIMAL_LIT) {
       if (asprintf(&ptr, "PUSHS float@%a\n", token.value.flt_val) == -1) return COMP_ERR_INTERNAL;
@@ -515,6 +513,13 @@ int generatorExprDiv(){
   char* ptr;
   // todo pop from stack typecast and then push back
 
+
+  //calling function that generates div convertions
+  if (strstr(generator.function_def_str, "$divConversion") == NULL){
+    if (generatorDivConversion()) return COMP_ERR_INTERNAL;
+
+  }
+
   if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
 
@@ -541,36 +546,90 @@ int generatorExprDiv(){
 int generatorDivConversion(){
   char *ptr;
 
-  //think of cases who should stop the error if string comes for example interpret / we
+
+/*
+string, bool =>  error
+int, null ==> typecast
+float ==> do nothing
+*/
 
   if (asprintf(&ptr, "LABEL $divConversion\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
-
+  //check the type
   if (asprintf(&ptr, "TYPE GF@type1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFNEQ $notFirstConversiondiv GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+
+// if its string bool -> error
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@string\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+// if its float -> we are done with first
+  if (asprintf(&ptr, "JUMPIFEQ $firstConvertedDiv GF@type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  //if its not int jump to not converted by int
+  if (asprintf(&ptr, "JUMPIFNEQ $notFirstConversionDivInt GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  //if its int we are converting int to float
   if (asprintf(&ptr, "INT2FLOAT GF@tmp1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
-
-  if (asprintf(&ptr, "LABEL $notFirstConversiondiv\n") == -1) return COMP_ERR_INTERNAL;
+  // we converted jump first converted
+  if (asprintf(&ptr, "JUMP $firstConvertedDiv\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $notFirstConversionDivInt\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+  //if its not anything above it was null convert to 0.0
+
+  if (asprintf(&ptr, "MOVE GF@tmp1 float@0x0p+0\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $firstConvertedDiv\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
 
   if (asprintf(&ptr, "TYPE GF@type1 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFNEQ $notSecondConversiondiv GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@string\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+// if its float -> we are done with first
+  if (asprintf(&ptr, "JUMPIFEQ $secondConvertedDiv GF@type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+
+  if (asprintf(&ptr, "JUMPIFNEQ $notSecondConversionDivInt GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
   if (asprintf(&ptr, "INT2FLOAT GF@tmp2 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
+  if (asprintf(&ptr, "JUMP $secondConvertedDiv\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "LABEL $notSecondConversiondiv\n") == -1) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "LABEL $notSecondConversionDivInt\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "MOVE GF@tmp2 float@0x0p+0\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $secondConvertedDiv\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
   if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
