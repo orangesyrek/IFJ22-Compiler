@@ -2,25 +2,19 @@
 declare(strict_types=1);
 // Program 1: Vypocet faktorialu (iterativne)
 // Hlavni telo programu
-$x = 0;
-
-$y = 0;
-//write($x);
-
-while($x < 3){
-  while($y < 3){
-    write("hey\n");
-    $y = $y + 1;
-  }
-  write($x, "\n");
-  $x = $x + 1;
-  $y = 0;
+write("Zadejte cislo pro vypocet faktorialu\n");
+$a = readi();
+if ($a === null) {
+  write("Chyba pri nacitani celeho cisla!\n");
+} else {}
+if ($a < 0) {
+  write("Faktorial nelze spocitat\n");
+} else {
+  $vysl = 1;
+  while ($a > 0) {
+    write("ahoj\n");
+    $vysl = $vysl * $a;
+    $a = $a - 1;
 }
-
-$x = 0;
-while($x < 3){
-  write($x, "\n");
-  $x = $x + 1;
-
+write("Vysledek je: ", $vysl, "\n");
 }
-//write($x);

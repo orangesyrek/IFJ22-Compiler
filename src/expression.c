@@ -126,7 +126,7 @@ get_op (expression_symbols stack_top, expression_symbols input)
 			break;
 	}
 
-	// Gets the precedence table column based on terminal on the input 
+	// Gets the precedence table column based on terminal on the input
 	switch (input)
 	{
 		case E_PLUS:
@@ -202,52 +202,52 @@ test_rule (int count, stack_item one, stack_item two, stack_item three)
 					case E_MINUS:
 						return E_MINUS_E;
 						break;
-					
+
 					// E -> E . E
 					case E_CON:
 						return E_CON_E;
 						break;
-					
+
 					// E -> E * E
 					case E_MUL:
 						return E_MUL_E;
 						break;
-					
+
 					// E -> E / E
 					case E_DIV:
 						return E_DIV_E;
 						break;
-					
+
 					// E -> E < E
 					case E_LT:
 						return E_LT_E;
 						break;
-					
+
 					// E -> E <= E
 					case E_LEQ:
 						return E_LEQ_E;
 						break;
-					
+
 					// E -> E > E
 					case E_GT:
 						return E_GT_E;
 						break;
-					
+
 					// E -> E >= E
 					case E_GEQ:
 						return E_GEQ_E;
 						break;
-					
+
 					// E -> E === E
 					case E_EQ:
 						return E_EQ_E;
 						break;
-					
+
 					// E -> E !== E
 					case E_NEQ:
 						return E_NEQ_E;
 						break;
-					
+
 					// Rule not found
 					default:
 						return NOT_A_RULE;
@@ -333,7 +333,7 @@ test_semantics (rules rule, stack_item one, stack_item two, stack_item three, le
 			break;
 
 		// E -> E + E
-		case E_PLUS_E:    
+		case E_PLUS_E:
 
 			if (one.type == STR_LIT || three.type == STR_LIT) {
 				return COMP_ERR_MISMATCHED_TYPES;
@@ -347,7 +347,7 @@ test_semantics (rules rule, stack_item one, stack_item two, stack_item three, le
 			break;
 
 		// E -> E - E
-		case E_MINUS_E:   
+		case E_MINUS_E:
 
 			if (one.type == STR_LIT || three.type == STR_LIT) {
 				return COMP_ERR_MISMATCHED_TYPES;
@@ -361,7 +361,7 @@ test_semantics (rules rule, stack_item one, stack_item two, stack_item three, le
 			break;
 
 		// E -> E * E
-		case E_MUL_E:     
+		case E_MUL_E:
 
 			if (one.type == STR_LIT || three.type == STR_LIT) {
 				return COMP_ERR_MISMATCHED_TYPES;
@@ -375,7 +375,7 @@ test_semantics (rules rule, stack_item one, stack_item two, stack_item three, le
 			break;
 
 		// E -> E . E
-		case E_CON_E:     
+		case E_CON_E:
 
 			if (one.type == INT_LIT || one.type == DECIMAL_LIT || three.type == INT_LIT || three.type == DECIMAL_LIT)
 			{
@@ -386,7 +386,7 @@ test_semantics (rules rule, stack_item one, stack_item two, stack_item three, le
 			break;
 
 		// E -> E / E
-		case E_DIV_E:     
+		case E_DIV_E:
 
 			if (one.type == STR_LIT || three.type == STR_LIT) {
 				return COMP_ERR_MISMATCHED_TYPES;
@@ -414,77 +414,77 @@ test_semantics (rules rule, stack_item one, stack_item two, stack_item three, le
 	switch (rule)
 	{
 		// E -> i
-		case E_TO_I:      
-
+		case E_TO_I:
+			generator.isIf = 0;
 			if (generatorExpression(one.token)) return COMP_ERR_INTERNAL;
 			break;
 
 		// E -> (E)
-		case LBRA_E_RBRA: 
+		case LBRA_E_RBRA:
 			break;
 
 		// E -> E + E
-		case E_PLUS_E:   
+		case E_PLUS_E:
 			generator.isIf = 0;
 			generatorExprPlus();
 			break;
 
 		// E -> E - E
-		case E_MINUS_E:   
+		case E_MINUS_E:
 			generator.isIf = 0;
 			generatorExprMinus();
 			break;
 
 		// E -> E * E
-		case E_MUL_E:     
+		case E_MUL_E:
 			generator.isIf = 0;
 			generatorExprMul();
 			break;
 
 		// E -> E . E
-		case E_CON_E:     
+		case E_CON_E:
 			generator.isIf = 0;
 			generatorExprConcat();
 			break;
 
 		// E -> E / E
-		case E_DIV_E:     
+		case E_DIV_E:
 			generator.isIf = 0;
 			generatorExprDiv();
 			break;
 
 		// E -> E < E
-		case E_LT_E:      
+		case E_LT_E:
 			generator.isIf = 1;
 			generatorIfLess();
 			break;
 
-		// E -> E > E	
-		case E_GT_E:      
+		// E -> E > E
+		case E_GT_E:
 			generator.isIf = 1;
 			generatorIfGreater();
 			break;
 
 		// E -> E <= E
-		case E_LEQ_E:     
+		case E_LEQ_E:
 			generator.isIf = 1;
 			generatorIfEqualsLess();
 			break;
 
 		// E -> E >= E
-		case E_GEQ_E:     
+		case E_GEQ_E:
 			generator.isIf = 1;
 			generatorIfEqualsGreater();
 			break;
 
 		// E -> E === E
-		case E_EQ_E:      
+		case E_EQ_E:
 			generator.isIf = 1;
 			generatorIfEquals();
 			break;
 
 		// E -> E !== E
-		case E_NEQ_E:     
+		case E_NEQ_E:
 			generator.isIf = 1;
 			generatorIfNotEquals();
 			break;
@@ -571,7 +571,7 @@ expression_parse (struct lexeme start_token, struct lexeme first_token)
 
 	// If only DOLLAR is on the stack and we found the end token, this will stop
 	} while (!(stack_top_terminal().symbol == E_DOLLAR && current_token.type == end_token_type));
-	
+
 	// Call the function generating the end of expression and return
 	if (generatorExpressionCalculated()) return COMP_ERR_INTERNAL;
 	return COMP_OK;
