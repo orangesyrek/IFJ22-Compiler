@@ -753,7 +753,9 @@ rule_func_def()
 	/* insert return type */
 	if (current_token.type == PARAM_TYPE) {
 		data->data.fdata.return_type = token_get_param_type(current_token.id);
+		ctx->curr_fun_ret_type = token_get_param_type(current_token.id);
 	} else {
+		ctx->curr_fun_ret_type = VOID;
 		data->data.fdata.return_type = VOID;
 		ctx->seen_return = 1;
 	}
@@ -792,6 +794,10 @@ rule_func_def()
 
 	if (param_check) {
 		ctx->unchecked_functions[rc] = NULL;
+	}
+
+	if (generator_function_def_end()) {
+		return COMP_ERR_INTERNAL;
 	}
 
 	if (generate_function_return()) {
@@ -895,6 +901,10 @@ rule_var_declaration(char *var_name)
 		}
 		v_data->data.vdata.is_defined = 1;
 		if (ctx->in_function) {
+			if (defvar_local(var_name)) {
+				ret = COMP_ERR_INTERNAL;
+				goto cleanup;
+			}
 			rc = symtabInsert(&ctx->local_sym_tab, var_name, v_data);
 		} else {
 			// info to generator
@@ -1061,7 +1071,7 @@ rule_return(struct function_data data)
 	next_token = getToken();
 	if (next_token.type != SEMICOLON) {
 		/* check if function returns void */
-		if (data.return_type == VOID && strcmp(generator.function_name, "write")) {
+		if (ctx->curr_fun_ret_type == VOID) {
 			ERR_PRINT("Return expression found in void function.");
 			return COMP_ERR_FUNC_RETURN;
 		}

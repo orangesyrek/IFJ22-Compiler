@@ -121,6 +121,10 @@ void generator_reset();
 
 int generate_function_def();
 
+int generator_function_def_end();
+
 int generate_function_return();
 
 int return_type_check(type return_type);
+
+int defvar_local(const char *var_name);
