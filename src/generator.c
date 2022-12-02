@@ -302,12 +302,6 @@ int generatorAssigment(const char* var_name){
     //printf("MOVE GF@%s GF@ret\n", var_name);
     if (asprintf(&ptr, "MOVE LF@%s GF@ret\n", var_name) == -1) return COMP_ERR_INTERNAL;
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
-    /* store into fun */
-    if (realloc_function_def_str(generator.local_str)) {
-      return COMP_ERR_INTERNAL;
-    }
-    free(generator.local_str);
-    generator.local_str = NULL;
   }else{
     if (asprintf(&ptr, "MOVE GF@%s GF@ret\n", var_name) == -1) return COMP_ERR_INTERNAL;
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
@@ -357,29 +351,29 @@ int generatorPushParam(){
     for (int i = 0; i < generator.param_count; i++) {
       if (generator.params[i].type == INT) {
         if (asprintf(&ptr, "PUSHS int@%d\n", generator.params[i].value.int_val) == -1) return COMP_ERR_INTERNAL;
-        if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+        if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
       } else if (generator.params[i].type == FLOAT) {
         if (asprintf(&ptr, "PUSHS float@%a\n", generator.params[i].value.flt_val) == -1) return COMP_ERR_INTERNAL;
-        if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+        if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
       } else if (generator.params[i].type == STRING) {
         str = convertString(generator.params[i].value.str_val);
         if (!str) {
           return COMP_ERR_INTERNAL;
         }
         if (asprintf(&ptr, "PUSHS string@%s\n", str) == -1) return COMP_ERR_INTERNAL;
-        if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+        if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
       } else if (generator.params[i].type == UNKNOWN) {
           if (asprintf(&ptr, "PUSHS LF@%s\n", generator.params[i].value.var_name) == -1) {
             return COMP_ERR_INTERNAL;
           }
-          if (realloc_function_def_str(ptr)) {
+          if (realloc_local_str(ptr)) {
            return COMP_ERR_INTERNAL;
           }
       } else if (generator.params[i].type == T_NULL) {
         if (asprintf(&ptr, "PUSHS nil@nil\n") == -1) {
             return COMP_ERR_INTERNAL;
         }
-        if (realloc_function_def_str(ptr)) {
+        if (realloc_local_str(ptr)) {
          return COMP_ERR_INTERNAL;
         }
       }
@@ -612,12 +606,6 @@ int generatorExpressionCalculated(){
     if (asprintf(&ptr, "POPS GF@ret\n") == -1) return COMP_ERR_INTERNAL;
     if (generator.inFuntion) {
       if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
-      /* finalize */
-      if (realloc_function_def_str(generator.local_str)) {
-        return COMP_ERR_INTERNAL;
-      }
-      free(generator.local_str);
-      generator.local_str = NULL;
     } else {
       if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
     }
@@ -814,7 +802,7 @@ int generatorFunWrite(){
     return COMP_ERR_INTERNAL;
   }
   if (generator.inFuntion) {
-    if (realloc_function_def_str(ptr)) {
+    if (realloc_local_str(ptr)) {
       return COMP_ERR_INTERNAL;
     }
   } else {
@@ -1339,6 +1327,24 @@ generate_function_def()
 }
 
 int
+generator_function_def_end()
+{
+  if (generator.local_str_var) {
+    if (realloc_function_def_str(generator.local_str_var)) {
+      return COMP_ERR_INTERNAL;
+    }
+  }
+
+  if (generator.local_str) {
+    if (realloc_function_def_str(generator.local_str)) {
+      return COMP_ERR_INTERNAL;
+    }
+  }
+
+  return COMP_OK;
+}
+
+int
 generate_function_return()
 {
   char *ptr;
@@ -1380,3 +1386,22 @@ return_type_check(type return_type)
 
   return COMP_OK;
 }
+
+int
+defvar_local(const char *var_name)
+{
+  char *ptr;
+
+  if (asprintf(&ptr, "DEFVAR LF@%s\n", var_name) == -1) {
+    return COMP_ERR_INTERNAL;
+  }
+
+  if (!generator.local_str_var || !strstr(generator.local_str_var, ptr)) {
+    if (realloc_local_str_var(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+  }
+
+  return COMP_OK;
+}
+
