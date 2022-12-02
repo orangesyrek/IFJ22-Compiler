@@ -73,7 +73,8 @@ typedef struct item {
  *
  * @return     Returns symbol corresponding to the given token
  */
-expression_symbols token_to_symbol (struct lexeme token);
+expression_symbols
+token_to_symbol (struct lexeme token);
 
 /**
  * @brief      Gets the operation based on the top of the stack and the current token symbol
@@ -83,7 +84,8 @@ expression_symbols token_to_symbol (struct lexeme token);
  *
  * @return     Returns the operation
  */
-expression_symbols get_op (expression_symbols stack_top, expression_symbols input);
+expression_symbols
+get_op (expression_symbols stack_top, expression_symbols input);
 
 /**
  * @brief      Check what rule should be applied based on the three top terminals on the stack
@@ -95,14 +97,16 @@ expression_symbols get_op (expression_symbols stack_top, expression_symbols inpu
  *
  * @return     Corresponding rule
  */
-rules test_rule (int count, stack_item one, stack_item two, stack_item three);
+rules
+test_rule (int count, stack_item one, stack_item two, stack_item three);
 
 /**
  * @brief      Reduces the terminals on stack based on the rule from function test_rule
  *
  * @return     Returns COMP_OK if succesfull, other errors (based on the issue) when not 
  */
-comp_err reduce ();
+comp_err
+reduce ();
 
 /**
  * @brief      Partially tests the semantics of the operations, also calls functions responsible for generating code
@@ -115,7 +119,8 @@ comp_err reduce ();
  *
  * @return     Returns COMP_OK if succesfull, other errors (based on the issue) when not
  */
-comp_err test_semantics (rules rule, stack_item one, stack_item two, stack_item three, lex_types *non_term_type);
+comp_err
+test_semantics (rules rule, stack_item one, stack_item two, stack_item three, lex_types *non_term_type);
 
 /**
  * @brief      Main function which parses the expression
@@ -125,6 +130,7 @@ comp_err test_semantics (rules rule, stack_item one, stack_item two, stack_item 
  *
  * @return     Returns COMP_OK if succesfull, other errors (based on the issue) when not
  */
-comp_err expression_parse (struct lexeme start_token, struct lexeme first_token);
+comp_err
+expression_parse (struct lexeme start_token, struct lexeme first_token);
 
 #endif

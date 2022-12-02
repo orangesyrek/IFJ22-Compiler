@@ -25,7 +25,8 @@ int precedence_table[8][8] = {
 
 };
 
-expression_symbols token_to_symbol (struct lexeme token)
+expression_symbols
+token_to_symbol (struct lexeme token)
 {
 	switch (token.type)
 	{
@@ -80,12 +81,13 @@ expression_symbols token_to_symbol (struct lexeme token)
 	}
 }
 
-// Get operation from precedence table
-expression_symbols get_op (expression_symbols stack_top, expression_symbols input)
+expression_symbols
+get_op (expression_symbols stack_top, expression_symbols input)
 {
 	int row;
 	int col;
 
+	// Gets the precedence table row based on terminal on the top of the stack
 	switch (stack_top)
 	{
 		case E_PLUS:
@@ -124,6 +126,7 @@ expression_symbols get_op (expression_symbols stack_top, expression_symbols inpu
 			break;
 	}
 
+	// Gets the precedence table column based on terminal on the input 
 	switch (input)
 	{
 		case E_PLUS:
@@ -166,17 +169,22 @@ expression_symbols get_op (expression_symbols stack_top, expression_symbols inpu
 	else return precedence_table[row][col];
 }
 
-rules test_rule (int count, stack_item one, stack_item two, stack_item three)
+rules
+test_rule (int count, stack_item one, stack_item two, stack_item three)
 {
 	switch (count)
 	{
+		// count == 1 => this rule only needs one terminal
 		case 1:
 			if (one.symbol == E_ID)
 			{
 				return E_TO_I;
 			}
 			break;
+
+		// count == 3 => this rule needs three terminals
 		case 3:
+			// E -> (E)
 			if (three.symbol == E_L_BRACKET && two.symbol == E_NON_TERM && one.symbol == E_R_BRACKET)
 			{
 				return LBRA_E_RBRA;
@@ -185,41 +193,63 @@ rules test_rule (int count, stack_item one, stack_item two, stack_item three)
 			{
 				switch (two.symbol)
 				{
+					// E -> E + E
 					case E_PLUS:
 						return E_PLUS_E;
 						break;
+
+					// E -> E - E
 					case E_MINUS:
 						return E_MINUS_E;
 						break;
+					
+					// E -> E . E
 					case E_CON:
 						return E_CON_E;
 						break;
+					
+					// E -> E * E
 					case E_MUL:
 						return E_MUL_E;
 						break;
+					
+					// E -> E / E
 					case E_DIV:
 						return E_DIV_E;
 						break;
+					
+					// E -> E < E
 					case E_LT:
 						return E_LT_E;
 						break;
+					
+					// E -> E <= E
 					case E_LEQ:
 						return E_LEQ_E;
 						break;
+					
+					// E -> E > E
 					case E_GT:
 						return E_GT_E;
 						break;
+					
+					// E -> E >= E
 					case E_GEQ:
 						return E_GEQ_E;
 						break;
+					
+					// E -> E === E
 					case E_EQ:
 						return E_EQ_E;
 						break;
+					
+					// E -> E !== E
 					case E_NEQ:
 						return E_NEQ_E;
 						break;
+					
+					// Rule not found
 					default:
-						//printf("NOT A RULE!\n");
 						return NOT_A_RULE;
 						break;
 				}
@@ -233,15 +263,19 @@ rules test_rule (int count, stack_item one, stack_item two, stack_item three)
 	return NOT_A_RULE;
 }
 
-comp_err reduce (int count)
+comp_err
+reduce (int count)
 {
+	// Temporary empty stack_item, set to {0}, just so I don't pass it into the function unset
 	stack_item tmp = {0};
+	// Temporary empty token, set to {0}, to be passed into stack_push function with non terminal (they don't correspond to any token)
 	struct lexeme empty_token = {0};
 
-	rules rule;
-	lex_types non_term_type;
+	rules rule; // Rule to be returned
+	lex_types non_term_type; // Type of the non terminal after the rule reduction has occured
 	comp_err semantics_check;
 
+	// Based on count, test if the rule exists check the semantics
 	if (count == 1) {
 
 		rule = test_rule(1, stack_peek_1(), tmp, tmp);
@@ -253,33 +287,29 @@ comp_err reduce (int count)
 		semantics_check = test_semantics(rule, stack_peek_1(), stack_peek_2(), stack_peek_3(), &non_term_type);
 
 	} else {
-			//printf("COUNT IS NOT 1 OR 3\n");
 			return COMP_ERR_SA;
 	}
 
+	// Return errors if something is wrong
 	if (rule == NOT_A_RULE) return COMP_ERR_SA;
 	if (semantics_check != COMP_OK) return semantics_check;
 
-
+	// Finally, reduce
 	stack_pop_times(count + 1);
 	stack_push(E_NON_TERM, non_term_type, empty_token);
 	return COMP_OK;
 }
 
-comp_err test_semantics (rules rule, stack_item one, stack_item two, stack_item three, lex_types *non_term_type)
+comp_err
+test_semantics (rules rule, stack_item one, stack_item two, stack_item three, lex_types *non_term_type)
 {
-	// Just to get rid of warnings
-	stack_item item = two;
-	two = item;
-
-	//printf("rule: %d\n", rule);
-	//printf("one.type: %d\n", one.type);
-	//printf("two.type: %d\n", two.type);
-  //printf("three.type: %d\n", three.type);
-  	switch (rule)
+	// This switch is for testing semantics (can't check variable semantics, but can check constant semantics)
+  switch (rule)
 	{
-		case E_TO_I:      // E -> i
+		// E -> i
+		case E_TO_I:
 
+			// Check if variable is in the table of symbols (is defined)
 			// Only need to test here because this rule will always be applied before the others
 			if (one.type == VAR || one.type == FUN_ID) {
 				if (ctx->in_function) {
@@ -296,12 +326,14 @@ comp_err test_semantics (rules rule, stack_item one, stack_item two, stack_item 
 			*non_term_type = one.type;
 			break;
 
-		case LBRA_E_RBRA: // E -> (E)
+ 		// E -> (E)
+		case LBRA_E_RBRA:
 
 			*non_term_type = two.type;
 			break;
 
-		case E_PLUS_E:    // E -> E + E
+		// E -> E + E
+		case E_PLUS_E:    
 
 			if (one.type == STR_LIT || three.type == STR_LIT) {
 				return COMP_ERR_MISMATCHED_TYPES;
@@ -314,7 +346,8 @@ comp_err test_semantics (rules rule, stack_item one, stack_item two, stack_item 
 			}
 			break;
 
-		case E_MINUS_E:   // E -> E - E
+		// E -> E - E
+		case E_MINUS_E:   
 
 			if (one.type == STR_LIT || three.type == STR_LIT) {
 				return COMP_ERR_MISMATCHED_TYPES;
@@ -327,7 +360,8 @@ comp_err test_semantics (rules rule, stack_item one, stack_item two, stack_item 
 			}
 			break;
 
-		case E_MUL_E:     // E -> E * E
+		// E -> E * E
+		case E_MUL_E:     
 
 			if (one.type == STR_LIT || three.type == STR_LIT) {
 				return COMP_ERR_MISMATCHED_TYPES;
@@ -340,7 +374,8 @@ comp_err test_semantics (rules rule, stack_item one, stack_item two, stack_item 
 			}
 			break;
 
-		case E_CON_E:     // E -> E . E
+		// E -> E . E
+		case E_CON_E:     
 
 			if (one.type == INT_LIT || one.type == DECIMAL_LIT || three.type == INT_LIT || three.type == DECIMAL_LIT)
 			{
@@ -350,7 +385,8 @@ comp_err test_semantics (rules rule, stack_item one, stack_item two, stack_item 
 			}
 			break;
 
-		case E_DIV_E:     // E -> E / E
+		// E -> E / E
+		case E_DIV_E:     
 
 			if (one.type == STR_LIT || three.type == STR_LIT) {
 				return COMP_ERR_MISMATCHED_TYPES;
@@ -369,67 +405,86 @@ comp_err test_semantics (rules rule, stack_item one, stack_item two, stack_item 
 			*non_term_type = INT_LIT;
 			break;
 
+		// Should not happen
 		default:
 			break;
 	}
 
-
+	// This switch will call the corresponding function for generating code
 	switch (rule)
 	{
-		case E_TO_I:      // E -> i
+		// E -> i
+		case E_TO_I:      
 
 			if (generatorExpression(one.token)) return COMP_ERR_INTERNAL;
 			break;
 
-		case LBRA_E_RBRA: // E -> (E)
+		// E -> (E)
+		case LBRA_E_RBRA: 
 			break;
 
-		case E_PLUS_E:    // E -> E + E
+		// E -> E + E
+		case E_PLUS_E:   
 			generator.isIf = 0;
 			generatorExprPlus();
 			break;
 
-		case E_MINUS_E:   // E -> E - E
+		// E -> E - E
+		case E_MINUS_E:   
 			generator.isIf = 0;
 			generatorExprMinus();
 			break;
 
-		case E_MUL_E:     // E -> E * E
+		// E -> E * E
+		case E_MUL_E:     
 			generator.isIf = 0;
 			generatorExprMul();
 			break;
 
-		case E_CON_E:     // E -> E . E
+		// E -> E . E
+		case E_CON_E:     
 			generator.isIf = 0;
 			generatorExprConcat();
 			break;
 
-		case E_DIV_E:     // E -> E / E
+		// E -> E / E
+		case E_DIV_E:     
 			generator.isIf = 0;
 			generatorExprDiv();
 			break;
 
-		case E_LT_E:      // E -> E < E
+		// E -> E < E
+		case E_LT_E:      
 			generator.isIf = 1;
 			generatorIfLess();
 			break;
-		case E_GT_E:      // E -> E > E
+
+		// E -> E > E	
+		case E_GT_E:      
 			generator.isIf = 1;
 			generatorIfGreater();
 			break;
-		case E_LEQ_E:     // E -> E <= E
+
+		// E -> E <= E
+		case E_LEQ_E:     
 			generator.isIf = 1;
 			generatorIfEqualsLess();
 			break;
-		case E_GEQ_E:     // E -> E >= E
+
+		// E -> E >= E
+		case E_GEQ_E:     
 			generator.isIf = 1;
 			generatorIfEqualsGreater();
 			break;
-		case E_EQ_E:      // E -> E === E
+
+		// E -> E === E
+		case E_EQ_E:      
 			generator.isIf = 1;
 			generatorIfEquals();
 			break;
-		case E_NEQ_E:     // E -> E !== E
+
+		// E -> E !== E
+		case E_NEQ_E:     
 			generator.isIf = 1;
 			generatorIfNotEquals();
 			break;
@@ -440,13 +495,16 @@ comp_err test_semantics (rules rule, stack_item one, stack_item two, stack_item 
 	return COMP_OK;
 }
 
-comp_err expression_parse (struct lexeme start_token, struct lexeme first_token)
+comp_err
+expression_parse (struct lexeme start_token, struct lexeme first_token)
 {
 	stack_init();
+
+	// Temporary empty token, set to {0}, to be passed into stack_push function with operation (they don't correspond to any token)
 	struct lexeme empty_token = {0};
 	struct lexeme current_token;
-	stack_item stack_current_token;
-	stack_item stack_top_term;
+	stack_item stack_current_token; // Current token to be pushed onto stack
+	stack_item stack_top_term; // Terminal on the top of the stack
 	comp_err reduce_error;
 
 	// Where to end
@@ -455,12 +513,10 @@ comp_err expression_parse (struct lexeme start_token, struct lexeme first_token)
 	if (start_token.type == L_PAR) end_token_type = R_PAR;          // ( ... )
 	else end_token_type = SEMICOLON;																// return ... ; NEBO = ... ;
 
-	/*if (end_token_type == SEMICOLON) printf("END TOKEN: SEMICOLON\n");
-	else if (end_token_type == R_PAR) printf("END TOKEN: R_PAR\n");
-	else printf("END TOKEN ERROR\n");*/
-
+	// At the beginning, push a dollar onto stack
 	stack_push(E_DOLLAR, 0, empty_token);
 
+	// Determine which token to start with based on start_token and first_token
 	if (start_token.type != first_token.type) {
 		current_token = first_token;
 	} else {
@@ -471,58 +527,52 @@ comp_err expression_parse (struct lexeme start_token, struct lexeme first_token)
 
 	do
 	{
-		//printToken(current_token);
-
-		// Get a symbol equivalent to current token
+		// Get the symbol and type of the current token
 		stack_current_token.symbol = token_to_symbol(current_token);
 		stack_current_token.type = current_token.type;
-		/*if (current_token_symbol == E_ID) printf("CURRENT TOKEN SYMBOL: E_ID\n");
-		else if (current_token_symbol == E_PLUS) printf("CURRENT TOKEN SYMBOL: E_PLUS\n");
-		else if (current_token_symbol == E_MUL) printf("CURRENT TOKEN SYMBOL: E_MUL\n");
-		else printf("CURRENT TOKEN SYMBOL ERROR\n");*/
 
+		// Get the top terminal on the stack
 		stack_top_term = stack_top_terminal();
-		/*if (stack_top_term == E_ID) printf("STACK TOP TERMINAL: E_ID\n");
-		else if (stack_top_term == E_PLUS) printf("STACK TOP TERMINAL: E_PLUS\n");
-		else if (stack_top_term == E_MUL) printf("STACK TOP TERMINAL: E_MUL\n");
-		else if (stack_top_term == E_DOLLAR) printf("STACK TOP TERMINAL: E_DOLLAR\n");
-		else printf("STACK TOP TERMINAL ERROR\n");*/
 
 		int count;
 
+		// Determine the operation that should be done
 		switch(get_op(stack_top_term.symbol, stack_current_token.symbol))
 		{
+			// Equal
 			case E:
-				//printf("CASE: E\n");
 				stack_push(stack_current_token.symbol, stack_current_token.type, empty_token);
 				current_token = getToken();
 				break;
+
+			// Shift
 			case S:
-				//printf("CASE: S\n");
 				stack_push_after_top_terminal(S, 0, empty_token);
 				stack_push(stack_current_token.symbol, stack_current_token.type, current_token);
 				current_token = getToken();
 				break;
+
+			// Reduce
 			case R:
-				//printf("CASE: R\n");
 				count = stack_until_shift();
 				reduce_error = reduce(count);
 				if (reduce_error != COMP_OK) return reduce_error; // Error in reduce function
 				break;
+
+			// Wrong combination
 			case X:
-				//printf("CASE: X\n");
 				return COMP_ERR_SA;
 				break;
+
 			default:
-				//printf("CASE ERROR\n");
 				return COMP_ERR_SA;
 				break;
 		}
-		// stack_print();
 
+	// If only DOLLAR is on the stack and we found the end token, this will stop
 	} while (!(stack_top_terminal().symbol == E_DOLLAR && current_token.type == end_token_type));
-
-	//printf("EXPRESSION PARSING OK\n");
+	
+	// Call the function generating the end of expression and return
 	if (generatorExpressionCalculated()) return COMP_ERR_INTERNAL;
 	return COMP_OK;
 }
