@@ -190,7 +190,11 @@ int defvar_global(const char *var_name){
     return COMP_ERR_INTERNAL;
   }
 
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (strstr(generator.global_str, ptr) == NULL){
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
 
   free(ptr);
   return 0;
@@ -761,6 +765,45 @@ int generatorIfEnd(){
 
   //generator.ifLabelCount++;
   return 0;
+}
+
+int generatorWhileStart(){
+
+  if(generator.whileCountMax != 0 && generator.whileLabelCount == 0){
+    generator.whileLabelCount = generator.whileCountMax;
+  }
+
+  char *ptr;
+  if (asprintf(&ptr, "LABEL while%d\n", generator.whileLabelCount) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  return 0;
+}
+
+int generatorWhileBody(){
+  char* ptr;
+  if (asprintf(&ptr, "JUMPIFEQ whileend%d GF@bool bool@false\n", generator.whileLabelCount) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  generator.whileLabelCount++;
+
+  if(generator.whileLabelCount > generator.whileCountMax){
+    generator.whileCountMax = generator.whileLabelCount;
+  }
+
+
+  return 0;
+}
+
+int generatorWhileEnd(){
+  char *ptr;
+  generator.whileLabelCount--;
+
+  if (asprintf(&ptr, "JUMP while%d\n", generator.whileLabelCount) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "LABEL whileend%d\n", generator.whileLabelCount) == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  return 0;
+
 }
 
 

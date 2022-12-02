@@ -27,6 +27,8 @@ struct generator {
 	int function_call_cnt;		/**< function call id */
 	int ifLabelCount; /** Label naming*/
 	int ifCountMax; /** Maximal count of nested if's*/
+	int whileLabelCount; /** Label naming*/
+	int whileCountMax; /** Maximal count of nested while's*/
 
 	int isIf;
 	int inFuntion;
@@ -59,6 +61,11 @@ int generatorIfGreater();
 int generatorIfEqualsGreater();
 int generatorIfEqualsLess();
 int generatorIfNotEquals();
+
+int generatorWhileStart();
+int generatorWhileBody();
+int generatorWhileEnd();
+
 
 void generatorInit();
 

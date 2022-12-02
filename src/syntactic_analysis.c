@@ -995,6 +995,8 @@ rule_while_statement()
 	int ret = COMP_OK;
 	struct lexeme current_token;
 
+
+	generatorWhileStart();
 	current_token = getToken();
 	if (current_token.type != L_PAR) {
 		goto cleanup;
@@ -1017,6 +1019,7 @@ rule_while_statement()
 	if (current_token.type != L_CURLY) {
 		goto cleanup;
 	}
+	generatorWhileBody();
 
 	ret = rule_statement_list();
 	if (ret != COMP_OK) {
@@ -1026,6 +1029,7 @@ rule_while_statement()
 	if (ctx->last_token != R_CURLY) {
 		goto cleanup;
 	}
+	generatorWhileEnd();
 
 	return COMP_OK;
 
