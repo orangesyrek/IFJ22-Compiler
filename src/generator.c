@@ -475,6 +475,29 @@ int generatorExpression(struct lexeme token){
 
 int generatorExprPlus(){
   char* ptr;
+
+
+  if (strstr(generator.function_def_str, "$plusConversion") == NULL){
+    if (plusConversion()) return COMP_ERR_INTERNAL;
+  }
+
+  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "CALL $plusConversion\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
   if (asprintf(&ptr, "ADDS\n") == -1) return COMP_ERR_INTERNAL;
 
   if (generator.inFuntion) {
@@ -482,6 +505,19 @@ int generatorExprPlus(){
   } else {
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
+  return 0;
+}
+
+int plusConversion(){
+  char* ptr;
+
+  if (asprintf(&ptr, "LABEL $plusConversion\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
   return 0;
 }
 
@@ -516,7 +552,7 @@ int generatorExprDiv(){
 
   //calling function that generates div convertions
   if (strstr(generator.function_def_str, "$divConversion") == NULL){
-    if (generatorDivConversion()) return COMP_ERR_INTERNAL;
+    if (divConversion()) return COMP_ERR_INTERNAL;
 
   }
 
@@ -543,7 +579,7 @@ int generatorExprDiv(){
   return 0;
 }
 
-int generatorDivConversion(){
+int divConversion(){
   char *ptr;
 
 
@@ -643,21 +679,88 @@ int generatorExprConcat(){
   char* ptr;
 
 
+  if (strstr(generator.function_def_str, "$concatConversion") == NULL){
+    if (concatConversion()) return COMP_ERR_INTERNAL;
+  }
+
   if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
- //todo check if its string
- if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
- if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
 
- if (asprintf(&ptr, "CONCAT GF@ret GF@tmp1 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
- if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
 
- if (asprintf(&ptr, "PUSHS GF@ret\n") == -1) return COMP_ERR_INTERNAL;
- if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "CALL $concatConversion\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "CONCAT GF@ret GF@tmp1 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "PUSHS GF@ret\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
 
   return 0;
 }
 
+int concatConversion(){
+
+  char* ptr;
+  if (asprintf(&ptr, "LABEL $concatConversion\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  //check the type
+  if (asprintf(&ptr, "TYPE GF@type1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+// if its string bool -> error
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "JUMPIFNEQ $firstConvertedCon GF@type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "MOVE GF@tmp1 string@ \n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $firstConvertedCon\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "TYPE GF@type1 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFNEQ $secondConvertedCon GF@type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "MOVE GF@tmp2 string@ \n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "LABEL $secondConvertedCon\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  return 0;
+}
 
 int generatorExpressionCalculated(){
   char* ptr;

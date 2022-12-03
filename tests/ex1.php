@@ -1,8 +1,10 @@
 <?php
 declare(strict_types=1);
 
-$x = "x";
-$a = 10.0 / 2.0;
+$x = null;
+$y = null;
+
+$a = $x.$y;
 
 //$a = $a / 2;
 

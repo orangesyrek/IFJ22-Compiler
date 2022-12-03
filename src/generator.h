@@ -40,7 +40,7 @@ struct generator {
 };
 
 
-int generatorDivConversion();
+int divConversion();
 
 
 int generatorExpression(struct lexeme token);
@@ -66,6 +66,8 @@ int generatorWhileStart();
 int generatorWhileBody();
 int generatorWhileEnd();
 
+int concatConversion();
+int plusConversion();
 
 void generatorInit();
 
