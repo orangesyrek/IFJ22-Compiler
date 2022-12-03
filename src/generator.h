@@ -93,7 +93,7 @@ int generatorFunStrLen();
 
 void generatorExecute();
 
-char* convertString();
+char* convertString(char* nonConvertedstr);
 
 void convertCharToEsc(char character, char* converted, int* position);
 
