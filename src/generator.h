@@ -22,7 +22,7 @@ struct generator {
 	char *local_str_var;
 	char *local_str;
 	char *function_def_str;
-	char *write_str;
+	char *runtimeCallStr;
 
 	int function_call_cnt;		/**< function call id */
 	int ifLabelCount; /** Label naming*/
@@ -71,6 +71,8 @@ int plusMinMulConversion();
 
 void generatorInit();
 
+int generatorCall();
+
 
 //need to know how many params we have, what types are there, what is the return value
 void generatorPrepare(struct bs_data *data);
@@ -105,7 +107,7 @@ int realloc_local_str_var(const char *str);
 
 int realloc_function_def_str(const char *str);
 
-int realloc_write_str(const char *str);
+int realloc_runtimeCallStr(const char *str);
 
 int defvar_global(const char *var_name);
 
