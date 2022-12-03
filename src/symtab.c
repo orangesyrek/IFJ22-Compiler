@@ -23,7 +23,7 @@ int symtabInsert(struct bs_tree **t, const char *key, struct bs_data *data) { //
     }
 
   }else{
-    struct bs_tree *node = malloc(sizeof(struct bs_tree));
+    struct bs_tree *node = calloc(1, sizeof(struct bs_tree));
     if(node != NULL){
       node->data = data;
       node->key = key;

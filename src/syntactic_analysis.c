@@ -521,9 +521,14 @@ int
 check_undefined_functions()
 {
 	int i;
+	char *fn;
 
 	for (i = 0; i < 20; i++) {
 		if (ctx->unchecked_functions[i]) {
+			fn = ctx->unchecked_functions[i];
+			if (!strcmp(fn, "strval") || !strcmp(fn, "intval") || !strcmp(fn, "floatval")) {
+				continue;
+			}
 			ERR_PRINT("Undefined function found.");
 			return COMP_ERR_UNDEF_FUNC;
 		}
@@ -1243,7 +1248,7 @@ rule_statement_list(struct bs_data *data)
 			}
 		}
 	} else if (current_token.type == R_CURLY) {
-		/* todo: fix single }*/
+		/* todo: fix single */
 		ctx->last_token = R_CURLY;
 		return COMP_OK;
 	} else if ((current_token.type == INT_LIT) || (current_token.type == DECIMAL_LIT) || (current_token.type == STR_LIT)) {
