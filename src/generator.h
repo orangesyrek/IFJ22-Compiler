@@ -67,7 +67,7 @@ int generatorWhileBody();
 int generatorWhileEnd();
 
 int concatConversion();
-int plusConversion();
+int plusMinMulConversion();
 
 void generatorInit();
 

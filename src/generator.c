@@ -458,8 +458,8 @@ int generatorExprPlus(){
   char* ptr;
 
 
-  if (strstr(generator.function_def_str, "$plusConversion") == NULL){
-    if (plusConversion()) return COMP_ERR_INTERNAL;
+  if (strstr(generator.function_def_str, "$plusMinMulConversion") == NULL){
+    if (plusMinMulConversion()) return COMP_ERR_INTERNAL;
   }
 
   if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
@@ -468,7 +468,7 @@ int generatorExprPlus(){
   if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "CALL $plusConversion\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "CALL $plusMinMulConversion\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
 
   if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
@@ -489,15 +489,75 @@ int generatorExprPlus(){
   return 0;
 }
 
-int plusConversion(){
+int plusMinMulConversion(){
   char* ptr;
 
-  if (asprintf(&ptr, "LABEL $plusConversion\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "LABEL $plusMinMulConversion\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "TYPE GF@type1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "TYPE GF@type2 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+
+
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@string\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type2 string@string\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type2 string@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type2 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+//error when string bool null come
+// if not check for int
+
+
+  if (asprintf(&ptr, "JUMPIFEQ $firstInt GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+//when we are here firt is float we dont know second
+
+  if (asprintf(&ptr, "JUMPIFEQ $bothConverted GF@type2 string@float\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "INT2FLOAT GF@tmp2 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMP $bothConverted\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+// done when first is float
+
+  if (asprintf(&ptr, "LABEL $firstInt\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $bothConverted GF@type2 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+//if second is float and first is int we just convert first to float
+
+  if (asprintf(&ptr, "INT2FLOAT GF@tmp1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $bothConverted\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
+
 
 
   if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (realloc_function_def_str(ptr)) return COMP_ERR_INTERNAL;
 
   return 0;
 }
