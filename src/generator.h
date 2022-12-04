@@ -43,6 +43,7 @@ struct generator {
 	int whileCountMax; /** Maximal count of nested while's*/
 
 	int isIf;
+	int isOneSizedExpr;
 	int inFuntion;
 	char *function_name;		/**< function call/definition name */
 	int param_count;			/**< function call/definition parameter count */
