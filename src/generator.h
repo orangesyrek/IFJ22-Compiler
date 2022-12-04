@@ -69,11 +69,13 @@ int generatorWhileEnd();
 int concatConversion();
 int plusMinMulConversion();
 
+int equalsConversion();
+
 void generatorInit();
 
+
+
 int generatorCall();
-
-
 //need to know how many params we have, what types are there, what is the return value
 void generatorPrepare(struct bs_data *data);
 

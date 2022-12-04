@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
 
-//todo - fix string ex2.php
-//type conversion + - *
-//type conversion < > === !===
+//type conversion < >
+$x = null;
+$y = "5";
+
+if($x < $y){
+  write("good");
+}else{}
