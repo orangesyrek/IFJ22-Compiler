@@ -1,5 +1,0 @@
-<?php
-declare(strict_types=1);
-$x = 156616.222663;
-// valid number
-?>
