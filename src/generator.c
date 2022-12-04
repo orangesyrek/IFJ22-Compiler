@@ -812,10 +812,8 @@ int generatorIfTrue(){
 
 int generatorIfTrueEnd(){
 
-  generator.ifLabelCount--;
-
   char* ptr;
-  if (asprintf(&ptr, "JUMP endif%d\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMP endif%d\n", generator.ifLabelCount - 1) == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -826,7 +824,7 @@ int generatorIfTrueEnd(){
 
 int generatorIfFalse(){
   char* ptr;
-  if (asprintf(&ptr, "LABEL falseif%d\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "LABEL falseif%d\n", generator.ifLabelCount - 1) == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -837,6 +835,8 @@ int generatorIfFalse(){
 }
 int generatorIfEnd(){
   char* ptr;
+
+  generator.ifLabelCount--;
   if (asprintf(&ptr, "LABEL endif%d\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;

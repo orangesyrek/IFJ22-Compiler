@@ -834,7 +834,7 @@ cleanup:
 
 /* syntactically check if statement */
 static comp_err
-rule_if_statement()
+rule_if_statement(struct bs_data *data)
 {
 	int ret = COMP_OK;
 	struct lexeme current_token;
@@ -863,7 +863,7 @@ rule_if_statement()
 	}
 	generatorIfTrue();
 
-	ret = rule_statement_list();
+	ret = rule_statement_list(data);
 	if (ret != COMP_OK) {
 		goto cleanup;
 	}
@@ -884,7 +884,7 @@ rule_if_statement()
 	}
 
 	generatorIfFalse();
-	ret = rule_statement_list();
+	ret = rule_statement_list(data);
 	if (ret != COMP_OK) {
 		goto cleanup;
 	}
@@ -1017,7 +1017,7 @@ cleanup:
 
 /* syntactically check while statement */
 static comp_err
-rule_while_statement()
+rule_while_statement(struct bs_data *data)
 {
 	int ret = COMP_OK;
 	struct lexeme current_token;
@@ -1048,7 +1048,7 @@ rule_while_statement()
 	}
 	generatorWhileBody();
 
-	ret = rule_statement_list();
+	ret = rule_statement_list(data);
 	if (ret != COMP_OK) {
 		goto cleanup;
 	}
@@ -1140,6 +1140,7 @@ rule_statement_list(struct bs_data *data)
 	struct lexeme current_token;
 	struct lexeme tmp = {0};
 	struct function_data empty = {0};
+	struct bs_data *new_data = NULL;
 
 	/* parse lexemes that can appear in the global scope */
 	ctx->last_token = -1;
@@ -1149,13 +1150,13 @@ rule_statement_list(struct bs_data *data)
 		generator.function_name = current_token.id;
 
 		/* search for the function */
-		data = symtabSearch(ctx->global_sym_tab, current_token.id);
-		if (!data) {
+		new_data = symtabSearch(ctx->global_sym_tab, current_token.id);
+		if (!new_data) {
 			ctx->unchecked_functions[ctx->empty_index] = current_token.id;
 			ctx->empty_index++;
 			ret = rule_func(empty, 1, current_token.id);
 		} else {
-			ret = rule_func(data->data.fdata, 0, current_token.id);
+			ret = rule_func(new_data->data.fdata, 0, current_token.id);
 		}
 
 		generatorExecute();
@@ -1175,12 +1176,12 @@ rule_statement_list(struct bs_data *data)
 			goto cleanup;
 		}
 	} else if (current_token.type == KEYWORD_IF) {
-		ret = rule_if_statement();
+		ret = rule_if_statement(data);
 		if (ret != COMP_OK) {
 			goto cleanup;
 		}
 	} else if (current_token.type == KEYWORD_WHILE) {
-		ret = rule_while_statement();
+		ret = rule_while_statement(data);
 		if (ret != COMP_OK) {
 			goto cleanup;
 		}
