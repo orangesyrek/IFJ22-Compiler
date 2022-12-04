@@ -1,23 +1,26 @@
+/*
+ * FIT VUT 2022 - IFJ Project
+ * Implementation of a compiler for an imperative language IFJ22
+ *
+ * File: main.c
+ * Author(s): xbarta50, xjanot04, xpauli08, xvalik04
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "compiler.h"
-#include "lexical_analysis.h"
-#include "syntactic_analysis.h"
-#include "symtab.h"
 #include "generator.h"
-
-#define DEBUGLEX
+#include "lexical_analysis.h"
+#include "symtab.h"
+#include "syntactic_analysis.h"
 
 struct compiler_ctx *ctx = NULL;
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	int ret = COMP_OK;
-
-	(void) argc;
-	(void) argv;
 
 	ret = compiler_ctx_new(&ctx);
 	if (ret) {
@@ -49,5 +52,6 @@ main(int argc, char **argv)
 	generatorWriteCode();
 
 	compiler_ctx_destroy(ctx);
-	return 0;
+
+	return ret;
 }

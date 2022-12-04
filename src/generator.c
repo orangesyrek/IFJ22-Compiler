@@ -1,7 +1,14 @@
+/*
+ * FIT VUT 2022 - IFJ Project
+ * Implementation of a compiler for an imperative language IFJ22
+ *
+ * File: generator.c
+ * Author(s): xvalik04, xjanot04
+ */
+
 #define _GNU_SOURCE /* strdup */
-#include "generator.h"
 #include "compiler.h"
-#define _GNU_SOURCE
+#include "generator.h"
 
 struct generator generator = {0};
 
@@ -1431,6 +1438,11 @@ generator_function_def_end()
       return COMP_ERR_INTERNAL;
     }
   }
+
+  free(generator.local_str);
+  generator.local_str = NULL;
+  free(generator.local_str_var);
+  generator.local_str_var = NULL;
 
   return COMP_OK;
 }

@@ -1,3 +1,11 @@
+/*
+ * FIT VUT 2022 - IFJ Project
+ * Implementation of a compiler for an imperative language IFJ22
+ *
+ * File: syntactic_analysis.c
+ * Author(s): xjanot04
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -138,7 +146,7 @@ generator_insert_param(struct lexeme token)
 	}
 
 	generator.param_count++;
-	if (generator.param_count > 10) {
+	if (generator.param_count > 100) {
 		/* hard cap */
 		exit(COMP_ERR_INTERNAL);
 	}

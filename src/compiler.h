@@ -1,3 +1,11 @@
+/*
+ * FIT VUT 2022 - IFJ Project
+ * Implementation of a compiler for an imperative language IFJ22
+ *
+ * File: compiler.h
+ * Author(s): xjanot04
+ */
+
 #ifndef COMPILER_H
 #define COMPILER_H
 
@@ -17,21 +25,35 @@ typedef enum {
 	COMP_ERR_INTERNAL = 99 		/**< mem allocation err, etc. */
 } comp_err;
 
+/**
+ * @brief Structure holding current compiler context.
+ */
 struct compiler_ctx {
-	int last_read;
-	int in_function;
-	int seen_return;
-	int curr_fun_ret_type;
-	char *unchecked_functions[20];
-	int empty_index;
-	unsigned int current_row;
-	int last_token;
-	struct bs_tree *global_sym_tab;
-	struct bs_tree *local_sym_tab;
+	int last_read;	/**< last character read from input */
+	int in_function;	/**< sets the context to function */
+	int seen_return;	/**< indicates if return in current function was seen */
+	int curr_fun_ret_type;	/**< hold current function's return type */
+	char *unchecked_functions[20];	/**< array storing up to 20 undefined functions names */
+	int empty_index;	/**< unchecked_functions array's empty index */
+	unsigned int current_row;	/**< current row being read from input */
+	int last_token;		/**< last type of token read */
+	struct bs_tree *global_sym_tab;	/**< global table of symbols */
+	struct bs_tree *local_sym_tab;	/**< local table of symbols */
 };
 
+/**
+ * @brief Initializes compiler context.
+ *
+ * @param ctx Pointer to the context.
+ * @return 0 on success, 1 otherwise.
+ */
 int compiler_ctx_new(struct compiler_ctx **ctx);
 
+/**
+ * @brief Free the compiler context.
+ *
+ * @param ctx Pointer to the context.
+ */
 void compiler_ctx_destroy(struct compiler_ctx *ctx);
 
 #endif

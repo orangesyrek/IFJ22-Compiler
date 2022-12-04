@@ -1,8 +1,16 @@
+/*
+ * FIT VUT 2022 - IFJ Project
+ * Implementation of a compiler for an imperative language IFJ22
+ *
+ * File: expression.h
+ * Author(s): xpauli08
+ */
+
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
-#include "lexical_analysis.h"
 #include "compiler.h"
+#include "lexical_analysis.h"
 
 /**
  * @enum Symbols used by stack
@@ -103,7 +111,7 @@ test_rule (int count, stack_item one, stack_item two, stack_item three);
 /**
  * @brief      Reduces the terminals on stack based on the rule from function test_rule
  *
- * @return     Returns COMP_OK if succesfull, other errors (based on the issue) when not 
+ * @return     Returns COMP_OK if succesfull, other errors (based on the issue) when not
  */
 comp_err
 reduce ();

@@ -1,3 +1,11 @@
+/*
+ * FIT VUT 2022 - IFJ Project
+ * Implementation of a compiler for an imperative language IFJ22
+ *
+ * File: stack.c
+ * Author(s): xpauli08
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -75,7 +83,7 @@ void
 stack_pop()
 {
   if (!stack_is_empty()) {
-    top -= 1; 
+    top -= 1;
   }
 }
 

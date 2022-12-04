@@ -1,9 +1,17 @@
+/*
+ * FIT VUT 2022 - IFJ Project
+ * Implementation of a compiler for an imperative language IFJ22
+ *
+ * File: lexical_analysis.c
+ * Author(s): xbarta50, xvalik04
+ */
+
 #define _GNU_SOURCE /* strdup */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "compiler.h"
 #include "lexical_analysis.h"

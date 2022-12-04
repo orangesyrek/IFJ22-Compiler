@@ -1,3 +1,11 @@
+/*
+ * FIT VUT 2022 - IFJ Project
+ * Implementation of a compiler for an imperative language IFJ22
+ *
+ * File: lexical_analysis.h
+ * Author(s): xbarta50, xjanot04
+ */
+
 #ifndef LEX_ANALYSIS_H
 #define LEX_ANALYSIS_H
 
@@ -119,7 +127,6 @@ struct lexeme {
         double flt_val;
         char *str_val;
     } value;
-    size_t data; //ze streamu asi neni potreba
     unsigned int symtab_index;
 };
 

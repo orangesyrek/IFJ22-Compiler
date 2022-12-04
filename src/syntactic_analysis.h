@@ -1,3 +1,11 @@
+/*
+ * FIT VUT 2022 - IFJ Project
+ * Implementation of a compiler for an imperative language IFJ22
+ *
+ * File: syntactic_analysis.h
+ * Author(s): xjanot04
+ */
+
 #ifndef SYNT_ANALYSIS_H
 #define SYNT_ANALYSIS_H
 
