@@ -29,28 +29,29 @@ void generatorInit(){
   if (realloc_local_str_var("")) exit(COMP_ERR_INTERNAL);
   if (realloc_function_def_str("")) exit(COMP_ERR_INTERNAL);
   if (realloc_global_str("")) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str_var("")) exit(COMP_ERR_INTERNAL);
   if (realloc_runtimeCallStr("")) exit(COMP_ERR_INTERNAL);
 
   if (asprintf(&ptr, ".IFJcode22\n") == -1) exit(COMP_ERR_INTERNAL);
-  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str_var(ptr)) exit(COMP_ERR_INTERNAL);
 
-  if (asprintf(&ptr, "DEFVAR GF@bool\n") == -1) exit(COMP_ERR_INTERNAL);
-  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+  if (asprintf(&ptr, "DEFVAR GF@!bool\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str_var(ptr)) exit(COMP_ERR_INTERNAL);
 
-  if (asprintf(&ptr, "DEFVAR GF@tmp1\n") == -1) exit(COMP_ERR_INTERNAL);
-  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+  if (asprintf(&ptr, "DEFVAR GF@!tmp1\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str_var(ptr)) exit(COMP_ERR_INTERNAL);
 
-  if (asprintf(&ptr, "DEFVAR GF@tmp2\n") == -1) exit(COMP_ERR_INTERNAL);
-  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+  if (asprintf(&ptr, "DEFVAR GF@!tmp2\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str_var(ptr)) exit(COMP_ERR_INTERNAL);
 
-  if (asprintf(&ptr, "DEFVAR GF@type1\n") == -1) exit(COMP_ERR_INTERNAL);
-  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+  if (asprintf(&ptr, "DEFVAR GF@!type1\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str_var(ptr)) exit(COMP_ERR_INTERNAL);
 
-  if (asprintf(&ptr, "DEFVAR GF@type2\n") == -1) exit(COMP_ERR_INTERNAL);
-  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+  if (asprintf(&ptr, "DEFVAR GF@!type2\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str_var(ptr)) exit(COMP_ERR_INTERNAL);
 
-  if (asprintf(&ptr, "DEFVAR GF@ret\n") == -1) exit(COMP_ERR_INTERNAL);
-  if (realloc_global_str(ptr)) exit(COMP_ERR_INTERNAL);
+  if (asprintf(&ptr, "DEFVAR GF@!ret\n") == -1) exit(COMP_ERR_INTERNAL);
+  if (realloc_global_str_var(ptr)) exit(COMP_ERR_INTERNAL);
 
 
 
@@ -197,8 +198,8 @@ int defvar_global(const char *var_name){
   }
 
 
-  if (strstr(generator.global_str, ptr) == NULL){
-    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  if (strstr(generator.global_str_var, ptr) == NULL){
+    if (realloc_global_str_var(ptr)) return COMP_ERR_INTERNAL;
   }
 
 
@@ -219,6 +220,24 @@ int realloc_global_str(const char *str){
       return COMP_ERR_INTERNAL;
     }
     strcat(generator.global_str, str);
+  }
+
+  return 0;
+}
+
+int realloc_global_str_var(const char *str){
+
+  if (!generator.global_str_var) {
+    generator.global_str_var = strdup(str);
+    if (!generator.global_str_var) {
+      return COMP_ERR_INTERNAL;
+    }
+  } else {
+    generator.global_str_var = realloc(generator.global_str_var, strlen(generator.global_str_var) + strlen(str) + 1);
+    if (!generator.global_str_var) {
+      return COMP_ERR_INTERNAL;
+    }
+    strcat(generator.global_str_var, str);
   }
 
   return 0;
@@ -305,13 +324,13 @@ int generatorAssigment(const char* var_name){
   //case globar var | local var
   //then need to solve typecasting
   if(generator.inFuntion){
-    //printf("MOVE GF@%s GF@ret\n", var_name);
-    if (asprintf(&ptr, "MOVE LF@%s GF@ret\n", var_name) == -1) return COMP_ERR_INTERNAL;
+    //printf("MOVE GF@%s GF@!ret\n", var_name);
+    if (asprintf(&ptr, "MOVE LF@%s GF@!ret\n", var_name) == -1) return COMP_ERR_INTERNAL;
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   }else{
-    if (asprintf(&ptr, "MOVE GF@%s GF@ret\n", var_name) == -1) return COMP_ERR_INTERNAL;
+    if (asprintf(&ptr, "MOVE GF@%s GF@!ret\n", var_name) == -1) return COMP_ERR_INTERNAL;
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
-    //printf("MOVE LF@%s GF@ret\n", var_name);
+    //printf("MOVE LF@%s GF@!ret\n", var_name);
   }
   return 0;
 
@@ -454,6 +473,7 @@ int generatorCall(){
 
 
 void generatorWriteCode(){
+  printf("%s\n", generator.global_str_var);
   printf("%s\n", generator.global_str);
   printf("%s\n", generator.function_def_str);
 }
@@ -511,14 +531,14 @@ int generatorExprPlus(){
     if (plusMinMulConversion()) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -532,7 +552,7 @@ int generatorExprPlus(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -540,7 +560,7 @@ int generatorExprPlus(){
   }
 
 
-  if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -564,45 +584,45 @@ int plusMinMulConversion(){
   if (asprintf(&ptr, "LABEL $plusMinMulConversion\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "TYPE GF@type1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "TYPE GF@!type1 GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "TYPE GF@type2 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "TYPE GF@!type2 GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
 
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@string\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@string\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type2 string@string\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type2 string@string\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type2 string@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type2 string@bool\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type2 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type2 string@nil\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 //error when string bool null come
 // if not check for int
 
 
-  if (asprintf(&ptr, "JUMPIFEQ $firstInt GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $firstInt GF@!type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 //when we are here firt is float we dont know second
 
-  if (asprintf(&ptr, "JUMPIFEQ $bothConverted GF@type2 string@float\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $bothConverted GF@!type2 string@float\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "INT2FLOAT GF@tmp2 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "INT2FLOAT GF@!tmp2 GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   if (asprintf(&ptr, "JUMP $bothConverted\n") == -1) return COMP_ERR_INTERNAL;
@@ -612,11 +632,11 @@ int plusMinMulConversion(){
   if (asprintf(&ptr, "LABEL $firstInt\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $bothConverted GF@type2 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $bothConverted GF@!type2 string@int\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 //if second is float and first is int we just convert first to float
 
-  if (asprintf(&ptr, "INT2FLOAT GF@tmp1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "INT2FLOAT GF@!tmp1 GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
@@ -638,7 +658,7 @@ int generatorExprMinus(){
     if (plusMinMulConversion()) return COMP_ERR_INTERNAL;
   }
 
-    if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+    if (asprintf(&ptr, "POPS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
 
     if (generator.inFuntion) {
       if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
@@ -646,7 +666,7 @@ int generatorExprMinus(){
       if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
     }
 
-    if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+    if (asprintf(&ptr, "POPS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
 
     if (generator.inFuntion) {
       if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
@@ -662,7 +682,7 @@ int generatorExprMinus(){
       if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
     }
 
-    if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+    if (asprintf(&ptr, "PUSHS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
 
     if (generator.inFuntion) {
       if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
@@ -671,7 +691,7 @@ int generatorExprMinus(){
     }
 
 
-    if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+    if (asprintf(&ptr, "PUSHS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
     if (generator.inFuntion) {
       if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
     } else {
@@ -697,7 +717,7 @@ int generatorExprMul(){
     if (plusMinMulConversion()) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
 
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
@@ -705,7 +725,7 @@ int generatorExprMul(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
 
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
@@ -721,7 +741,7 @@ int generatorExprMul(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
 
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
@@ -730,7 +750,7 @@ int generatorExprMul(){
   }
 
 
-  if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -760,14 +780,14 @@ int generatorExprDiv(){
 
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -781,7 +801,7 @@ int generatorExprDiv(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -789,7 +809,7 @@ int generatorExprDiv(){
   }
 
 
-  if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -821,27 +841,27 @@ float ==> do nothing
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   //check the type
-  if (asprintf(&ptr, "TYPE GF@type1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "TYPE GF@!type1 GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
 // if its string bool -> error
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@string\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@string\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 // if its float -> we are done with first
-  if (asprintf(&ptr, "JUMPIFEQ $firstConvertedDiv GF@type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $firstConvertedDiv GF@!type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
   //if its not int jump to not converted by int
-  if (asprintf(&ptr, "JUMPIFNEQ $notFirstConversionDivInt GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFNEQ $notFirstConversionDivInt GF@!type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   //if its int we are converting int to float
-  if (asprintf(&ptr, "INT2FLOAT GF@tmp1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "INT2FLOAT GF@!tmp1 GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   // we converted jump first converted
@@ -853,7 +873,7 @@ float ==> do nothing
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
   //if its not anything above it was null convert to 0.0
 
-  if (asprintf(&ptr, "MOVE GF@tmp1 float@0x0p+0\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "MOVE GF@!tmp1 float@0x0p+0\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
@@ -861,24 +881,24 @@ float ==> do nothing
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
-  if (asprintf(&ptr, "TYPE GF@type1 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "TYPE GF@!type1 GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@string\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@string\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 // if its float -> we are done with first
-  if (asprintf(&ptr, "JUMPIFEQ $secondConvertedDiv GF@type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $secondConvertedDiv GF@!type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
 
-  if (asprintf(&ptr, "JUMPIFNEQ $notSecondConversionDivInt GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFNEQ $notSecondConversionDivInt GF@!type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "INT2FLOAT GF@tmp2 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "INT2FLOAT GF@!tmp2 GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   if (asprintf(&ptr, "JUMP $secondConvertedDiv\n") == -1) return COMP_ERR_INTERNAL;
@@ -889,7 +909,7 @@ float ==> do nothing
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
-  if (asprintf(&ptr, "MOVE GF@tmp2 float@0x0p+0\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "MOVE GF@!tmp2 float@0x0p+0\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
@@ -912,14 +932,14 @@ int generatorExprConcat(){
     if (concatConversion()) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -935,7 +955,7 @@ int generatorExprConcat(){
   }
 
 
-  if (asprintf(&ptr, "CONCAT GF@ret GF@tmp1 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "CONCAT GF@!ret GF@!tmp1 GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -943,7 +963,7 @@ int generatorExprConcat(){
   }
 
 
-  if (asprintf(&ptr, "PUSHS GF@ret\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!ret\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
      if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
    } else {
@@ -959,47 +979,47 @@ int concatConversion(){
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   //check the type
-  if (asprintf(&ptr, "TYPE GF@type1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "TYPE GF@!type1 GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
 // if its string bool -> error
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
-  if (asprintf(&ptr, "JUMPIFNEQ $firstConvertedCon GF@type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFNEQ $firstConvertedCon GF@!type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "MOVE GF@tmp1 string@ \n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "MOVE GF@!tmp1 string@ \n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
   if (asprintf(&ptr, "LABEL $firstConvertedCon\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "TYPE GF@type1 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "TYPE GF@!type1 GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFNEQ $secondConvertedCon GF@type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFNEQ $secondConvertedCon GF@!type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "MOVE GF@tmp2 string@ \n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "MOVE GF@!tmp2 string@ \n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   if (asprintf(&ptr, "LABEL $secondConvertedCon\n") == -1) return COMP_ERR_INTERNAL;
@@ -1014,7 +1034,7 @@ int concatConversion(){
 int generatorExpressionCalculated(){
   char* ptr;
   if(!generator.isIf){
-    if (asprintf(&ptr, "POPS GF@ret\n") == -1) return COMP_ERR_INTERNAL;
+    if (asprintf(&ptr, "POPS GF@!ret\n") == -1) return COMP_ERR_INTERNAL;
     if (generator.inFuntion) {
       if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
     } else {
@@ -1029,7 +1049,7 @@ int generatorExpressionCalculated(){
       if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
     }
 
-    if (asprintf(&ptr, "POPS GF@ret\n") == -1) return COMP_ERR_INTERNAL;
+    if (asprintf(&ptr, "POPS GF@!ret\n") == -1) return COMP_ERR_INTERNAL;
     if (generator.inFuntion) {
       if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
     } else {
@@ -1049,14 +1069,14 @@ int generatorIfEquals(){
 
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1070,7 +1090,7 @@ int generatorIfEquals(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1078,7 +1098,7 @@ int generatorIfEquals(){
   }
 
 
-  if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1093,7 +1113,7 @@ int generatorIfEquals(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!bool\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1110,20 +1130,20 @@ int equalsConversion(){
     if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
-    if (asprintf(&ptr, "TYPE GF@type1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+    if (asprintf(&ptr, "TYPE GF@!type1 GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
     if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-    if (asprintf(&ptr, "TYPE GF@type2 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+    if (asprintf(&ptr, "TYPE GF@!type2 GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
     if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-    if (asprintf(&ptr, "JUMPIFEQ $equalsConEnd GF@type1 GF@type2\n") == -1) return COMP_ERR_INTERNAL;
+    if (asprintf(&ptr, "JUMPIFEQ $equalsConEnd GF@!type1 GF@!type2\n") == -1) return COMP_ERR_INTERNAL;
     if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-    if (asprintf(&ptr, "MOVE GF@tmp1 int@0\n") == -1) return COMP_ERR_INTERNAL;
+    if (asprintf(&ptr, "MOVE GF@!tmp1 int@0\n") == -1) return COMP_ERR_INTERNAL;
     if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
-    if (asprintf(&ptr, "MOVE GF@tmp2 int@1\n") == -1) return COMP_ERR_INTERNAL;
+    if (asprintf(&ptr, "MOVE GF@!tmp2 int@1\n") == -1) return COMP_ERR_INTERNAL;
     if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
@@ -1147,14 +1167,14 @@ int generatorIfNotEquals(){
 
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1168,7 +1188,7 @@ int generatorIfNotEquals(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1176,7 +1196,7 @@ int generatorIfNotEquals(){
   }
 
 
-  if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1198,7 +1218,7 @@ int generatorIfNotEquals(){
   }
 
 
-  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!bool\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1215,17 +1235,17 @@ int relationConversion(){
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
-      if (asprintf(&ptr, "TYPE GF@type1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "TYPE GF@!type1 GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-      if (asprintf(&ptr, "TYPE GF@type2 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "TYPE GF@!type2 GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-      if (asprintf(&ptr, "JUMPIFEQ $relSkipNil GF@type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "JUMPIFEQ $relSkipNil GF@!type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
-      if (asprintf(&ptr, "JUMPIFEQ $relConEnd GF@type1 GF@type2\n") == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "JUMPIFEQ $relConEnd GF@!type1 GF@!type2\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
@@ -1241,15 +1261,15 @@ int relationConversion(){
       */
 
       //null x string
-      if (asprintf(&ptr, "JUMPIFNEQ $relCon2 GF@type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "JUMPIFNEQ $relCon2 GF@!type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
-      if (asprintf(&ptr, "JUMPIFNEQ $relcon3 GF@type2 string@string\n") == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "JUMPIFNEQ $relcon3 GF@!type2 string@string\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
       //relCon1
 
-      if (asprintf(&ptr, "MOVE GF@tmp1 string@\n") == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "MOVE GF@!tmp1 string@\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
       if (asprintf(&ptr, "JUMP $relConEnd\n") == -1) return COMP_ERR_INTERNAL;
@@ -1262,21 +1282,21 @@ int relationConversion(){
       //it can be {string-nebude testovano}  number {bool - neni na foru zmineno}
       // takze z odpovedi na foru to muze byt jenom cislo => prevod na float u obou
 
-      if (asprintf(&ptr, "JUMPIFEQ $relConFirstFloat GF@type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "JUMPIFEQ $relConFirstFloat GF@!type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-      if (asprintf(&ptr, "INT2FLOAT GF@tmp1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "INT2FLOAT GF@!tmp1 GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
       if (asprintf(&ptr, "LABEL $relConFirstFloat\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-      if (asprintf(&ptr, "JUMPIFEQ $relConSecondFloat GF@type2 string@float\n") == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "JUMPIFEQ $relConSecondFloat GF@!type2 string@float\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
-      if (asprintf(&ptr, "INT2FLOAT GF@tmp2 GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "INT2FLOAT GF@!tmp2 GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
@@ -1291,13 +1311,13 @@ int relationConversion(){
       if (asprintf(&ptr, "LABEL $relcon3\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-      if (asprintf(&ptr, "MOVE GF@tmp1 bool@false\n") == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "MOVE GF@!tmp1 bool@false\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-      if (asprintf(&ptr, "JUMPIFNEQ $relConSecNotNil GF@type2 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "JUMPIFNEQ $relConSecNotNil GF@!type2 string@nil\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-      if (asprintf(&ptr, "MOVE GF@tmp2 bool@false\n") == -1) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "MOVE GF@!tmp2 bool@false\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
@@ -1310,13 +1330,13 @@ int relationConversion(){
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
-            if (asprintf(&ptr, "JUMPIFNEQ $relConSecNotInt GF@type2 string@int\n") == -1) return COMP_ERR_INTERNAL;
+            if (asprintf(&ptr, "JUMPIFNEQ $relConSecNotInt GF@!type2 string@int\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-            if (asprintf(&ptr, "JUMPIFNEQ $relConSecIntTrue GF@tmp2 int@0\n") == -1) return COMP_ERR_INTERNAL;
+            if (asprintf(&ptr, "JUMPIFNEQ $relConSecIntTrue GF@!tmp2 int@0\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-            if (asprintf(&ptr, "MOVE GF@tmp2 bool@false\n") == -1) return COMP_ERR_INTERNAL;
+            if (asprintf(&ptr, "MOVE GF@!tmp2 bool@false\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
             if (asprintf(&ptr, "JUMP $relConEnd\n") == -1) return COMP_ERR_INTERNAL;
@@ -1325,7 +1345,7 @@ int relationConversion(){
             if (asprintf(&ptr, "LABEL $relConSecIntTrue\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-            if (asprintf(&ptr, "MOVE GF@tmp2 bool@true\n") == -1) return COMP_ERR_INTERNAL;
+            if (asprintf(&ptr, "MOVE GF@!tmp2 bool@true\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
             if (asprintf(&ptr, "JUMP $relConEnd\n") == -1) return COMP_ERR_INTERNAL;
@@ -1337,13 +1357,13 @@ int relationConversion(){
       if (asprintf(&ptr, "LABEL $relConSecNotInt \n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-            if (asprintf(&ptr, "JUMPIFNEQ $relConSecNotFloat GF@type2 string@float\n") == -1) return COMP_ERR_INTERNAL;
+            if (asprintf(&ptr, "JUMPIFNEQ $relConSecNotFloat GF@!type2 string@float\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-            if (asprintf(&ptr, "JUMPIFNEQ $relConSecFloatTrue GF@tmp2 float@0x0p+0\n") == -1) return COMP_ERR_INTERNAL;
+            if (asprintf(&ptr, "JUMPIFNEQ $relConSecFloatTrue GF@!tmp2 float@0x0p+0\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-            if (asprintf(&ptr, "MOVE GF@tmp2 bool@false\n") == -1) return COMP_ERR_INTERNAL;
+            if (asprintf(&ptr, "MOVE GF@!tmp2 bool@false\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
             if (asprintf(&ptr, "JUMP $relConEnd\n") == -1) return COMP_ERR_INTERNAL;
@@ -1352,7 +1372,7 @@ int relationConversion(){
             if (asprintf(&ptr, "LABEL $relConSecFloatTrue\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-            if (asprintf(&ptr, "MOVE GF@tmp2 bool@true\n") == -1) return COMP_ERR_INTERNAL;
+            if (asprintf(&ptr, "MOVE GF@!tmp2 bool@true\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
             if (asprintf(&ptr, "JUMP $relConEnd\n") == -1) return COMP_ERR_INTERNAL;
@@ -1362,14 +1382,14 @@ int relationConversion(){
       if (asprintf(&ptr, "LABEL $relConSecNotFloat \n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 //it can be only bool / string
-            if (asprintf(&ptr, "JUMPIFNEQ $relConEnd GF@type2 string@string\n") == -1) return COMP_ERR_INTERNAL;
+            if (asprintf(&ptr, "JUMPIFNEQ $relConEnd GF@!type2 string@string\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
-            if (asprintf(&ptr, "JUMPIFNEQ $relConSecStringTrue GF@tmp2 string@\n") == -1) return COMP_ERR_INTERNAL;
+            if (asprintf(&ptr, "JUMPIFNEQ $relConSecStringTrue GF@!tmp2 string@\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-            if (asprintf(&ptr, "MOVE GF@tmp2 bool@false\n") == -1) return COMP_ERR_INTERNAL;
+            if (asprintf(&ptr, "MOVE GF@!tmp2 bool@false\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
             if (asprintf(&ptr, "JUMP $relConEnd\n") == -1) return COMP_ERR_INTERNAL;
@@ -1378,7 +1398,7 @@ int relationConversion(){
             if (asprintf(&ptr, "LABEL $relConSecStringTrue\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-            if (asprintf(&ptr, "MOVE GF@tmp2 bool@true\n") == -1) return COMP_ERR_INTERNAL;
+            if (asprintf(&ptr, "MOVE GF@!tmp2 bool@true\n") == -1) return COMP_ERR_INTERNAL;
             if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
@@ -1402,14 +1422,14 @@ int generatorIfLess(){
 
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1423,7 +1443,7 @@ int generatorIfLess(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1431,7 +1451,7 @@ int generatorIfLess(){
   }
 
 
-  if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1446,7 +1466,7 @@ int generatorIfLess(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!bool\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1465,14 +1485,14 @@ int generatorIfGreater(){
 
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1486,7 +1506,7 @@ int generatorIfGreater(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1494,7 +1514,7 @@ int generatorIfGreater(){
   }
 
 
-  if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1509,7 +1529,7 @@ int generatorIfGreater(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!bool\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1528,14 +1548,14 @@ int generatorIfEqualsGreater(){
 
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1549,7 +1569,7 @@ int generatorIfEqualsGreater(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1557,7 +1577,7 @@ int generatorIfEqualsGreater(){
   }
 
 
-  if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1579,7 +1599,7 @@ int generatorIfEqualsGreater(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!bool\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1599,14 +1619,14 @@ int generatorIfEqualsLess(){
 
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1620,7 +1640,7 @@ int generatorIfEqualsLess(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1628,7 +1648,7 @@ int generatorIfEqualsLess(){
   }
 
 
-  if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "PUSHS GF@!tmp2\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1651,7 +1671,7 @@ int generatorIfEqualsLess(){
   }
 
 
-  if (asprintf(&ptr, "POPS GF@bool\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "POPS GF@!bool\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1675,7 +1695,7 @@ int generatorIfTrue(){
     if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
   }
 
-  if (asprintf(&ptr, "JUMPIFEQ falseif%d GF@bool bool@false\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ falseif%d GF@!bool bool@false\n", generator.ifLabelCount) == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1747,7 +1767,7 @@ int generatorWhileStart(){
 
 int generatorWhileBody(){
   char* ptr;
-  if (asprintf(&ptr, "JUMPIFEQ whileend%d GF@bool bool@false\n", generator.whileLabelCount) == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ whileend%d GF@!bool bool@false\n", generator.whileLabelCount) == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
   } else {
@@ -1857,7 +1877,7 @@ int generatorFunReads(){
   if (asprintf(&ptr, "LABEL reads\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "READ GF@ret string\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "READ GF@!ret string\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 
@@ -1871,7 +1891,7 @@ int generatorFunReadi(){
   if (asprintf(&ptr, "LABEL readi\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "READ GF@ret int\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "READ GF@!ret int\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
@@ -1886,7 +1906,7 @@ int generatorFunReadf(){
   if (asprintf(&ptr, "LABEL readf\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "READ GF@ret float\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "READ GF@!ret float\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
@@ -1912,7 +1932,7 @@ int generatorFunStrLen(){
   if (asprintf(&ptr, "POPS TF@param\n" ) == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "STRLEN GF@ret TF@param\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "STRLEN GF@!ret TF@param\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
@@ -1938,13 +1958,13 @@ int generatorFunOrd(){
   if (asprintf(&ptr, "POPS TF@param\n" ) == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "STRLEN GF@bool TF@param\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "STRLEN GF@!bool TF@param\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $empty GF@bool int@0\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "JUMPIFEQ $empty GF@!bool int@0\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "STRI2INT GF@ret TF@param int@0\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "STRI2INT GF@!ret TF@param int@0\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   if (asprintf(&ptr, "JUMP $notEmpty\n") == -1) return COMP_ERR_INTERNAL;
@@ -1953,7 +1973,7 @@ int generatorFunOrd(){
   if (asprintf(&ptr, "LABEL $empty\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "MOVE GF@ret int@0\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "MOVE GF@!ret int@0\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   if (asprintf(&ptr, "LABEL $notEmpty\n") == -1) return COMP_ERR_INTERNAL;
@@ -1983,7 +2003,7 @@ int generatorFunChr(){
   if (asprintf(&ptr, "POPS TF@param\n" ) == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "INT2CHAR GF@ret TF@param\n") == -1) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "INT2CHAR GF@!ret TF@param\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
@@ -2118,7 +2138,7 @@ generate_param_typecheck(char *p_type, int param_id)
 
   if (!strcmp(p_type, "qstring")) {
     /* can be null or a string */
-    if (asprintf(&ptr, "JUMPIFNEQ $!%s_str_null%d string@string GF@type1\n", generator.function_name, param_id) == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!%s_str_null%d string@string GF@!type1\n", generator.function_name, param_id) == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str_var(ptr)) {
@@ -2136,7 +2156,7 @@ generate_param_typecheck(char *p_type, int param_id)
     if (realloc_local_str_var(ptr)) {
       return COMP_ERR_INTERNAL;
     }
-    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@type1\n") == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@!type1\n") == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str_var(ptr)) {
@@ -2144,7 +2164,7 @@ generate_param_typecheck(char *p_type, int param_id)
     }
   } else if (!strcmp(p_type, "qint")) {
     /* can be null or a int */
-    if (asprintf(&ptr, "JUMPIFNEQ $!%s_int_null%d string@int GF@type1\n", generator.function_name, param_id) == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!%s_int_null%d string@int GF@!type1\n", generator.function_name, param_id) == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str_var(ptr)) {
@@ -2162,7 +2182,7 @@ generate_param_typecheck(char *p_type, int param_id)
     if (realloc_local_str_var(ptr)) {
       return COMP_ERR_INTERNAL;
     }
-    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@type1\n") == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@!type1\n") == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str_var(ptr)) {
@@ -2170,7 +2190,7 @@ generate_param_typecheck(char *p_type, int param_id)
     }
   } else if (!strcmp(p_type, "qfloat")) {
     /* can be null or a float */
-    if (asprintf(&ptr, "JUMPIFNEQ $!%s_float_null%d string@float GF@type1\n", generator.function_name, param_id) == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!%s_float_null%d string@float GF@!type1\n", generator.function_name, param_id) == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str_var(ptr)) {
@@ -2188,7 +2208,7 @@ generate_param_typecheck(char *p_type, int param_id)
     if (realloc_local_str_var(ptr)) {
       return COMP_ERR_INTERNAL;
     }
-    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@type1\n") == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@!type1\n") == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str_var(ptr)) {
@@ -2196,7 +2216,7 @@ generate_param_typecheck(char *p_type, int param_id)
     }
   } else if (!strcmp(p_type, "string")) {
     /* can be string */
-    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@string GF@type1\n") == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@string GF@!type1\n") == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str_var(ptr)) {
@@ -2204,7 +2224,7 @@ generate_param_typecheck(char *p_type, int param_id)
     }
   } else if (!strcmp(p_type, "int")) {
     /* can be int */
-    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@int GF@type1\n") == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@int GF@!type1\n") == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str_var(ptr)) {
@@ -2212,7 +2232,7 @@ generate_param_typecheck(char *p_type, int param_id)
     }
   } else if (!strcmp(p_type, "float")) {
     /* can be float */
-    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@float GF@type1\n") == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@float GF@!type1\n") == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str_var(ptr)) {
@@ -2269,7 +2289,7 @@ generate_function_def()
     }
 
     /* check the type */
-    if (asprintf(&ptr, "TYPE GF@type1 LF@%s\n", generator.param_names[i]) == -1) {
+    if (asprintf(&ptr, "TYPE GF@!type1 LF@%s\n", generator.param_names[i]) == -1) {
     return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str_var(ptr)) {
@@ -2355,7 +2375,7 @@ return_type_check(type return_type)
   char *ptr;
   static int ret_cnt = 0;
 
-  if (asprintf(&ptr, "TYPE GF@type1 GF@ret\n") == -1) {
+  if (asprintf(&ptr, "TYPE GF@!type1 GF@!ret\n") == -1) {
     return COMP_ERR_INTERNAL;
   }
   if (realloc_local_str(ptr)) {
@@ -2364,7 +2384,7 @@ return_type_check(type return_type)
 
   switch (return_type) {
   case INT:
-    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@int GF@type1\n") == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@int GF@!type1\n") == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str(ptr)) {
@@ -2372,7 +2392,7 @@ return_type_check(type return_type)
     }
     break;
     case FLOAT:
-    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@float GF@type1\n") == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@float GF@!type1\n") == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str(ptr)) {
@@ -2380,7 +2400,7 @@ return_type_check(type return_type)
     }
     break;
     case STRING:
-    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@string GF@type1\n") == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@string GF@!type1\n") == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str(ptr)) {
@@ -2388,7 +2408,7 @@ return_type_check(type return_type)
     }
     break;
     case QSTRING:
-    if (asprintf(&ptr, "JUMPIFNEQ $!str_null_%d string@string GF@type1\n", ret_cnt) == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!str_null_%d string@string GF@!type1\n", ret_cnt) == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str(ptr)) {
@@ -2406,7 +2426,7 @@ return_type_check(type return_type)
     if (realloc_local_str(ptr)) {
       return COMP_ERR_INTERNAL;
     }
-    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@type1\n") == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@!type1\n") == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str(ptr)) {
@@ -2421,7 +2441,7 @@ return_type_check(type return_type)
     ret_cnt++;
     break;
     case QINT:
-    if (asprintf(&ptr, "JUMPIFNEQ $!int_null_%d string@int GF@type1\n", ret_cnt) == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!int_null_%d string@int GF@!type1\n", ret_cnt) == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str(ptr)) {
@@ -2439,7 +2459,7 @@ return_type_check(type return_type)
     if (realloc_local_str(ptr)) {
       return COMP_ERR_INTERNAL;
     }
-    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@type1\n") == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@!type1\n") == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str(ptr)) {
@@ -2454,7 +2474,7 @@ return_type_check(type return_type)
     ret_cnt++;
     break;
     case QFLOAT:
-    if (asprintf(&ptr, "JUMPIFNEQ $!flt_null_%d string@float GF@type1\n", ret_cnt) == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!flt_null_%d string@float GF@!type1\n", ret_cnt) == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str(ptr)) {
@@ -2472,7 +2492,7 @@ return_type_check(type return_type)
     if (realloc_local_str(ptr)) {
       return COMP_ERR_INTERNAL;
     }
-    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@type1\n") == -1) {
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@!type1\n") == -1) {
       return COMP_ERR_INTERNAL;
     }
     if (realloc_local_str(ptr)) {
