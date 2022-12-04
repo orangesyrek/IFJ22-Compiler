@@ -451,8 +451,13 @@ void generatorWriteCode(){
   printf("%s\n", generator.function_def_str);
 }
 
+
 int generatorExpression(struct lexeme token){
   char* ptr;
+
+  if (strstr(generator.runtimeCallStr, "$exprConversion") == NULL){
+    if (exprConversion()) return COMP_ERR_INTERNAL;
+  }
 
   if (generator.inFuntion) {
     if (token.type == INT_LIT) {
@@ -477,6 +482,7 @@ int generatorExpression(struct lexeme token){
     if (token.type == INT_LIT) {
       if (asprintf(&ptr, "PUSHS int@%d\n", token.value.int_val) == -1) return COMP_ERR_INTERNAL;
       if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+
     }else if (token.type == STR_LIT) {
       //here fixing fix to converted string
       if (asprintf(&ptr, "PUSHS string@%s\n", convertString(token.value.str_val)) == -1) return COMP_ERR_INTERNAL;
@@ -488,11 +494,140 @@ int generatorExpression(struct lexeme token){
       // difference betweem global var and local
       if (asprintf(&ptr, "PUSHS GF@%s\n", token.id) == -1) return COMP_ERR_INTERNAL;
       if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+      if (asprintf(&ptr, "CALL $exprConversion\n") == -1) return COMP_ERR_INTERNAL;
+      if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;//maybe delete
     }else if (token.type == KEYWORD_NULL) {
       if (asprintf(&ptr, "PUSHS nil@nil\n") == -1) return COMP_ERR_INTERNAL;
       if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
     }
   }
+
+  return 0;
+}
+
+int exprConversion(){
+
+  char* ptr;
+
+  if (asprintf(&ptr, "LABEL $exprConversion\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "TYPE GF@type1 GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFNEQ $exprConNotString GF@type1 string@string\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "JUMPIFNEQ $exprConStringEmpty GF@tmp1 string@\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "MOVE GF@bool bool@false\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "JUMP $exprConEnd\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+    if (asprintf(&ptr, "LABEL $exprConStringEmpty\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "JUMPIFNEQ $exprConStringTrue GF@tmp1 string@0\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "MOVE GF@bool bool@false\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "JUMP $exprConEnd\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "LABEL $exprConStringTrue\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "MOVE GF@bool bool@true\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "JUMP $exprConEnd\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $exprConNotString\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+//it can be int / float / null
+
+  if (asprintf(&ptr, "JUMPIFNEQ $exprConNotInt GF@type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+    if (asprintf(&ptr, "JUMPIFNEQ $exprConIntTrue GF@tmp1 int@0\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "MOVE GF@bool bool@false\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "JUMP $exprConEnd\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+    if (asprintf(&ptr, "LABEL $exprConIntTrue\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "MOVE GF@bool bool@true\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "JUMP $exprConEnd\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $exprConNotInt\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFNEQ $exprConNotFloat GF@type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "JUMPIFNEQ $exprConFloatTrue GF@tmp1 float@0x0p+0\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "MOVE GF@bool bool@false\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "JUMP $exprConEnd\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+    if (asprintf(&ptr, "LABEL $exprConFloatTrue\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "MOVE GF@bool bool@true\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "JUMP $exprConEnd\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $exprConNotFloat\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+  //it can be null / bool
+
+    if (asprintf(&ptr, "JUMPIFNEQ $exprConEnd GF@type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+    if (asprintf(&ptr, "MOVE GF@bool bool@false\n") == -1) return COMP_ERR_INTERNAL;
+    if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $exprConEnd\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "return\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
   return 0;
 }
 

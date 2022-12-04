@@ -2,9 +2,9 @@
 declare(strict_types=1);
 
 //type conversion < >
-$x = null;
-$y = "";
 
-if($x <= $y){
+$x = 0.5;
+
+if($x){
   write("good");
 }else{}

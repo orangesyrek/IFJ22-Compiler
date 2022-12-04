@@ -70,6 +70,7 @@ int concatConversion();
 int plusMinMulConversion();
 
 int equalsConversion();
+int exprConversion();
 
 void generatorInit();
 
