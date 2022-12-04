@@ -1216,7 +1216,7 @@ rule_statement_list(struct bs_data *data)
 		}
 
 	} else if (current_token.type == SEMICOLON) {
-		return COMP_OK;
+		return COMP_ERR_SA;
 	} else if (current_token.type == COMMENT) {
 		return rule_statement_list(data);
 	} else if (current_token.type == PROLOG_END) {
