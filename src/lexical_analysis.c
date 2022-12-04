@@ -742,7 +742,7 @@ struct lexeme getToken()
         if(currentState == FUN_ID_STATE || currentState == VAR_STATE || currentState == INT_LIT_STATE
             || currentState == INT_LIT_DOT || currentState == DEC_LIT_TMP || currentState == STR_LIT_STATE ||
             currentState == STR_LIT_ESCAPE){
-            if (input != '\"') {
+            if (input != '\"' || (len > 0 && buffer[len - 1] == '\\')) {
                 buffer[len] = input;
                 len++;
             }

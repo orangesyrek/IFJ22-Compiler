@@ -128,6 +128,13 @@ void convertCharToEsc(char character, char* converted, int* position){
       converted[*position+3] = '2';
       *position+=4;
       break;
+    case '\"':
+      converted[*position] = '\\';
+      converted[*position+1] = '0';
+      converted[*position+2] = '3';
+      converted[*position+3] = '4';
+      *position+=4;
+      break;
     default:
       converted[*position] = character;
       *position+=1;
@@ -136,13 +143,20 @@ void convertCharToEsc(char character, char* converted, int* position){
 }
 
 char* convertString(char* nonConvertedstr){
-  char* converted =(char*) calloc(1, 512);
-  if(nonConvertedstr != NULL){
-    int index = 0;
-    char character = nonConvertedstr[index];
-    int position = 0;
+  char* converted;
+  int index = 0;
+  char character;
+  int position = 0;
+
+  converted = calloc(1, 512);
+  if (!converted) {
+    return NULL;
+  }
+
+  if(nonConvertedstr){
+    character = nonConvertedstr[index];
     while(character != '\0'){
-      if( (character <= 32) || (character == 35) ){
+      if((character <= 32) || (character == 35)) {
         converted[position] = '\\';
         converted[position+1] = '0';
         converted[position+2] = (character / 10) + 48;
@@ -152,7 +166,6 @@ char* convertString(char* nonConvertedstr){
       } else if (character == '\\') {
         character = nonConvertedstr[++index];
         convertCharToEsc(character, converted, &position);
-
       } else{
         converted[position] = character;
         position++;
@@ -2281,19 +2294,6 @@ generate_function_def()
     return COMP_ERR_INTERNAL;
   }
 
-  if (realloc_function_def_str(generator.local_str_var)) {
-    return COMP_ERR_INTERNAL;
-  }
-
-  if (realloc_function_def_str(generator.local_str)) {
-    return COMP_ERR_INTERNAL;
-  }
-
-  free(generator.local_str_var);
-  generator.local_str_var = NULL;
-  free(generator.local_str);
-  generator.local_str = NULL;
-
   return COMP_OK;
 }
 
@@ -2341,11 +2341,12 @@ int
 return_type_check(type return_type)
 {
   char *ptr;
+  static int ret_cnt = 0;
 
   if (asprintf(&ptr, "TYPE GF@type1 GF@ret\n") == -1) {
     return COMP_ERR_INTERNAL;
   }
-  if (realloc_function_def_str(ptr)) {
+  if (realloc_local_str(ptr)) {
     return COMP_ERR_INTERNAL;
   }
 
@@ -2354,9 +2355,124 @@ return_type_check(type return_type)
     if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@int GF@type1\n") == -1) {
       return COMP_ERR_INTERNAL;
     }
-    if (realloc_function_def_str(ptr)) {
+    if (realloc_local_str(ptr)) {
       return COMP_ERR_INTERNAL;
     }
+    break;
+    case FLOAT:
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@float GF@type1\n") == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    break;
+    case STRING:
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@string GF@type1\n") == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    break;
+    case QSTRING:
+    if (asprintf(&ptr, "JUMPIFNEQ $!str_null_%d string@string GF@type1\n", ret_cnt) == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (asprintf(&ptr, "JUMP $!ret_end_%d\n", ret_cnt) == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (asprintf(&ptr, "LABEL $!str_null_%d\n", ret_cnt) == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@type1\n") == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (asprintf(&ptr, "LABEL $!ret_end_%d\n", ret_cnt) == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    ret_cnt++;
+    break;
+    case QINT:
+    if (asprintf(&ptr, "JUMPIFNEQ $!int_null_%d string@int GF@type1\n", ret_cnt) == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (asprintf(&ptr, "JUMP $!ret_end_%d\n", ret_cnt) == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (asprintf(&ptr, "LABEL $!int_null_%d\n", ret_cnt) == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@type1\n") == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (asprintf(&ptr, "LABEL $!ret_end_%d\n", ret_cnt) == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    ret_cnt++;
+    break;
+    case QFLOAT:
+    if (asprintf(&ptr, "JUMPIFNEQ $!flt_null_%d string@float GF@type1\n", ret_cnt) == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (asprintf(&ptr, "JUMP $!ret_end_%d\n", ret_cnt) == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (asprintf(&ptr, "LABEL $!flt_null_%d\n", ret_cnt) == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (asprintf(&ptr, "JUMPIFNEQ $!exit4 string@nil GF@type1\n") == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (asprintf(&ptr, "LABEL $!ret_end_%d\n", ret_cnt) == -1) {
+      return COMP_ERR_INTERNAL;
+    }
+    if (realloc_local_str(ptr)) {
+      return COMP_ERR_INTERNAL;
+    }
+    ret_cnt++;
     break;
   default:
     break;
@@ -2374,7 +2490,7 @@ defvar_local(const char *var_name)
     return COMP_ERR_INTERNAL;
   }
 
-  if (!generator.local_str_var || !strstr(generator.local_str_var, ptr)) {
+  if (!generator.local_str_var || !strstr(generator.local_str_var, ptr) || !strstr(generator.local_str_var, ptr)) {
     if (realloc_local_str_var(ptr)) {
       return COMP_ERR_INTERNAL;
     }
