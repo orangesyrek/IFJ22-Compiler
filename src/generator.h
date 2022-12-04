@@ -30,6 +30,7 @@ struct params {
 
 struct generator {
 	char *global_str;
+	char *global_str_var;
 	char *local_str_var;
 	char *local_str;
 	char *function_def_str;
@@ -113,6 +114,8 @@ char* convertString(char* nonConvertedstr);
 void convertCharToEsc(char character, char* converted, int* position);
 
 int realloc_global_str(const char *str);
+
+int realloc_global_str_var(const char *str);
 
 int realloc_local_str(const char *str);
 
