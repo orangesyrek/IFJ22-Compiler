@@ -1,3 +1,11 @@
+/*
+ * FIT VUT 2022 - IFJ Project
+ * Implementation of a compiler for an imperative language IFJ22
+ *
+ * File: stack.h
+ * Author(s): xpauli08
+ */
+
 #ifndef STACK_H
 #define STACK_H
 

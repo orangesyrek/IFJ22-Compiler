@@ -1,10 +1,18 @@
+/*
+ * FIT VUT 2022 - IFJ Project
+ * Implementation of a compiler for an imperative language IFJ22
+ *
+ * File: expression.c
+ * Author(s): xpauli08
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "stack.h"
 #include "expression.h"
-#include "symtab.h"
 #include "generator.h"
+#include "stack.h"
+#include "symtab.h"
 
 extern int top;
 extern expression_symbols stack[MAX_STACK_SIZE];

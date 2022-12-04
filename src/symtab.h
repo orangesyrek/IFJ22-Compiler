@@ -1,11 +1,13 @@
+/*
+ * FIT VUT 2022 - IFJ Project
+ * Implementation of a compiler for an imperative language IFJ22
+ *
+ * File: symtab.h
+ * Author(s): xvalik04
+ */
+
 #ifndef TREE_H
 #define TREE_H
-
-
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
 /*Types of variables */
 typedef enum{
@@ -86,15 +88,26 @@ Inicialization of data
 
 int dataInit(struct bs_data **data);
 
+/*
+ Prints the tree
+ @param t BST pointer
+ */
 void printTree(struct bs_tree *t);
 
 /**
- * Insert builtin functions
-*/
+ * @brief Insert built-in functions into a tree.
+ *
+ * @param tree Pointer to the tree.
+ * @return 0 on success, non-zero otherwise.
+ */
 int insert_builtin_functions(struct bs_tree **tree);
 
 /**
- * Reallocate parameters array
+ * @brief Reallocate the function's parameters array.
+ *
+ * @param params Pointer to the array.
+ * @param param_count Parameter count.
+ * @return The reallocated array on success, NULL on failure.
  */
 type * realloc_func_params(type *params, int param_count);
 

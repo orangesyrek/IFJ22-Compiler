@@ -1,3 +1,11 @@
+/*
+ * FIT VUT 2022 - IFJ Project
+ * Implementation of a compiler for an imperative language IFJ22
+ *
+ * File: generator.h
+ * Author(s): xvalik04, xjanot04
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -5,6 +13,9 @@
 #include "symtab.h"
 #include "lexical_analysis.h"
 
+/**
+ * @brief Stores function call parameters information
+ */
 struct params {
 	int is_constant;
 	union {
@@ -19,6 +30,7 @@ struct params {
 
 struct generator {
 	char *global_str;
+	char *global_str_var;
 	char *local_str_var;
 	char *local_str;
 	char *function_def_str;
@@ -34,7 +46,7 @@ struct generator {
 	int inFuntion;
 	char *function_name;		/**< function call/definition name */
 	int param_count;			/**< function call/definition parameter count */
-	struct params params[10];	/**< function call parameters data */
+	struct params params[100];	/**< function call parameters data */
 	char *param_names[100];	/**< names of function definition parameters */
 	type param_types[100];	/**< types of function definition parameters */
 };
@@ -104,6 +116,8 @@ void convertCharToEsc(char character, char* converted, int* position);
 
 int realloc_global_str(const char *str);
 
+int realloc_global_str_var(const char *str);
+
 int realloc_local_str(const char *str);
 
 int realloc_local_str_var(const char *str);
@@ -127,18 +141,52 @@ int generatorFunChr();
 int generatorFunSubstring();
 
 int generateBuiltInFunc(char* funName);
-//for this maybe use new file string .h / string.c
 
+/**
+ * @brief Generate exit labels and jump to the end in the global scope.
+ *
+ * @return 0 on success, non-zero otherwise.
+ */
 int generator_finish();
 
+/**
+ * @brief Resets the generator structure parameter count.
+*/
 void generator_reset();
 
+/**
+ * @brief Generate function header.
+ *
+ * @return 0 on success, non-zero otherwise.
+ */
 int generate_function_def();
 
+/**
+ * @brief Concatenate function header and body.
+ *
+ * @return 0 on success, non-zero otherwise.
+ */
 int generator_function_def_end();
 
+/**
+ * @brief Generate functions return statement.
+ *
+ * @return 0 on success, non-zero otherwise.
+ */
 int generate_function_return();
 
+/**
+ * @brief Generate return type checking.
+ *
+ * @param[in] return_type Expected return type.
+ * @return 0 on success, non-zero otherwise.
+ */
 int return_type_check(type return_type);
 
+/**
+ * @brief Generate a local variable.
+ *
+ * @param[in] var_name Variable name
+ * @return 0 on success, non-zero otherwise.
+ */
 int defvar_local(const char *var_name);

@@ -1,6 +1,16 @@
+/*
+ * FIT VUT 2022 - IFJ Project
+ * Implementation of a compiler for an imperative language IFJ22
+ *
+ * File: symtab.c
+ * Author(s): xvalik04, xjanot04
+ */
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "symtab.h"
-
-
 
 void symtabInit(struct bs_tree **t){
     if(*t != NULL){

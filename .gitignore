@@ -1,6 +1,9 @@
 build/
 tests/temp_out
+<<<<<<< HEAD
 tests/tests/*
+=======
+>>>>>>> roman
 tests/ex1.php
 tests/ex2.php
 tests/ex3.php
