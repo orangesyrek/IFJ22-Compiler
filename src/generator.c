@@ -1439,6 +1439,49 @@ int generatorIfLess(){
 int generatorIfGreater(){
 
   char* ptr;
+
+  if (strstr(generator.runtimeCallStr, "$relationConversion") == NULL){
+    if (relationConversion()) return COMP_ERR_INTERNAL;
+
+  }
+
+  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+  if (asprintf(&ptr, "CALL $relationConversion\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+
+  if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+
   if (asprintf(&ptr, "GTS\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
@@ -1459,6 +1502,49 @@ int generatorIfGreater(){
 int generatorIfEqualsGreater(){
 
   char* ptr;
+
+  if (strstr(generator.runtimeCallStr, "$relationConversion") == NULL){
+    if (relationConversion()) return COMP_ERR_INTERNAL;
+
+  }
+
+  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+  if (asprintf(&ptr, "CALL $relationConversion\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+
+  if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+
   if (asprintf(&ptr, "LTS\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
@@ -1486,6 +1572,50 @@ int generatorIfEqualsGreater(){
 
 int generatorIfEqualsLess(){
   char* ptr;
+
+
+  if (strstr(generator.runtimeCallStr, "$relationConversion") == NULL){
+    if (relationConversion()) return COMP_ERR_INTERNAL;
+
+  }
+
+  if (asprintf(&ptr, "POPS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+  if (asprintf(&ptr, "POPS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+  if (asprintf(&ptr, "CALL $relationConversion\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+  if (asprintf(&ptr, "PUSHS GF@tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+
+  if (asprintf(&ptr, "PUSHS GF@tmp2\n") == -1) return COMP_ERR_INTERNAL;
+  if (generator.inFuntion) {
+    if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
+  } else {
+    if (realloc_global_str(ptr)) return COMP_ERR_INTERNAL;
+  }
+
+
   if (asprintf(&ptr, "GTS\n") == -1) return COMP_ERR_INTERNAL;
   if (generator.inFuntion) {
     if (realloc_local_str(ptr)) return COMP_ERR_INTERNAL;
