@@ -36,14 +36,11 @@ stack_push(expression_symbols symbol, lex_types type, struct lexeme token)
   top += 1;
   stack[top] = new_item;
   return 0;
-
-  printf(" %d", top);
 }
 
 int
 stack_push_after_top_terminal(expression_symbols symbol, lex_types type, struct lexeme token)
 {
-  //printf("stack_push_after_top_terminal() start\n");
   if (stack_is_full())
   {
     return 1;
@@ -54,28 +51,19 @@ stack_push_after_top_terminal(expression_symbols symbol, lex_types type, struct 
   new_item.type = type;
   new_item.token = token;
 
+  // Get the position where the item should be placed
   int pos = stack_top_terminal_pos() + 1;
   int insert_pos = pos;
   top += 1;
 
-  //printf("pos: %d\n", pos);
-  //printf("insert_pos: %d\n", pos);
-  //printf("top: %d\n", top);
-
+  // Move all items to make space for the new stack item
   while (pos != top)
   {
-    //printf("while start\n");
-
     stack[pos+1] = stack[pos];
     pos++;
-
-    //printf("pos: %d\n", pos);
-    //printf("while end\n");
   }
 
-  //printf("insert_pos: %d\n", pos);
   stack[insert_pos] = new_item;
-  //printf("stack_push_after_top_terminal() end\n");
   return 0;
 }
 
@@ -125,7 +113,7 @@ stack_top_terminal()
 {
 
   for (int i = top; i != -1; i--) {
-
+    
     if(stack_get(i).symbol != E_NON_TERM && stack_get(i).symbol != R && stack_get(i).symbol != S && stack_get(i).symbol != E && stack_get(i).symbol != X)
     {
       stack_item terminal = stack_get(i);

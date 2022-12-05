@@ -423,7 +423,6 @@ test_semantics (rules rule, stack_item one, stack_item two, stack_item three, le
 	{
 		// E -> i
 		case E_TO_I:
-			//generator.isIf = 0;
 			if (generatorExpression(one.token)) return COMP_ERR_INTERNAL;
 			break;
 
@@ -433,7 +432,6 @@ test_semantics (rules rule, stack_item one, stack_item two, stack_item three, le
 
 		// E -> E + E
 		case E_PLUS_E:
-			//generator.isIf = 0;
 			generatorExprPlus();
 			break;
 
@@ -445,60 +443,51 @@ test_semantics (rules rule, stack_item one, stack_item two, stack_item three, le
 
 		// E -> E * E
 		case E_MUL_E:
-			//generator.isIf = 0;
 			generatorExprMul();
 			break;
 
 		// E -> E . E
 		case E_CON_E:
-			//generator.isIf = 0;
 			generatorExprConcat();
 			break;
 
 		// E -> E / E
 		case E_DIV_E:
-			//generator.isIf = 0;
 			generatorExprDiv();
 			break;
 
 		// E -> E < E
 		case E_LT_E:
 			generator.isOneSizedExpr = 0;
-			//generator.isIf = 1;
 			generatorIfLess();
 			break;
 
 		// E -> E > E
 		case E_GT_E:
 			generator.isOneSizedExpr = 0;
-			//generator.isIf = 1;
 			generatorIfGreater();
 			break;
 
 		// E -> E <= E
 		case E_LEQ_E:
 			generator.isOneSizedExpr = 0;
-			//generator.isIf = 1;
 			generatorIfEqualsLess();
 			break;
 
 		// E -> E >= E
 		case E_GEQ_E:
-			//generator.isIf = 1;
 			generator.isOneSizedExpr = 0;
 			generatorIfEqualsGreater();
 			break;
 
 		// E -> E === E
 		case E_EQ_E:
-			//generator.isIf = 1;
 			generator.isOneSizedExpr = 0;
 			generatorIfEquals();
 			break;
 
 		// E -> E !== E
 		case E_NEQ_E:
-			//generator.isIf = 1;
 			generator.isOneSizedExpr = 0;
 			generatorIfNotEquals();
 			break;
