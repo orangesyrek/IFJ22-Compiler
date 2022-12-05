@@ -716,7 +716,13 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
         case R_PAR_STATE:
             return ERROR_STATE;
         case PROLOG_END_STATE:
-            return ERROR_STATE;
+            if(input == EOF){ /* after ?> must be EOF */
+                return ERROR_STATE;
+            } else {
+                ERR_PRINT("PROLOG_END_STATE ERROR");
+                exit(COMP_ERR_LA);
+            }
+            
         case REL_IDENTICAL_STATE:
             return ERROR_STATE;
         case REL_NEQ_STATE:
