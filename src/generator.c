@@ -1434,8 +1434,8 @@ int relationConversion(){
       if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
       //first is not nil
-      if (asprintf(&ptr, "LABEL $relCon2\n") == -1) return COMP_ERR_INTERNAL;
-      if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+        if (asprintf(&ptr, "LABEL $relCon2\n") == -1) return COMP_ERR_INTERNAL;
+        if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
       //it can be {string-nebude testovano}  number {bool - neni na foru zmineno}
       // takze z odpovedi na foru to muze byt jenom cislo => prevod na float u obou
