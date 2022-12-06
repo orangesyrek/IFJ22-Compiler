@@ -52,29 +52,6 @@ void generatorInit(){
   if (asprintf(&ptr, "DEFVAR GF@!ret\n") == -1) exit(COMP_ERR_INTERNAL);
   if (realloc_global_str_var(ptr)) exit(COMP_ERR_INTERNAL);
 
-
-
-  // if (generatorFunReads()) {
-  //   exit(COMP_ERR_INTERNAL);
-  // }
-  // if (generatorFunReadi()) {
-  //   exit(COMP_ERR_INTERNAL);
-  // }
-  // if (generatorFunReadf()) {
-  //   exit(COMP_ERR_INTERNAL);
-  // }
-  // if (generatorFunOrd()) {
-  //   exit(COMP_ERR_INTERNAL);
-  // }
-  // if (generatorFunChr()) {
-  //   exit(COMP_ERR_INTERNAL);
-  // }
-  // if (generatorFunStrLen()) {
-  //   exit(COMP_ERR_INTERNAL);
-  // }
-  // if (generatorFunSubstring()) {
-  //   exit(COMP_ERR_INTERNAL);
-  // }
 }
 
 void convertCharToEsc(char character, char* converted, int* position){
@@ -335,22 +312,7 @@ int generatorAssigment(const char* var_name){
 
 }
 
-//for non-builtin functions creating frame id etc
-char* generatorCalculateId(){
-char idstr[1024]; // need some dynamic string or strdup
-sprintf(idstr, "%lu", id);
-char *name = strcat("p", idstr); // id ++
-return name;
-}
 
-//now only for strings, then need to rebuilt to take float, int, bool null
-//only for non-builtin functions
-void generatorPushParamStringNonB(char *str){
-  char *name = generatorCalculateId();
-  printf("DEFVAR TF@%s\n", name);
-  printf("MOVE TF%s string@%s\n", name, str);//need some fun to convert white spaces to ascii chars
-
-}
 
 //before pushing need to convert them to string
 //pushing and popping will reverse the order of strings -- idea maybe use own stack to change order back
