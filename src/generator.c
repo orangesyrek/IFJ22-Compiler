@@ -15,9 +15,8 @@ struct generator generator = {0};
 
 /*
 Todo
-NEED TO SOLVE DEFVAR INSIDE WHILELOOP
-typecasting other builtin functions
 
+comment
 
 */
 
@@ -480,8 +479,22 @@ int generatorCall(){
       if (generatorFunSubstring()) return COMP_ERR_INTERNAL;
     }
     return 0;
+  }else if(!strcmp("floatval", generator.function_name)){
+    if (strstr(generator.runtimeCallStr, "LABEL floatval") == NULL){
+      if (floatval()) return COMP_ERR_INTERNAL;
+    }
+    return 0;
+  }else if(!strcmp("intval", generator.function_name)){
+    if (strstr(generator.runtimeCallStr, "LABEL intval") == NULL){
+      if (intval()) return COMP_ERR_INTERNAL;
+    }
+    return 0;
+  }else if(!strcmp("strval", generator.function_name)){
+    if (strstr(generator.runtimeCallStr, "LABEL strval") == NULL){
+      if (strval()) return COMP_ERR_INTERNAL;
+    }
+    return 0;
   }
-
   return 0;
 }
 
@@ -744,22 +757,48 @@ int plusMinMulConversion(){
 
 
 
+  if (asprintf(&ptr, "JUMPIFNEQ $plusMinMulNilNotlFirst GF@!type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "MOVE GF@!tmp1 int@0\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+  if (asprintf(&ptr, "MOVE GF@!type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $plusMinMulNilNotlFirst\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFNEQ $plusMinMulNilNotlSec GF@!type2 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+
+  if (asprintf(&ptr, "MOVE GF@!tmp2 int@0\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "MOVE GF@!type2 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $plusMinMulNilNotlSec\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+
+
   if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@string\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@bool\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
-
   if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type2 string@string\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
   if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type2 string@bool\n") == -1) return COMP_ERR_INTERNAL;
-  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
-
-  if (asprintf(&ptr, "JUMPIFEQ $!exit7 GF@!type2 string@nil\n") == -1) return COMP_ERR_INTERNAL;
   if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
 
 //error when string bool null come
@@ -2170,6 +2209,132 @@ int generatorFunChr(){
   return 0;
 }
 
+int strval(){
+char* ptr;
+  if (asprintf(&ptr, "LABEL strval\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "POPS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "MOVE GF@!ret GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "TYPE GF@!type1 GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $strval_end GF@!type1 string@string\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "MOVE GF@!ret string@\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $strval_end\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+  return 0;
+}
+
+
+
+int floatval(){
+char* ptr;
+  if (asprintf(&ptr, "LABEL floatval\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "POPS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "MOVE GF@!ret GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "TYPE GF@!type1 GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $fltval_end GF@!type1 string@float\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "JUMPIFNEQ $fltval_not_nil GF@!type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  //it is nil
+  if (asprintf(&ptr, "MOVE GF@!ret float@0x0p+0\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMP $fltval_end\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $fltval_not_nil\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+//it can be only int now
+
+  if (asprintf(&ptr, "INT2FLOAT GF@!ret GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $fltval_end\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+  return 0;
+}
+
+
+int intval(){
+
+char* ptr;
+  if (asprintf(&ptr, "LABEL intval\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "POPS GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "MOVE GF@!ret GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "TYPE GF@!type1 GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMPIFEQ $intvl_end GF@!type1 string@int\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "JUMPIFNEQ $intvl_not_nil GF@!type1 string@nil\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  //it is nil
+  if (asprintf(&ptr, "MOVE GF@!ret int@0\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+  if (asprintf(&ptr, "JUMP $intvl_end\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $intvl_not_nil\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+//it can be only float
+
+  if (asprintf(&ptr, "FLOAT2INT GF@!ret GF@!tmp1\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "LABEL $intvl_end\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+
+
+  if (asprintf(&ptr, "RETURN\n") == -1) return COMP_ERR_INTERNAL;
+  if (realloc_runtimeCallStr(ptr)) return COMP_ERR_INTERNAL;
+  return 0;
+}
 
 
 
@@ -2787,6 +2952,7 @@ return_type_check(type return_type)
   default:
     break;
   }
+
 
   return COMP_OK;
 }

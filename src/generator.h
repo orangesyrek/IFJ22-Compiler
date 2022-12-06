@@ -87,8 +87,10 @@ int exprConversion();
 
 void generatorInit();
 
-
-
+//returns a float value of a term
+int floatval();
+int intval();
+int strval();
 int generatorCall();
 //need to know how many params we have, what types are there, what is the return value
 void generatorPrepare(struct bs_data *data);
