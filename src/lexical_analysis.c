@@ -261,11 +261,11 @@ lex_types makeLexeme(state final) /* where lexemes are generated, can generate o
 static
 state getNextState(state currentState, int input) {  /* decide what is next state based on input and current state */
     switch(currentState) {
-        case ERROR_STATE:
+        case ERROR_STATE: 
             fprintf(stderr, "Should have generated token by now\n");
             return ERROR_STATE;
         case Start:
-            if (isspace(input)){
+            if (isspace(input)){ 
                 return Start;
             }
             else if (input == '/'){
@@ -343,7 +343,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             }
             else if (input == '/'){
                 return ONE_LINE_COMMENT;
-            } else {
+            } else { /* generate token */
                 return ERROR_STATE;
             }
         case MULTI_LINE_COMMENT:
@@ -357,7 +357,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             else if (input != '*'){
                 return MULTI_LINE_COMMENT;
             }
-            else {
+            else { /* generate token */
                 return ERROR_STATE;
             }
         case ONE_LINE_COMMENT:
@@ -514,7 +514,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 exit(COMP_ERR_LA);
             }
         case QUESTION_MARK_s_t_r_i_n_g:
-            return ERROR_STATE;
+            return ERROR_STATE; /* generate token */
         case QUESTION_MARK_f:
             if(input == 'l'){
                 return QUESTION_MARK_f_l;
@@ -548,7 +548,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 exit(COMP_ERR_LA);
             }
         case QUESTION_MARK_f_l_o_a_t:
-            return ERROR_STATE;
+            return ERROR_STATE;/* generate token */
         case QUESTION_MARK_i:
             if(input == 'n'){
                 return QUESTION_MARK_i_n;
@@ -566,7 +566,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 exit(COMP_ERR_LA);
             }
         case QUESTION_MARK_i_n_t:
-            return ERROR_STATE;
+            return ERROR_STATE; /* generate token */
         case FUN_ID_STATE:
             if (isalpha(input) || input == '_' || isdigit(input)){
                 return FUN_ID_STATE;
@@ -587,24 +587,17 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 return ERROR_STATE;
             }
         case INT_LIT_E:
-            if (input == '+' || input == '-'){
-                return INT_LIT_E_SIGN;
-            } else {
-                ERR_PRINT("INT_LIT_E ERROR");
-                exit(COMP_ERR_LA);
-            }
-        case INT_LIT_E_SIGN:
-            if (isdigit(input)){
+            if (input == '+' || input == '-' || isdigit(input)){
                 return DEC_LIT_E_TMP;
             } else {
-                ERR_PRINT("INT_LIT_E_SIGN ERROR");
+                ERR_PRINT("INT_LIT_E ERROR");
                 exit(COMP_ERR_LA);
             }
         case DEC_LIT_E_TMP:
             if (isdigit(input)){
                 return DEC_LIT_E_TMP;
             }
-            else if (input == ')' || input == ';' || input == '=' || input == '<' ||
+            else if (input == ')' || input == ';' || input == '=' || input == '<' || 
                      input == '>' || input == '+' || input == '-' || input == '*' ||
                      input == '/' || input == ',' || input == '!' || isspace(input)){
                          return ERROR_STATE;
@@ -691,6 +684,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
                 ERR_PRINT("EXCLAMATION_MARK_EQUAL ERROR");
                 exit(COMP_ERR_LA);
             }
+        /* generate tokens */
         case COMMENT_END:
             return ERROR_STATE;
         case SEMICOLON_STATE:
@@ -722,7 +716,13 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
         case R_PAR_STATE:
             return ERROR_STATE;
         case PROLOG_END_STATE:
-            return ERROR_STATE;
+            if(input == EOF){ /* after ?> must be EOF */
+                return ERROR_STATE;
+            } else {
+                ERR_PRINT("PROLOG_END_STATE ERROR");
+                exit(COMP_ERR_LA);
+            }
+            
         case REL_IDENTICAL_STATE:
             return ERROR_STATE;
         case REL_NEQ_STATE:
@@ -742,7 +742,7 @@ struct lexeme getToken()
     char buffer[256] = {0};
     int len = 0;
 
-    while (currentState != ERROR_STATE){
+    while (currentState != ERROR_STATE){ //get next state until we can generate token
         input = getchar();
         previousState = currentState;
         currentState = getNextState(currentState, input);
@@ -755,6 +755,7 @@ struct lexeme getToken()
                 len++;
             }
         }
+        //if we read ?int/?float/?string copy to buffer so we can generate KEYWORD in function funIdToKeyword
         if(currentState == QUESTION_MARK_i_n_t){
             strcpy(buffer, "?int");
         }
