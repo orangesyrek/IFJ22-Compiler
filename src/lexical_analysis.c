@@ -261,11 +261,11 @@ lex_types makeLexeme(state final) /* where lexemes are generated, can generate o
 static
 state getNextState(state currentState, int input) {  /* decide what is next state based on input and current state */
     switch(currentState) {
-        case ERROR_STATE: 
+        case ERROR_STATE:
             fprintf(stderr, "Should have generated token by now\n");
             return ERROR_STATE;
         case Start:
-            if (isspace(input)){ 
+            if (isspace(input)){
                 return Start;
             }
             else if (input == '/'){
@@ -597,7 +597,7 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
             if (isdigit(input)){
                 return DEC_LIT_E_TMP;
             }
-            else if (input == ')' || input == ';' || input == '=' || input == '<' || 
+            else if (input == ')' || input == ';' || input == '=' || input == '<' ||
                      input == '>' || input == '+' || input == '-' || input == '*' ||
                      input == '/' || input == ',' || input == '!' || isspace(input)){
                          return ERROR_STATE;
@@ -716,13 +716,13 @@ state getNextState(state currentState, int input) {  /* decide what is next stat
         case R_PAR_STATE:
             return ERROR_STATE;
         case PROLOG_END_STATE:
-            if(input == EOF){ /* after ?> must be EOF */
+            if(input == EOF || input == '\n' || input == '\r'){ /* after ?> must be EOF */
                 return ERROR_STATE;
             } else {
                 ERR_PRINT("PROLOG_END_STATE ERROR");
                 exit(COMP_ERR_LA);
             }
-            
+
         case REL_IDENTICAL_STATE:
             return ERROR_STATE;
         case REL_NEQ_STATE:
