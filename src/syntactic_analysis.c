@@ -838,6 +838,7 @@ rule_if_statement(struct bs_data *data)
 {
 	int ret = COMP_OK;
 	struct lexeme current_token;
+	generator.isIf = 1;
 
 	current_token = getToken();
 	if (current_token.type != L_PAR) {
@@ -856,6 +857,7 @@ rule_if_statement(struct bs_data *data)
 	} else if (ret == COMP_ERR_SA) {
 		goto cleanup;
 	}
+	generator.isIf = 0;
 
 	current_token = getToken();
 	if (current_token.type != L_CURLY) {
@@ -894,7 +896,6 @@ rule_if_statement(struct bs_data *data)
 	}
 
 	generatorIfEnd();
-
 	return COMP_OK;
 cleanup:
 	ERR_PRINT("Syntax error in if statement.");
@@ -1021,7 +1022,7 @@ rule_while_statement(struct bs_data *data)
 {
 	int ret = COMP_OK;
 	struct lexeme current_token;
-
+	generator.isIf = 1;
 
 	generatorWhileStart();
 	current_token = getToken();
@@ -1041,6 +1042,7 @@ rule_while_statement(struct bs_data *data)
 	} else if (ret == COMP_ERR_SA) {
 		goto cleanup;
 	}
+	generator.isIf = 0;
 
 	current_token = getToken();
 	if (current_token.type != L_CURLY) {
@@ -1057,7 +1059,6 @@ rule_while_statement(struct bs_data *data)
 		goto cleanup;
 	}
 	generatorWhileEnd();
-
 	return COMP_OK;
 
 cleanup:

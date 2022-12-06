@@ -43,6 +43,7 @@ struct generator {
 	int whileCountMax; /** Maximal count of nested while's*/
 
 	int isIf;
+	int isOneSizedExpr;
 	int inFuntion;
 	char *function_name;		/**< function call/definition name */
 	int param_count;			/**< function call/definition parameter count */
@@ -82,11 +83,14 @@ int concatConversion();
 int plusMinMulConversion();
 
 int equalsConversion();
+int exprConversion();
 
 void generatorInit();
 
-
-
+//returns a float value of a term
+int floatval();
+int intval();
+int strval();
 int generatorCall();
 //need to know how many params we have, what types are there, what is the return value
 void generatorPrepare(struct bs_data *data);

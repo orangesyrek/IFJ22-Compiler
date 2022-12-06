@@ -1,10 +1,9 @@
 <?php
 declare(strict_types=1);
-
-//type conversion < >
-$x = null;
-$y = "";
-
-if($x <= $y){
-  write("good");
-}else{}
+$in = readf();
+$f = intval($in);
+if($f === 3) {
+    write("GOOD\n");
+} else {
+    write("BAD\n");
+}
