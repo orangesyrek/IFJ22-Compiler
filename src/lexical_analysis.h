@@ -85,7 +85,6 @@ typedef enum {
     INT_LIT_E, /* 0-9e/E */
     DEC_LIT_TMP, /* 0-9.0-9 */
     INT_LIT_E_SIGN, /* 0-9eE+- */
-    //DECIMAL_LIT_STATE, /* );=<>+-*,/!<ws+> */
     DEC_LIT_E_TMP, /* 0-9eE+-0-9 */
     STR_LIT_BEGIN, /* "abcd */
     STR_LIT_STATE, /* "abcd" */
@@ -119,21 +118,26 @@ typedef enum {
 } state;
 
 struct lexeme {
-    lex_types type;
-    char *id;
+    lex_types type; /**< type of token */
+    char *id;       /**< token's identificator if it has any */
 
-    union {
+    union {         /**< token's value based on it's type */
         int int_val;
         double flt_val;
         char *str_val;
     } value;
-    unsigned int symtab_index;
 };
 
 
 
 void printToken(struct lexeme lex); /*Help function to print what lexeme's we have*/
 void print_ctx();
+
+/**
+ * @brief Gets the next token from the input and set it's type and data based on an automata.
+ *
+ * @return A token.
+ */
 struct lexeme getToken();
 
 #endif
